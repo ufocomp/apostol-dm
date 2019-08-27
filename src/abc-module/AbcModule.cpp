@@ -2,15 +2,15 @@
 
 Programm name:
 
-  abc
+  abc-module
 
 Module Name:
 
-  Abc.hpp
+  AbcModule.cpp
 
 Notices:
 
-  Apostol Bitcoin
+  Apostol Bitcoin Module
 
 Author:
 
@@ -21,7 +21,7 @@ Author:
 
 --*/
 
-#include "Abm.hpp"
+#include "AbcModule.hpp"
 //----------------------------------------------------------------------------------------------------------------------
 
 #define exit_failure(msg) {                                 \

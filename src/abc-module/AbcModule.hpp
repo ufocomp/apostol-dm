@@ -2,15 +2,15 @@
 
 Programm name:
 
-  abc
+  abc-module
 
 Module Name:
 
-  Abc.hpp
+  AbcModule.hpp
 
 Notices:
 
-  Apostol Bitcoin
+  Apostol Bitcoin Module
 
 Author:
 

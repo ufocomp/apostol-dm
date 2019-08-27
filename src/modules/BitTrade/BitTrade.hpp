@@ -21,6 +21,8 @@ Author:
 
 --*/
 
+#include <curl/curl.h>
+
 #ifndef APOSTOL_BITTRADE_HPP
 #define APOSTOL_BITTRADE_HPP
 //----------------------------------------------------------------------------------------------------------------------
@@ -63,6 +65,16 @@ namespace Apostol {
 
             CString m_AllowedMethods;
 
+            CURL* m_curl;
+
+            typedef struct CConfig {
+                CString Host;
+                CString Secret;
+                CString Public;
+            } CConfig;
+
+            CConfig m_Config;
+
             void DoOptions(CHTTPServerConnection *AConnection);
             void DoGet(CHTTPServerConnection *AConnection);
             void DoPost(CHTTPServerConnection *AConnection);
@@ -71,11 +83,21 @@ namespace Apostol {
 
         protected:
 
+            static size_t curl_cb(void *content, size_t size, size_t nmemb, CString *buffer);
+            void curl_api(CString &url, CString &result_json);
+            void curl_api_with_header(const CString &url, const CString &str_result,
+                                      const CStringList &extra_http_header, const CString &post_data, const CString &action);
+
             void InitHeaders();
+
+            void LoadConfig();
 
             const CString& GetAllowedMethods();
 
             void ExceptionToJson(Delphi::Exception::Exception *AException, CString& Json);
+
+            void UserPost(CHTTPServerConnection *AConnection);
+            void UserGet(CHTTPServerConnection *AConnection);
 
         public:
 

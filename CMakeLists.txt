@@ -8,7 +8,7 @@ add_compile_options("$<$<CONFIG:DEBUG>:-D_DEBUG>")
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
 
-set(PROJECT_NAME "abm")
+set(PROJECT_NAME "abc-module")
 set(PROJECT_DESCRIPTION "Apostol Bitcoin Module")
 
 message(STATUS "Project name: ${PROJECT_NAME}")
@@ -173,7 +173,7 @@ target_link_libraries(${CORE_LIB_NAME} ${DELPHI_LIB_NAME})
 # Apostol modules
 # ----------------------------------------------------------------------------------------------------------------------
 add_library(${MODULES_LIB_NAME} STATIC ${modules_files})
-target_link_libraries(${MODULES_LIB_NAME} ${CORE_LIB_NAME})
+target_link_libraries(${MODULES_LIB_NAME} ${CORE_LIB_NAME} curl)
 
 # Apostol Bitcoin Module
 # ----------------------------------------------------------------------------------------------------------------------
