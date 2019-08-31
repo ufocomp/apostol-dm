@@ -37,6 +37,7 @@ add_custom_target(
 # Delphi classes for C++
 # ----------------------------------------------------------------------------------------------------------------------
 add_compile_options("-DDELPHI_LIB_EXPORTS")
+add_compile_options(-DWWWServerName="${PROJECT_DESCRIPTION}")
 
 set(DELPHI_LIB_DIR "src/lib/delphi")
 
@@ -101,7 +102,7 @@ link_libraries(
 
 # Apostol-Bitcoin
 # ----------------------------------------------------------------------------------------------------------------------
-include_directories(src/lib/delphi src/${PROJECT_NAME} src/core src/modules)
+include_directories(src/${PROJECT_NAME} src/core src/modules)
 
 file(GLOB project_files version.h src/${PROJECT_NAME}/*.hpp src/${PROJECT_NAME}/*.cpp)
 file(GLOB core_files src/core/*.hpp src/core/*.cpp)
@@ -132,7 +133,6 @@ target_compile_definitions(${CORE_LIB_NAME} PUBLIC
         APP_ERROR_LOG_FILE="logs/error.log"
         APP_ACCESS_LOG_FILE="logs/access.log"
         APP_DOC_ROOT="www/"
-        WWWServerName="${PROJECT_DESCRIPTION}"
         )
 
 target_link_libraries(${CORE_LIB_NAME} pthread)
