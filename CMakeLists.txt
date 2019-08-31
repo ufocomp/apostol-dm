@@ -135,7 +135,7 @@ target_compile_definitions(${CORE_LIB_NAME} PUBLIC
         WWWServerName="${PROJECT_DESCRIPTION}"
         )
 
-#target_link_libraries(${CORE_LIB_NAME} pthread)
+target_link_libraries(${CORE_LIB_NAME} pthread)
 
 # Apostol modules
 # ----------------------------------------------------------------------------------------------------------------------
