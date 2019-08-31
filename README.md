@@ -1,5 +1,4 @@
-Apostol Bitcoin Module
-=
+# abc-module
 
 **Apostol Bitcoin Module** - Web модуль сервиса обработки **Bitcoin** платежей, исходные коды на C++.
 
