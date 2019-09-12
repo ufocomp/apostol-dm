@@ -25,6 +25,22 @@ Author:
 #include "Application.hpp"
 //----------------------------------------------------------------------------------------------------------------------
 
+#define ARS_TEMPLATE_MESSAGE "Hello, %s\n\n%s\n\n--\nThank you,\nPayments.net"
+#define ARS_MESSAGE_HELP "Send a message with the subject \"help\" to this address for more information."
+#define ARS_ERROR_SUBJECT "Invalid message subject. " ARS_MESSAGE_HELP
+#define ARS_ERROR_BODY "Message body must not be empty. " ARS_MESSAGE_HELP
+#define ARS_EXCEPTION_MESSAGE "Sorry, something went wrong and led to an error.\n\n%s"
+
+#define PGP_BEGIN_PUBLIC_KEY "BEGIN PGP PUBLIC KEY"
+#define PGP_END_PUBLIC_KEY "END PGP PUBLIC KEY"
+#define BM_PREFIX "BM-"
+#define HTTP_PREFIX "http"
+#define HTTP_PREFIX_SIZE 4
+
+#define ARS_DELETE_BTC_KEY  0x010u
+#define ARS_DELETE_PGP_KEY  0x020u
+#define ARS_DELETE_ACCOUNT  0x100u
+
 extern "C++" {
 
 namespace Apostol {
@@ -211,6 +227,13 @@ namespace Apostol {
 
             LogFile = Log()->AddLogFile(Config()->AccessLog().c_str(), 0);
             LogFile->LogType(ltAccess);
+
+#ifdef _DEBUG
+            const CString &Debug = Config()->LogFiles().Values(_T("debug"));
+            if (Debug.IsEmpty()) {
+                Log()->AddLogFile(Config()->ErrorLog().c_str(), APP_LOG_DEBUG);
+            }
+#endif
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -374,6 +397,7 @@ namespace Apostol {
 
             if (m_ProcessType != ptSignaller) {
                 CreateHTTPServer();
+                CreatePQServer();
             }
 
             if ( Config()->Daemon() ) {
@@ -384,7 +408,10 @@ namespace Apostol {
             }
 
             Start(CApplicationProcess::Create(this, m_ProcessType));
-
+#ifdef USE_POSTGRESQL
+            // Delete PQServer
+            SetPQServer(nullptr);
+#endif
             // Delete HTTPServer
             SetServer(nullptr);
 
@@ -487,6 +514,9 @@ namespace Apostol {
             auto LProcess = dynamic_cast<CApplicationProcess *> (AProcess);
 
             SetServer(LProcess->Server());
+#ifdef USE_POSTGRESQL
+            SetPQServer(LProcess->PQServer());
+#endif
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -507,7 +537,9 @@ namespace Apostol {
 
             LServer->ServerName() = m_pApplication->Title();
 
-            //LServer->PollStack(APollStack);
+            CSocketHandle* LBinding = LServer->Bindings()->Add();
+            LBinding->IP("127.0.0.1");
+
             LServer->PollStack()->TimeOut(Config()->TimeOut());
 
             LServer->OnExecute(std::bind(&CApplicationProcess::DoExecute, this, _1));
@@ -533,6 +565,37 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        void CApplicationProcess::CreatePQServer() {
+#ifdef USE_POSTGRESQL
+            CPQServer *LPQServer = nullptr;
+
+            LPQServer = new CPQServer(Config()->PostgresPollMin(), Config()->PostgresPollMax());
+
+            LPQServer->ConnInfo().ApplicationName() = "'" + m_pApplication->Title() + "'"; //application_name;
+
+            //LPQServer->PollStack(APollStack);
+            LPQServer->PollStack()->TimeOut(Config()->TimeOut());
+
+            if (Config()->PostgresNotice()) {
+                //LPQServer->OnReceiver(std::bind(&CApplicationProcess::DoPQReceiver, this, _1, _2));
+                LPQServer->OnProcessor(std::bind(&CApplicationProcess::DoPQProcessor, this, _1, _2));
+            }
+
+            LPQServer->OnConnectException(std::bind(&CApplicationProcess::DoPQConnectException, this, _1, _2));
+            LPQServer->OnServerException(std::bind(&CApplicationProcess::DoPQServerException, this, _1, _2));
+
+            LPQServer->OnEventHandlerException(std::bind(&CApplicationProcess::DoServerEventHandlerException, this, _1, _2));
+
+            LPQServer->OnStatus(std::bind(&CApplicationProcess::DoPQStatus, this, _1));
+            LPQServer->OnPollingStatus(std::bind(&CApplicationProcess::DoPQPollingStatus, this, _1));
+
+            LPQServer->OnConnected(std::bind(&CApplicationProcess::DoPQConnect, this, _1));
+            LPQServer->OnDisconnected(std::bind(&CApplicationProcess::DoPQDisconnect, this, _1));
+
+            SetPQServer(LPQServer);
+#endif
+        }
+        //--------------------------------------------------------------------------------------------------------------
         void CApplicationProcess::DoExitSigAlarm(uint_t AMsec) {
 
             sigset_t set, wset;
@@ -811,11 +874,6 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CApplicationProcess::SetUser(const CString &UserName, const CString &GroupName) {
-            SetUser(UserName.c_str(), GroupName.c_str());
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
         void CApplicationProcess::ServerStart() {
             Server()->DocRoot() = Config()->DocRoot();
             Server()->ActiveLevel(alActive);
@@ -831,7 +889,22 @@ namespace Apostol {
             Server()->ActiveLevel(alShutDown);
         }
         //--------------------------------------------------------------------------------------------------------------
+        void CApplicationProcess::PQServerStart() {
+#ifdef USE_POSTGRESQL
+            if (Config()->PostgresConnect()) {
+                PQServer()->ConnInfo().SetParameters(Config()->PostgresConnInfo());
+                PQServer()->Active(true);
+            }
+#endif
+        }
+        //--------------------------------------------------------------------------------------------------------------
 
+        void CApplicationProcess::PQServerStop() {
+#ifdef USE_POSTGRESQL
+            PQServer()->Active(false);
+#endif
+        }
+        //--------------------------------------------------------------------------------------------------------------
         void CApplicationProcess::OnFilerError(Pointer Sender, int Error, LPCTSTR lpFormat, va_list args) {
             Log()->Error(APP_LOG_ALERT, Error, lpFormat, args);
         }
@@ -849,11 +922,16 @@ namespace Apostol {
 
             InitSignals();
 
+#ifdef USE_POSTGRESQL
+            PQServer()->PollStack(Server()->PollStack());
+#endif
             ServerStart();
+            PQServerStart();
         }
         //--------------------------------------------------------------------------------------------------------------
 
         void CProcessSingle::AfterRun() {
+            PQServerStop();
             ServerStop();
             CApplicationProcess::AfterRun();
         }
@@ -865,11 +943,13 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CProcessSingle::Reload() {
+            PQServerStop();
             ServerStop();
 
             Config()->Reload();
 
             ServerStart();
+            PQServerStart();
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -938,7 +1018,7 @@ namespace Apostol {
 
         void CProcessMaster::StartProcesses(int Flag) {
             StartProcess(ptWorker, Flag);
-            StartProcess(ptHelper, Flag);
+            //StartProcess(ptHelper, Flag);
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -998,7 +1078,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CProcessMaster::SignalToProcesses(int Signo) {
-            SignalToProcess(ptHelper, Signo);
+            //SignalToProcess(ptHelper, Signo);
             SignalToProcess(ptWorker, Signo);
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -1302,15 +1382,20 @@ namespace Apostol {
 
             Config()->Reload();
 
-            SetUser(Config()->User(), Config()->Group());
+            SetUser(Config()->User().c_str(), Config()->Group().c_str());
 
+#ifdef USE_POSTGRESQL
+            PQServer()->PollStack(Server()->PollStack());
+#endif
             ServerStart();
+            PQServerStart();
 
             SigProcMask(SIG_UNBLOCK, SigAddSet(&set));
         }
         //--------------------------------------------------------------------------------------------------------------
 
         void CProcessWorker::AfterRun() {
+            PQServerStop();
             ServerStop();
             CApplicationProcess::AfterRun();
         }
@@ -1366,9 +1451,25 @@ namespace Apostol {
 
         //--------------------------------------------------------------------------------------------------------------
 
+        void CProcessHelper::BeforeRun() {
+            CApplicationProcess::BeforeRun();
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CProcessHelper::AfterRun() {
+            CApplicationProcess::AfterRun();
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CProcessHelper::DoExit() {
+
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CProcessHelper::Run() {
 
         }
+
         //--------------------------------------------------------------------------------------------------------------
     }
 }

@@ -140,7 +140,7 @@ target_link_libraries(${CORE_LIB_NAME} pthread)
 # Apostol modules
 # ----------------------------------------------------------------------------------------------------------------------
 add_library(${MODULES_LIB_NAME} STATIC ${modules_files})
-target_link_libraries(${MODULES_LIB_NAME} ${CORE_LIB_NAME} curl)
+target_link_libraries(${MODULES_LIB_NAME} ${CORE_LIB_NAME})
 
 # Apostol Bitcoin Module
 # ----------------------------------------------------------------------------------------------------------------------
@@ -152,7 +152,7 @@ add_dependencies(${PROJECT_NAME} auto_increment_version)
 
 set(INSTALL_PATH "${PROJECT_PREFIX}")
 
-install(TARGETS ${PROJECT_NAME} CONFIGURATIONS Release DESTINATION ${INSTALL_BIN_PATH})
+install(TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_BIN_PATH})
 install(FILES auto/${PROJECT_NAME} DESTINATION /etc/init.d PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
 install(DIRECTORY DESTINATION ${INSTALL_PATH})

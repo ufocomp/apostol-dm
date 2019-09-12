@@ -29,11 +29,11 @@ Author:
 #include <cstdarg>
 #include <climits>
 #include <ctime>
-#include <csignal>
 #include <functional>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/time.h>
+//#include <sys/time.h>
+//#include <signal.h>
 #include <execinfo.h>
 #include <wait.h>
 #include <pwd.h>

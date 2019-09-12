@@ -355,7 +355,9 @@ namespace Apostol {
         private:
 
             CHTTPServer *m_pServer;
-
+#ifdef USE_POSTGRESQL
+            CPQServer *m_pPQServer;
+#endif
             void DoOptions(CCommand *ACommand);
             void DoGet(CCommand *ACommand);
             void DoHead(CCommand *ACommand);
@@ -384,15 +386,39 @@ namespace Apostol {
 
             void SetServer(CHTTPServer *Value);
 
+#ifdef USE_POSTGRESQL
+            virtual void DoPQServerException(CPQServer *AServer, Delphi::Exception::Exception *AException);
+            virtual void DoPQConnectException(CPQConnection *AConnection, Delphi::Exception::Exception *AException);
+
+            virtual void DoPQStatus(CPQConnection *AConnection);
+            virtual void DoPQPollingStatus(CPQConnection *AConnection);
+
+            virtual void DoPQReceiver(CPQConnection *AConnection, const PGresult *AResult);
+            virtual void DoPQProcessor(CPQConnection *AConnection, LPCSTR AMessage);
+
+            virtual void DoPQConnect(CObject *Sender);
+            virtual void DoPQDisconnect(CObject *Sender);
+
+            virtual void DoPQSendQuery(CPQQuery *AQuery);
+            virtual void DoPQResultStatus(CPQResult *AResult);
+            virtual void DoPQResult(CPQResult *AResult, ExecStatusType AExecStatus);
+
+            void SetPQServer(CPQServer *Value);
+#endif
         public:
 
             CServerProcess(CProcessType AType, CCustomProcess *AParent);
 
-            CHTTPServer *Server() { return m_pServer; };
-            void Server(CHTTPServer *Value) { SetServer(Value); };
-
             void InitializeServerHandlers();
 
+            CHTTPServer *Server() { return m_pServer; };
+            void Server(CHTTPServer *Value) { SetServer(Value); };
+#ifdef USE_POSTGRESQL
+            CPQServer *PQServer() { return m_pPQServer; };
+            void PQServer(CPQServer *Value) { SetPQServer(Value); };
+
+            virtual CPQPollQuery *GetQuery(CPollConnection *AConnection);
+#endif
         };
 
         //--------------------------------------------------------------------------------------------------------------

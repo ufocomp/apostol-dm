@@ -256,6 +256,7 @@ namespace Apostol {
             int m_nListen;
 
             int m_nTimeOut;
+            int m_nConnectTimeOut;
 
             bool m_fMaster;
             bool m_fDaemon;
@@ -275,6 +276,12 @@ namespace Apostol {
 
             CString m_sErrorLog;
             CString m_sAccessLog;
+
+            CString m_sModuleAddress;
+            CString m_sModuleURL;
+
+            CString m_sPGPPrivate;
+            CString m_sPGPPublic;
 
             CStringList m_LogFiles;
 
@@ -302,6 +309,12 @@ namespace Apostol {
 
             void SetErrorLog(LPCTSTR AValue);
             void SetAccessLog(LPCTSTR AValue);
+
+            void SetModuleAddress(LPCTSTR AValue);
+            void SetModuleURL(LPCTSTR AValue);
+
+            void SetPGPPrivate(LPCTSTR AValue);
+            void SetPGPPublic(LPCTSTR AValue);
 
             bool CheckLogFiles();
 
@@ -337,6 +350,8 @@ namespace Apostol {
             int Listen() { return m_nListen; };
 
             int TimeOut() { return m_nTimeOut; };
+
+            int ConnectTimeOut() { return m_nConnectTimeOut; };
 
             const CString& User() const { return m_sUser; };
             void User(const CString& AValue) { SetUser(AValue.c_str()); };
@@ -397,6 +412,21 @@ namespace Apostol {
             CStringList& LogFiles() { return m_LogFiles; };
             const CStringList& LogFiles() const { return m_LogFiles; };
 
+            const CString& ModuleAddress() const { return m_sModuleAddress; };
+            void ModuleAddress(const CString& AValue) { SetModuleAddress(AValue.c_str()); };
+            void ModuleAddress(LPCTSTR AValue) { SetModuleAddress(AValue); };
+
+            const CString& ModuleURL() const { return m_sModuleURL; };
+            void ModuleURL(const CString& AValue) { SetModuleURL(AValue.c_str()); };
+            void ModuleURL(LPCTSTR AValue) { SetModuleURL(AValue); };
+
+            const CString& PGPPrivate() const { return m_sPGPPrivate; };
+            void PGPPrivate(const CString& AValue) { SetPGPPrivate(AValue.c_str()); };
+            void PGPPrivate(LPCTSTR AValue) { SetPGPPrivate(AValue); };
+
+            const CString& PGPPublic() const { return m_sPGPPublic; };
+            void PGPPublic(const CString& AValue) { SetPGPPublic(AValue.c_str()); };
+            void PGPPublic(LPCTSTR AValue) { SetPGPPublic(AValue); };
         };
 
     }

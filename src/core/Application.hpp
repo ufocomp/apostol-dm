@@ -146,6 +146,7 @@ namespace Apostol {
         protected:
 
             void CreateHTTPServer();
+            void CreatePQServer();
 
             void DoExitSigAlarm(uint_t AMsec);
 
@@ -176,11 +177,13 @@ namespace Apostol {
             void DeletePidFile();
 
             void SetUser(const char *AUserName, const char *AGroupName);
-            void SetUser(const CString& UserName, const CString& GroupName);
 
             void ServerStart();
             void ServerStop();
             void ServerShutDown();
+
+            void PQServerStart();
+            void PQServerStop();
 
             void OnFilerError(Pointer Sender, int Error, LPCTSTR lpFormat, va_list args);
 
@@ -387,6 +390,13 @@ namespace Apostol {
 
         class CProcessHelper: public CApplicationProcess {
             typedef CApplicationProcess inherited;
+
+        private:
+
+            void BeforeRun() override;
+            void AfterRun() override;
+
+            void DoExit();
 
         public:
 

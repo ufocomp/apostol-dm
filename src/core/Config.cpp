@@ -333,14 +333,48 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        void CConfig::SetModuleAddress(LPCTSTR AValue) {
+
+            if (m_sModuleAddress != AValue) {
+                m_sModuleAddress = AValue;
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CConfig::SetModuleURL(LPCTSTR AValue) {
+
+            if (m_sModuleURL != AValue) {
+                m_sModuleURL = AValue;
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CConfig::SetPGPPrivate(LPCTSTR AValue) {
+
+            if (m_sPGPPrivate != AValue) {
+                m_sPGPPrivate = AValue;
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CConfig::SetPGPPublic(LPCTSTR AValue) {
+
+            if (m_sPGPPublic != AValue) {
+                m_sPGPPublic = AValue;
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CConfig::SetDefault() {
 
             m_uErrorCount = 0;
 
             m_nWorkers = 1;
-            m_nListen = 4477;
+            m_nListen = 40977;
 
+//            m_nTimeOut = INFINITE;
             m_nTimeOut = 5000;
+            m_nConnectTimeOut = 5;
 
             m_fMaster = true;
             m_fDaemon = true;
@@ -386,6 +420,12 @@ namespace Apostol {
 
             Add(new CConfigCommand(_T("log"), _T("error"), m_sErrorLog.c_str(), std::bind(&CConfig::SetErrorLog, this, _1)));
             Add(new CConfigCommand(_T("server"), _T("log"), m_sAccessLog.c_str(), std::bind(&CConfig::SetAccessLog, this, _1)));
+
+            Add(new CConfigCommand(_T("module"), _T("address"), m_sModuleAddress.c_str(), std::bind(&CConfig::SetModuleAddress, this, _1)));
+            Add(new CConfigCommand(_T("module"), _T("url"), m_sModuleURL.c_str(), std::bind(&CConfig::SetModuleURL, this, _1)));
+
+            Add(new CConfigCommand(_T("pgp"), _T("private"), m_sPGPPrivate.c_str(), std::bind(&CConfig::SetPGPPrivate, this, _1)));
+            Add(new CConfigCommand(_T("pgp"), _T("public"), m_sPGPPublic.c_str(), std::bind(&CConfig::SetPGPPublic, this, _1)));
         }
         //--------------------------------------------------------------------------------------------------------------
 
