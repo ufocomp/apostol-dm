@@ -39,7 +39,7 @@ namespace Apostol {
 
     namespace DealModule {
 
-        void CDealModule::ShowVersioInfo() {
+        void CDealModule::ShowVersionInfo() {
 
             std::cerr << APP_NAME " version: " APP_VERSION " (" APP_DESCRIPTION ")" LINEFEED << std::endl;
 

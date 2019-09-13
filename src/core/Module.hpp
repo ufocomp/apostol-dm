@@ -58,7 +58,8 @@ namespace Apostol {
                     m_Handler(AConnection);
             }
         };
-
+        //--------------------------------------------------------------------------------------------------------------
+#ifdef USE_POSTGRESQL
         class CJob: CCollectionItem {
         private:
 
@@ -67,9 +68,9 @@ namespace Apostol {
             CString m_Result;
 
             CString m_CacheFile;
-#ifdef USE_POSTGRESQL
+
             CPQPollQuery *m_PollQuery;
-#endif
+
         public:
 
             explicit CJob(CCollection *ACCollection);
@@ -84,14 +85,12 @@ namespace Apostol {
 
             CString& Result() { return m_Result; }
             const CString& Result() const { return m_Result; }
-#ifdef USE_POSTGRESQL
+
             CPQPollQuery *PollQuery() { return m_PollQuery; };
             void PollQuery(CPQPollQuery *Value) { m_PollQuery = Value; };
-#endif
         };
         //--------------------------------------------------------------------------------------------------------------
 
-#ifdef USE_POSTGRESQL
         class CJobManager: CCollection {
             typedef CCollection inherited;
         private:
@@ -161,6 +160,7 @@ namespace Apostol {
             virtual void Execute(CHTTPServerConnection *AConnection) abstract;
 
             const CString& AllowedMethods() { return GetAllowedMethods(m_AllowedMethods); };
+
 #ifdef USE_POSTGRESQL
 
             static void QueryToResult(CPQPollQuery *APollQuery, CQueryResult& AResult);
@@ -191,7 +191,7 @@ namespace Apostol {
 
             };
 
-            bool ExecuteModule(CHTTPServerConnection *AConnection);
+            bool ExecuteModule(CTCPConnection *AConnection);
 
             int ModuleCount() { return inherited::Count(); };
             void DeleteModule(int Index) { inherited::Delete(Index); };

@@ -276,11 +276,12 @@ namespace Apostol {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        bool CModuleManager::ExecuteModule(CHTTPServerConnection *AConnection) {
+        bool CModuleManager::ExecuteModule(CTCPConnection *AConnection) {
+            auto LConnection = dynamic_cast<CHTTPServerConnection *> (AConnection);
 
             CApostolModule *LModule = nullptr;
 
-            auto LRequest = AConnection->Request();
+            auto LRequest = LConnection->Request();
 
             const CString &UserAgent = LRequest->Headers.Values(_T("user-agent"));
 
@@ -289,7 +290,7 @@ namespace Apostol {
                 Index++;
 
             if (Index == ModuleCount()) {
-                AConnection->SendStockReply(CReply::forbidden);
+                LConnection->SendStockReply(CReply::forbidden);
                 return false;
             }
 
@@ -297,9 +298,9 @@ namespace Apostol {
 
             DoBeforeExecuteModule(LModule);
             try {
-                LModule->Execute(AConnection);
+                LModule->Execute(LConnection);
             } catch (...) {
-                AConnection->SendStockReply(CReply::internal_server_error);
+                LConnection->SendStockReply(CReply::internal_server_error);
                 DoAfterExecuteModule(LModule);
                 throw;
             }

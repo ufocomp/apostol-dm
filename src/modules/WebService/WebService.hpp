@@ -1,8 +1,8 @@
 /*++
 
-Program name:
+Library name:
 
-  Apostol Bitcoin
+  apostol-module
 
 Module Name:
 
@@ -10,7 +10,7 @@ Module Name:
 
 Notices:
 
-  WebService - Bitcoin trading module
+  WebService - Deal Module Web Service
 
 Author:
 
@@ -21,8 +21,8 @@ Author:
 
 --*/
 
-#ifndef APOSTOL_BITTRADE_HPP
-#define APOSTOL_BITTRADE_HPP
+#ifndef APOSTOL_WEBSERVICE_HPP
+#define APOSTOL_WEBSERVICE_HPP
 //----------------------------------------------------------------------------------------------------------------------
 
 extern "C++" {
@@ -31,24 +31,41 @@ namespace Apostol {
 
     namespace WebService {
 
+        //--------------------------------------------------------------------------------------------------------------
+
+        //-- CWebService -----------------------------------------------------------------------------------------------
+
+        //--------------------------------------------------------------------------------------------------------------
+
         class CWebService: public CApostolModule {
         private:
+
+            CHTTPProxyManager *m_ProxyManager;
+
+            CHTTPProxy *GetProxy(CHTTPServerConnection *AConnection);
 
             void DoGet(CHTTPServerConnection *AConnection);
             void DoPost(CHTTPServerConnection *AConnection);
 
+            void RouteUser(CHTTPServerConnection *AConnection, const CString& Method, const CString& Uri);
+
         protected:
 
-            static void ExceptionToJson(int ErrorCode, Delphi::Exception::Exception *AException, CString& Json);
+            void DoVerbose(CSocketEvent *Sender, CTCPConnection *AConnection, LPCTSTR AFormat, va_list args);
+            bool DoProxyExecute(CTCPConnection *AConnection);
+            void DoProxyException(CTCPConnection *AConnection, Delphi::Exception::Exception *AException);
+            void DoEventHandlerException(CPollEventHandler *AHandler, Delphi::Exception::Exception *AException);
 
-            void UserPost(CHTTPServerConnection *AConnection);
-            void UserGet(CHTTPServerConnection *AConnection);
+            void DoProxyConnected(CObject *Sender);
+            void DoProxyDisconnected(CObject *Sender);
+
+            static void ExceptionToJson(int ErrorCode, Delphi::Exception::Exception *AException, CString& Json);
 
         public:
 
             explicit CWebService(CModuleManager *AManager);
 
-            ~CWebService() override = default;
+            ~CWebService() override;
 
             static class CWebService *CreateModule(CModuleManager *AManager) {
                 return new CWebService(AManager);
@@ -70,4 +87,4 @@ namespace Apostol {
 
 using namespace Apostol::WebService;
 }
-#endif //APOSTOL_BITTRADE_HPP
+#endif //APOSTOL_WEBSERVICE_HPP

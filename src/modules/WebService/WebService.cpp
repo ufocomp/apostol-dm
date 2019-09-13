@@ -1,8 +1,8 @@
 /*++
 
-Program name:
+Library name:
 
-  Apostol Bitcoin
+  apostol-module
 
 Module Name:
 
@@ -10,7 +10,7 @@ Module Name:
 
 Notices:
 
-  WebService - Bitcoin trading module
+  WebService - Deal Module Web Service
 
 Author:
 
@@ -44,12 +44,18 @@ namespace Apostol {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        //-- CWebService -------------------------------------------------------------------------------------------------
+        //-- CWebService -----------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------
 
         CWebService::CWebService(CModuleManager *AManager): CApostolModule(AManager) {
+            m_ProxyManager = new CHTTPProxyManager();
             InitHeaders();
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        CWebService::~CWebService() {
+            delete m_ProxyManager;
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -63,6 +69,95 @@ namespace Apostol {
             m_Headers->AddObject(_T("HEAD"), (CObject *) new CHeaderHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
             m_Headers->AddObject(_T("PATCH"), (CObject *) new CHeaderHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
             m_Headers->AddObject(_T("CONNECT"), (CObject *) new CHeaderHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::DoVerbose(CSocketEvent *Sender, CTCPConnection *AConnection, LPCTSTR AFormat, va_list args) {
+            Log()->Debug(0, AFormat, args);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        bool CWebService::DoProxyExecute(CTCPConnection *AConnection) {
+            auto LConnection = dynamic_cast<CHTTPClientConnection*> (AConnection);
+            auto LProxy = dynamic_cast<CHTTPProxy*> (LConnection->Client());
+
+            auto LProxyReply = LConnection->Reply();
+
+            auto LRequest = LProxy->Connection()->Request();
+            auto LReply = LProxy->Connection()->Reply();
+
+            const CString& Format = LRequest->Params["format"];
+            if (Format == "html") {
+                if (LProxyReply->Status == CReply::ok) {
+
+                    if (!LProxyReply->Content.IsEmpty()) {
+                        const CJSON json(LProxyReply->Content);
+
+                        LReply->ContentType = CReply::html;
+                        LReply->Content = base64_decode(json["payload"].AsSiring());
+                    }
+
+                    LProxy->Connection()->SendReply(LProxyReply->Status, nullptr, true);
+                } else {
+                    LProxy->Connection()->SendStockReply(LProxyReply->Status, true);
+                }
+            } else {
+                LReply->Content = LProxyReply->Content;
+                LProxy->Connection()->SendReply(LProxyReply->Status, nullptr, true);
+            }
+
+            LConnection->CloseConnection(true);
+
+            return true;
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::DoProxyException(CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
+            auto LConnection = dynamic_cast<CHTTPClientConnection*> (AConnection);
+            auto LProxy = dynamic_cast<CHTTPProxy*> (LConnection->Client());
+            auto LException = dynamic_cast<ESocketError *> (AException);
+
+            auto LReply = LProxy->Connection()->Reply();
+
+            if (Assigned(LException))
+                ExceptionToJson(LException->ErrorCode(), LException, LReply->Content);
+            else
+                ExceptionToJson(-1, AException, LReply->Content);
+
+            LProxy->Connection()->SendReply(CReply::bad_gateway, nullptr, true);
+            Log()->Error(APP_LOG_EMERG, 0, AException->what());
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::DoEventHandlerException(CPollEventHandler *AHandler, Delphi::Exception::Exception *AException) {
+            auto LConnection = dynamic_cast<CHTTPClientConnection*> (AHandler->Binding());
+            auto LProxy = dynamic_cast<CHTTPProxy*> (LConnection->Client());
+
+            if (Assigned(LProxy)) {
+                auto LReply = LProxy->Connection()->Reply();
+                ExceptionToJson(0, AException, LReply->Content);
+                LProxy->Connection()->SendReply(CReply::internal_server_error, nullptr, true);
+            }
+
+            Log()->Error(APP_LOG_EMERG, 0, AException->what());
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::DoProxyConnected(CObject *Sender) {
+            auto LConnection = dynamic_cast<CHTTPClientConnection*> (Sender);
+            if (LConnection != nullptr) {
+                Log()->Message(_T("[%s:%d] Client connected."), LConnection->Socket()->Binding()->PeerIP(),
+                               LConnection->Socket()->Binding()->PeerPort());
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::DoProxyDisconnected(CObject *Sender) {
+            auto LConnection = dynamic_cast<CHTTPClientConnection*> (Sender);
+            if (LConnection != nullptr) {
+                Log()->Message(_T("[%s:%d] Client disconnected."), LConnection->Socket()->Binding()->PeerIP(),
+                               LConnection->Socket()->Binding()->PeerPort());
+            }
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -84,32 +179,56 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::UserGet(CHTTPServerConnection *AConnection) {
-            auto LRequest = AConnection->Request();
-            auto LReply = AConnection->Reply();
+        CHTTPProxy *CWebService::GetProxy(CHTTPServerConnection *AConnection) {
+            auto LProxy = m_ProxyManager->Add(AConnection);
 
+            LProxy->OnExecute(std::bind(&CWebService::DoProxyExecute, this, _1));
+
+            LProxy->OnVerbose(std::bind(&CWebService::DoVerbose, this, _1, _2, _3, _4));
+
+            LProxy->OnException(std::bind(&CWebService::DoProxyException, this, _1, _2));
+            LProxy->OnEventHandlerException(std::bind(&CWebService::DoEventHandlerException, this, _1, _2));
+
+            LProxy->OnConnected(std::bind(&CWebService::DoProxyConnected, this, _1));
+            LProxy->OnDisconnected(std::bind(&CWebService::DoProxyDisconnected, this, _1));
+
+            //LProxy->OnNoCommandHandler(std::bind(&CWebService::DoNoCommandHandler, this, _1, _2, _3));
+            return LProxy;
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::UserPost(CHTTPServerConnection *AConnection) {
-            auto LRequest = AConnection->Request();
-            auto LReply = AConnection->Reply();
+        void CWebService::RouteUser(CHTTPServerConnection *AConnection, const CString& Method, const CString& Uri) {
+            auto LProxy = GetProxy(AConnection);
 
-            if (LRequest->Content.IsEmpty()) {
-                AConnection->SendStockReply(CReply::no_content);
-                return;
-            }
+            LProxy->Host() = "localhost";
+            LProxy->Port(4977);
+
+            auto LRequest = LProxy->Request();
+
+            LRequest->Clear();
+
+            LRequest->CloseConnection = true;
+
+            LRequest->ContentType = CRequest::json;
+
+            CRequest::Prepare(LRequest, Method.c_str(), Uri.c_str());
+
+            LRequest->AddHeader("Module-Address", Config()->ModuleAddress());
+
+            LProxy->Active(true);
         }
         //--------------------------------------------------------------------------------------------------------------
 
         void CWebService::DoGet(CHTTPServerConnection *AConnection) {
-
             auto LRequest = AConnection->Request();
+            auto LReply = AConnection->Reply();
+
             int LVersion = -1;
 
             CStringList LUri;
             SplitColumns(LRequest->Uri.c_str(), LRequest->Uri.Size(), &LUri, '/');
-            if (LUri.Count() < 3) {
+
+            if (LUri.Count() < 2) {
                 AConnection->SendStockReply(CReply::not_found);
                 return;
             }
@@ -123,33 +242,41 @@ namespace Apostol {
                 return;
             }
 
-            auto LReply = AConnection->Reply();
+            const CString &LContentType = LRequest->Headers.Values(_T("content-type"));
+            if (!LContentType.IsEmpty() && LRequest->ContentLength == 0) {
+                AConnection->SendStockReply(CReply::no_content);
+                return;
+            }
+
+            CString LRoute;
+            for (int I = 0; I < LUri.Count(); ++I) {
+                LRoute.Append('/');
+                LRoute.Append(LUri[I]);
+            }
 
             try {
-                if (LUri[2] == _T("ping")) {
+                const CString& R2 = LUri[2].Lower();
+                const CString& R3 = LUri.Count() == 4 ? LUri[3].Lower() : "help";
+
+                if (R2 == "ping") {
 
                     AConnection->SendStockReply(CReply::ok);
-                    return;
 
-                } else if (LUri[2] == _T("time")) {
+                } else if (R2 == "time") {
 
-                    LReply->Content << "{\"serverTime\": " << to_string( MsEpoch() ) << "}";
+                    LReply->Content << "{\"serverTime\": " << to_string(MsEpoch()) << "}";
 
                     AConnection->SendReply(CReply::ok);
-                    return;
 
-                } else if (LUri[2] == _T("user")) {
+                } else if (R2 == "user" && (R3 == "help" || R3 == "status")) {
 
-                    if (LUri[3] == _T("ratingActual")) {
+                    RouteUser(AConnection, "GET", LRoute);
 
-                    } else if (LUri[3] == _T("ratingPast")) {
+                } else {
 
-                    } else if (LUri[3] == _T("volume")) {
+                    AConnection->SendStockReply(CReply::not_found);
 
-                    }
                 }
-
-                AConnection->SendStockReply(CReply::not_found);
 
             } catch (Delphi::Exception::Exception &E) {
                 CReply::status_type LStatus = CReply::internal_server_error;
@@ -183,13 +310,19 @@ namespace Apostol {
                 return;
             }
 
+            CString LRoute;
+            for (int I = 0; I < LUri.Count(); ++I) {
+                LRoute.Append('/');
+                LRoute.Append(LUri[I]);
+            }
+
             auto LReply = AConnection->Reply();
 
             try {
 
                 if (LUri[2] == _T("user")) {
 
-                    UserPost(AConnection);
+                    RouteUser(AConnection, "POST", LRoute);
 
                 } else if (LUri[2] == _T("deal")) {
 
@@ -206,9 +339,12 @@ namespace Apostol {
                     if (LUri[3] == _T("update")) {
 
                     }
-                }
 
-                AConnection->SendStockReply(CReply::not_found);
+                } else {
+
+                    AConnection->SendStockReply(CReply::not_found);
+
+                }
 
             } catch (Delphi::Exception::Exception &E) {
                 CReply::status_type LStatus = CReply::internal_server_error;
