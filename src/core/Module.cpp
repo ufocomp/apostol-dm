@@ -69,7 +69,7 @@ namespace Apostol {
 
             return S;
         }
-#ifdef USE_POSTGRESQL
+#ifdef WITH_POSTGESQL
         //--------------------------------------------------------------------------------------------------------------
 
         //-- CJob ------------------------------------------------------------------------------------------------------
@@ -192,7 +192,7 @@ namespace Apostol {
             AConnection->SendReply();
         }
         //--------------------------------------------------------------------------------------------------------------
-#ifdef USE_POSTGRESQL
+#ifdef WITH_POSTGESQL
         void CApostolModule::QueryToResult(CPQPollQuery *APollQuery, CQueryResult &AResult) {
             CPQResult *LResult = nullptr;
             CStringList LFields;

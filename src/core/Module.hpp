@@ -62,7 +62,7 @@ namespace Apostol {
             }
         };
         //--------------------------------------------------------------------------------------------------------------
-#ifdef USE_POSTGRESQL
+#ifdef WITH_POSTGESQL
         class CJob: CCollectionItem {
         private:
 
@@ -141,7 +141,7 @@ namespace Apostol {
 
             virtual void MethodNotAllowed(CHTTPServerConnection *AConnection);
 
-#ifdef USE_POSTGRESQL
+#ifdef WITH_POSTGESQL
             virtual void DoPostgresQueryExecuted(CPQPollQuery *APollQuery) abstract;
             virtual void DoPostgresQueryException(CPQPollQuery *APollQuery, Delphi::Exception::Exception *AException) abstract;
 #endif
@@ -164,7 +164,7 @@ namespace Apostol {
 
             const CString& AllowedMethods() { return GetAllowedMethods(m_AllowedMethods); };
 
-#ifdef USE_POSTGRESQL
+#ifdef WITH_POSTGESQL
 
             static void QueryToResult(CPQPollQuery *APollQuery, CQueryResult& AResult);
 

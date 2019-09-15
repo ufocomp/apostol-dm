@@ -1,6 +1,19 @@
 cmake_minimum_required(VERSION 3.13)
 project(deal-module)
 
+# Settings
+# ----------------------------------------------------------------------------------------------------------------------
+set(INSTALL_AS_ROOT OFF CACHE BOOL "Install as root")
+# ----------------------------------------------------------------------------------------------------------------------
+
+if (INSTALL_AS_ROOT)
+    set(INSTALL_BIN_PATH "/usr/sbin")
+    set(PROJECT_PREFIX "/etc/${PROJECT_NAME}")
+else()
+    set(INSTALL_BIN_PATH "/usr/bin")
+    set(PROJECT_PREFIX "$ENV{HOME}/.${PROJECT_NAME}")
+endif()
+
 list( APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake-modules" )
 
 add_compile_options("$<$<CONFIG:DEBUG>:-D_DEBUG>")
@@ -13,16 +26,6 @@ set(PROJECT_DESCRIPTION "Bitcoin Payment Service (Deal Module)")
 
 message(STATUS "Project name: ${PROJECT_NAME}")
 message(STATUS "Project description: ${PROJECT_DESCRIPTION}")
-
-set(INSTALL_LOCAL   OFF CACHE BOOL "Install local")
-
-if (INSTALL_LOCAL)
-    set(INSTALL_BIN_PATH "/usr/local/sbin")
-    set(PROJECT_PREFIX "~/.${PROJECT_NAME}")
-else()
-    set(INSTALL_BIN_PATH "/usr/sbin")
-    set(PROJECT_PREFIX "/etc/${PROJECT_NAME}")
-endif()
 
 set(CORE_LIB_NAME apostol-core)
 set(MODULES_LIB_NAME apostol-modules)
@@ -100,11 +103,11 @@ link_libraries(
         ${dl_LIBRARIES}
 )
 
-# Apostol-Bitcoin
+# Project files
 # ----------------------------------------------------------------------------------------------------------------------
-include_directories(src/${PROJECT_NAME} src/core src/modules)
+include_directories(src/app src/core src/modules)
 
-file(GLOB project_files version.h src/${PROJECT_NAME}/*.hpp src/${PROJECT_NAME}/*.cpp)
+file(GLOB app_files version.h src/app/*.hpp src/app/*.cpp)
 file(GLOB core_files src/core/*.hpp src/core/*.cpp)
 file(GLOB modules_files src/modules/Modules.hpp src/modules/*/*.hpp src/modules/*/*.cpp)
 
@@ -145,21 +148,26 @@ target_link_libraries(${MODULES_LIB_NAME} ${CORE_LIB_NAME})
 
 # Apostol Bitcoin Module
 # ----------------------------------------------------------------------------------------------------------------------
-add_executable(${PROJECT_NAME} ${project_files})
+add_executable(${PROJECT_NAME} ${app_files})
 target_link_libraries(${PROJECT_NAME} ${MODULES_LIB_NAME})
 
 add_dependencies(${PROJECT_NAME} auto_increment_version)
 # ----------------------------------------------------------------------------------------------------------------------
 
+# Install
+# ----------------------------------------------------------------------------------------------------------------------
 set(INSTALL_PATH "${PROJECT_PREFIX}")
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_BIN_PATH})
-install(FILES auto/${PROJECT_NAME} DESTINATION /etc/init.d PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
 install(DIRECTORY DESTINATION ${INSTALL_PATH})
 install(DIRECTORY DESTINATION ${INSTALL_PATH}/conf)
 install(DIRECTORY DESTINATION ${INSTALL_PATH}/logs)
 install(DIRECTORY doc/www/ DESTINATION ${INSTALL_PATH}/www)
-install(FILES conf/${PROJECT_NAME}.conf DESTINATION ${INSTALL_PATH}/conf RENAME default.conf)
-install(FILES conf/${PROJECT_NAME}.conf DESTINATION ${INSTALL_PATH})
-install(CODE "execute_process(COMMAND update-rc.d ${PROJECT_NAME} defaults)")
+install(FILES conf/default.conf DESTINATION ${INSTALL_PATH}/conf)
+install(FILES conf/default.conf DESTINATION ${INSTALL_PATH} RENAME ${PROJECT_NAME}.conf)
+
+if (INSTALL_AS_ROOT)
+    install(FILES auto/daemon DESTINATION /etc/init.d RENAME ${PROJECT_NAME} PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    install(CODE "execute_process(COMMAND update-rc.d ${PROJECT_NAME} defaults)")
+endif()

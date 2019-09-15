@@ -545,7 +545,7 @@ namespace Apostol {
 
         CServerProcess::CServerProcess(CProcessType AType, CCustomProcess *AParent): CSignalProcess(AType, AParent) {
             m_pServer = nullptr;
-#ifdef USE_POSTGRESQL
+#ifdef WITH_POSTGESQL
             m_pPQServer = nullptr;
 #endif
         }
@@ -562,7 +562,7 @@ namespace Apostol {
             }
         }
         //--------------------------------------------------------------------------------------------------------------
-#ifdef USE_POSTGRESQL
+#ifdef WITH_POSTGESQL
         void CServerProcess::SetPQServer(CPQServer *Value) {
             if (m_pPQServer != Value) {
 /*
@@ -627,7 +627,7 @@ namespace Apostol {
             }
         }
         //--------------------------------------------------------------------------------------------------------------
-#ifdef USE_POSTGRESQL
+#ifdef WITH_POSTGESQL
         CPQPollQuery *CServerProcess::GetQuery(CPollConnection *AConnection) {
             CPQPollQuery *LQuery = nullptr;
 
@@ -808,7 +808,7 @@ namespace Apostol {
 
         void CServerProcess::DoServerDisconnected(CObject *Sender) {
             auto LConnection = dynamic_cast<CHTTPServerConnection *>(Sender);
-#ifdef USE_POSTGRESQL
+#ifdef WITH_POSTGESQL
             if (LConnection != nullptr) {
                 auto LPollQuery = PQServer()->FindQueryByConnection(LConnection);
                 if (LPollQuery != nullptr) {
