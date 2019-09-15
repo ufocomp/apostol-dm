@@ -24,10 +24,8 @@ Author:
 #include "Core.hpp"
 #include "Module.hpp"
 //----------------------------------------------------------------------------------------------------------------------
-#ifdef USE_POSTGRESQL
 #include <sstream>
 #include <random>
-#endif
 //----------------------------------------------------------------------------------------------------------------------
 
 extern "C++" {
@@ -36,7 +34,6 @@ namespace Apostol {
 
     namespace Module {
 
-#ifdef USE_POSTGRESQL
         unsigned char random_char() {
             std::random_device rd;
             std::mt19937 gen(rd());
@@ -45,13 +42,13 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-//      A0000-P0000-O0000-S0000-T0000-O0000-L0000
-//      01234567890123456789012345678901234567890
+//      A0000-P0000-O0000-S0000-T0000-O0000-L00000
+//      012345678901234567890123456789012345678901
 //      0         1         2         3         4
-        CString generate_hex(const unsigned int len) {
+        CString GetUID(unsigned int len) {
             CString S(len, ' ');
 
-            for (auto i = 0; i < len / 2; i++) {
+            for (unsigned int i = 0; i < len / 2; i++) {
                 unsigned char rc = random_char();
                 ByteToHexStr(S.Data() + i * 2 * sizeof(unsigned char), S.Size(), &rc, 1);
             }
@@ -72,7 +69,7 @@ namespace Apostol {
 
             return S;
         }
-
+#ifdef USE_POSTGRESQL
         //--------------------------------------------------------------------------------------------------------------
 
         //-- CJob ------------------------------------------------------------------------------------------------------
@@ -80,7 +77,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         CJob::CJob(CCollection *ACCollection) : CCollectionItem(ACCollection) {
-            m_JobId = generate_hex(APOSTOL_MODULE_JOB_ID_LENGTH);
+            m_JobId = GetUID(APOSTOL_MODULE_UID_LENGTH);
             m_PollQuery = nullptr;
         }
 
@@ -174,7 +171,7 @@ namespace Apostol {
             CReply::GetStockReply(LReply, CReply::not_allowed);
 
             if (!AllowedMethods().IsEmpty())
-                LReply->AddHeader(_T("Allow"), AllowedMethods().c_str());
+                LReply->AddHeader(_T("Allow"), AllowedMethods());
 
             AConnection->SendReply();
         }
@@ -190,7 +187,7 @@ namespace Apostol {
             CReply::GetStockReply(LReply, CReply::ok);
 
             if (!AllowedMethods().IsEmpty())
-                LReply->AddHeader(_T("Allow"), AllowedMethods().c_str());
+                LReply->AddHeader(_T("Allow"), AllowedMethods());
 
             AConnection->SendReply();
         }

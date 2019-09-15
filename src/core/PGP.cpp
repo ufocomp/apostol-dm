@@ -23,12 +23,45 @@ Author:
 
 #include "Core.hpp"
 #include "PGP.hpp"
+//----------------------------------------------------------------------------------------------------------------------
+
+#include <sstream>
+#include <fstream>
+//----------------------------------------------------------------------------------------------------------------------
 
 extern "C++" {
 
 namespace Apostol {
 
     namespace PGP {
+
+        bool CleartextSignature(const CString &Key, const CString &Pass, const CString &Hash, const CString &ClearText,
+                                CString &SignText) {
+            const std::string path(Key.IsEmpty() ? "" : Key.c_str());
+            const std::string pass(Pass.IsEmpty() ? "" : Pass.c_str());
+            const std::string text(ClearText.IsEmpty() ? "" : ClearText.c_str());
+            const std::string hash(Hash.IsEmpty() ? "SHA256" : Hash.c_str());
+
+            std::ifstream key(path, std::ios::binary);
+            if (!key) {
+                throw Delphi::Exception::Exception("PGP: Private key file not opened.");
+            }
+
+            if (OpenPGP::Hash::NUMBER.find(hash) == OpenPGP::Hash::NUMBER.end()) {
+                throw ExceptionFrm("PGP: Bad Hash Algorithm: %s.", hash.c_str());
+            }
+
+            const OpenPGP::Sign::Args signargs(OpenPGP::SecretKey(key), pass,4, OpenPGP::Hash::NUMBER.at(hash));
+            const OpenPGP::CleartextSignature signature = OpenPGP::Sign::cleartext_signature(signargs, text);
+
+            if (!signature.meaningful()) {
+                throw Delphi::Exception::Exception("PGP: Generated bad cleartext signature.");
+            }
+
+            SignText << signature.write();
+
+            return true;
+        }
 
 #ifdef USE_LIB_GCRYPT
         static int GInstanceCount = 0;

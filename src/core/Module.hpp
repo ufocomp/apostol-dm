@@ -24,7 +24,7 @@ Author:
 #ifndef APOSTOL_MODULE_HPP
 #define APOSTOL_MODULE_HPP
 
-#define APOSTOL_MODULE_JOB_ID_LENGTH    41
+#define APOSTOL_MODULE_UID_LENGTH    42
 
 extern "C++" {
 
@@ -36,6 +36,9 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         typedef std::function<void (CHTTPServerConnection *AConnection)> COnHeaderHandlerEvent;
+        //--------------------------------------------------------------------------------------------------------------
+
+        CString GetUID(unsigned int len);
         //--------------------------------------------------------------------------------------------------------------
 
         class CHeaderHandler: CObject {

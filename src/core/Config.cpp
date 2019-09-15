@@ -367,6 +367,13 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        void CConfig::SetPGPPassphrase(LPCTSTR AValue) {
+            if (m_sPGPPassphrase != AValue) {
+                m_sPGPPassphrase = AValue;
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CConfig::SetDefault() {
             m_uErrorCount = 0;
 
@@ -429,6 +436,7 @@ namespace Apostol {
 
             Add(new CConfigCommand(_T("pgp"), _T("private"), m_sPGPPrivate.c_str(), std::bind(&CConfig::SetPGPPrivate, this, _1)));
             Add(new CConfigCommand(_T("pgp"), _T("public"), m_sPGPPublic.c_str(), std::bind(&CConfig::SetPGPPublic, this, _1)));
+            Add(new CConfigCommand(_T("pgp"), _T("passphrase"), m_sPGPPassphrase.c_str(), std::bind(&CConfig::SetPGPPassphrase, this, _1)));
         }
         //--------------------------------------------------------------------------------------------------------------
 

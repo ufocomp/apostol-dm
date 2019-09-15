@@ -283,6 +283,7 @@ namespace Apostol {
 
             CString m_sPGPPrivate;
             CString m_sPGPPublic;
+            CString m_sPGPPassphrase;
 
             CStringList m_LogFiles;
 
@@ -317,6 +318,7 @@ namespace Apostol {
 
             void SetPGPPrivate(LPCTSTR AValue);
             void SetPGPPublic(LPCTSTR AValue);
+            void SetPGPPassphrase(LPCTSTR AValue);
 
             bool CheckLogFiles();
 
@@ -433,6 +435,10 @@ namespace Apostol {
             const CString& PGPPublic() const { return m_sPGPPublic; };
             void PGPPublic(const CString& AValue) { SetPGPPublic(AValue.c_str()); };
             void PGPPublic(LPCTSTR AValue) { SetPGPPublic(AValue); };
+
+            const CString& PGPPassphrase() const { return m_sPGPPassphrase; };
+            void PGPPassphrase(const CString& AValue) { SetPGPPassphrase(AValue.c_str()); };
+            void PGPPassphrase(LPCTSTR AValue) { SetPGPPassphrase(AValue); };
         };
 
     }

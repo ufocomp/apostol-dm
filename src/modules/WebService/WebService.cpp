@@ -27,9 +27,6 @@ Author:
 #include "WebService.hpp"
 //----------------------------------------------------------------------------------------------------------------------
 
-#include <sstream>
-//----------------------------------------------------------------------------------------------------------------------
-
 extern "C++" {
 
 namespace Apostol {
@@ -81,28 +78,24 @@ namespace Apostol {
             auto LConnection = dynamic_cast<CHTTPClientConnection*> (AConnection);
             auto LProxy = dynamic_cast<CHTTPProxy*> (LConnection->Client());
 
+            auto LServerRequest = LProxy->Connection()->Request();
+            auto LServerReply = LProxy->Connection()->Reply();
             auto LProxyReply = LConnection->Reply();
 
-            auto LRequest = LProxy->Connection()->Request();
-            auto LReply = LProxy->Connection()->Reply();
-
-            const CString& Format = LRequest->Params["format"];
+            const CString& Format = LServerRequest->Params["format"];
             if (Format == "html") {
+                LServerReply->ContentType = CReply::html;
                 if (LProxyReply->Status == CReply::ok) {
-
                     if (!LProxyReply->Content.IsEmpty()) {
                         const CJSON json(LProxyReply->Content);
-
-                        LReply->ContentType = CReply::html;
-                        LReply->Content = base64_decode(json["payload"].AsSiring());
+                        LServerReply->Content = base64_decode(json["payload"].AsSiring());
                     }
-
                     LProxy->Connection()->SendReply(LProxyReply->Status, nullptr, true);
                 } else {
                     LProxy->Connection()->SendStockReply(LProxyReply->Status, true);
                 }
             } else {
-                LReply->Content = LProxyReply->Content;
+                LServerReply->Content = LProxyReply->Content;
                 LProxy->Connection()->SendReply(LProxyReply->Status, nullptr, true);
             }
 
@@ -115,17 +108,18 @@ namespace Apostol {
         void CWebService::DoProxyException(CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
             auto LConnection = dynamic_cast<CHTTPClientConnection*> (AConnection);
             auto LProxy = dynamic_cast<CHTTPProxy*> (LConnection->Client());
-            auto LException = dynamic_cast<ESocketError *> (AException);
 
-            auto LReply = LProxy->Connection()->Reply();
+            auto LServerRequest = LProxy->Connection()->Request();
+            auto LServerReply = LProxy->Connection()->Reply();
 
-            if (Assigned(LException))
-                ExceptionToJson(LException->ErrorCode(), LException, LReply->Content);
-            else
-                ExceptionToJson(-1, AException, LReply->Content);
+            const CString& Format = LServerRequest->Params["format"];
+            if (Format == "html") {
+                LServerReply->ContentType = CReply::html;
+            }
 
-            LProxy->Connection()->SendReply(CReply::bad_gateway, nullptr, true);
-            Log()->Error(APP_LOG_EMERG, 0, AException->what());
+            LProxy->Connection()->SendStockReply(CReply::bad_gateway, true);
+            Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LProxy->Host().c_str(), LProxy->Port(),
+                    AException->what());
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -199,21 +193,159 @@ namespace Apostol {
 
         void CWebService::RouteUser(CHTTPServerConnection *AConnection, const CString& Method, const CString& Uri) {
             auto LProxy = GetProxy(AConnection);
+            auto LServerRequest = AConnection->Request();
+            auto LProxyRequest = LProxy->Request();
 
-            LProxy->Host() = "localhost";
+            const CString& ModuleAddress = Config()->ModuleAddress();
+            const CString& UserAddress = LServerRequest->Params["address"];
+            const CString& Server = LServerRequest->Params["server"];
+            const CString& pgpValue = LServerRequest->Params["pgp"];
+
+            DebugMessage("[RouteUser] Server request:\n%s\n", LServerRequest->Content.c_str());
+
+            LProxy->Host() = Server.IsEmpty() ? "localhost" : Server;
             LProxy->Port(4977);
 
-            auto LRequest = LProxy->Request();
+            CString ClearText;
+            CString Payload;
+            if (!LServerRequest->Content.IsEmpty()) {
 
-            LRequest->Clear();
+                const CString &ContentType = LServerRequest->Headers.Values(_T("content-type"));
 
-            LRequest->CloseConnection = true;
+                if (ContentType == "application/x-www-form-urlencoded") {
+                    const CStringList& FormData = LServerRequest->FormData;
 
-            LRequest->ContentType = CRequest::json;
+                    const CString& formDate = FormData["date"];
+                    const CString& formAddress = FormData["address"];
+                    const CString& formBitmessage = FormData["bitmessage"];
+                    const CString& formKey = FormData["key"];
+                    const CString& formPGP = FormData["pgp"];
+                    const CString& formURL = FormData["url"];
+                    const CString& formSign = FormData["sign"];
 
-            CRequest::Prepare(LRequest, Method.c_str(), Uri.c_str());
+                    if (!formDate.IsEmpty()) {
+                        ClearText << formDate << LINEFEED;
+                    }
 
-            LRequest->AddHeader("Module-Address", Config()->ModuleAddress());
+                    if (!formAddress.IsEmpty()) {
+                        ClearText << formAddress << LINEFEED;
+                    }
+
+                    if (!formBitmessage.IsEmpty()) {
+                        ClearText << formBitmessage << LINEFEED;
+                    }
+
+                    if (!formKey.IsEmpty()) {
+                        ClearText << formKey << LINEFEED;
+                    }
+
+                    if (!formPGP.IsEmpty()) {
+                        ClearText << formPGP << LINEFEED;
+                    }
+
+                    if (!formURL.IsEmpty()) {
+                        ClearText << formURL << LINEFEED;
+                    }
+
+                    if (!formSign.IsEmpty()) {
+                        ClearText << formSign;
+                    }
+
+                } else if (ContentType == "application/json") {
+                    const CJSON contextJson(LServerRequest->Content);
+
+                    const CString& jsonDate = contextJson["date"].AsSiring();
+                    const CString& jsonAddress = contextJson["address"].AsSiring();
+                    const CString& jsonBitmessage = contextJson["bitmessage"].AsSiring();
+                    const CString& jsonKey = contextJson["key"].AsSiring();
+                    const CString& jsonPGP = contextJson["pgp"].AsSiring();
+                    const CString& jsonSign = contextJson["sign"].AsSiring();
+
+                    if (!jsonDate.IsEmpty()) {
+                        ClearText << jsonDate << LINEFEED;
+                    }
+
+                    if (!jsonAddress.IsEmpty()) {
+                        ClearText << jsonAddress << LINEFEED;
+                    }
+
+                    if (!jsonBitmessage.IsEmpty()) {
+                        ClearText << jsonBitmessage << LINEFEED;
+                    }
+
+                    if (!jsonKey.IsEmpty()) {
+                        ClearText << jsonKey << LINEFEED;
+                    }
+
+                    if (!jsonPGP.IsEmpty()) {
+                        ClearText << jsonPGP << LINEFEED;
+                    }
+
+                    const CJSONValue& jsonURL = contextJson["url"];
+                    if (jsonURL.IsArray()) {
+                        const CJSONArray& arrayURL = jsonURL.Array();
+                        for (int i = 0; i < arrayURL.Count(); i++) {
+                            ClearText << arrayURL[i].AsSiring() << LINEFEED;
+                        }
+                    }
+
+                    if (!jsonSign.IsEmpty()) {
+                        ClearText << jsonSign;
+                    }
+
+                } else {
+                    ClearText = LServerRequest->Content;
+                }
+
+                if (pgpValue == "off" || pgpValue == "false") {
+                    Payload = ClearText;
+                } else {
+                    Apostol::PGP::CleartextSignature(
+                            Config()->PGPPrivate(),
+                            Config()->PGPPassphrase(),
+                            "SHA256",
+                            ClearText,
+                            Payload);
+                }
+            }
+
+            DebugMessage("[RouteUser] Payload:\n%s\n", Payload.c_str());
+
+            CJSON Json(jvtObject);
+
+            Json.Object().AddPair("id", GetUID(APOSTOL_MODULE_UID_LENGTH));
+            Json.Object().AddPair("address", UserAddress.IsEmpty() ? ModuleAddress : UserAddress);
+
+            if (!Payload.IsEmpty()) {
+                Json.Object().AddPair("payload", base64_encode(Payload));
+            }
+
+            const CString http("http://");
+            const CString https("https://");
+
+            const CString& url = Config()->ModuleURL();
+            CString Host(url);
+
+            size_t Pos = url.Find(http);
+            if (Pos != CString::npos) {
+                Host = url.SubString(http.Size());
+            }
+
+            Pos = url.Find(https);
+            if (Pos != CString::npos) {
+                Host = url.SubString(http.Size());
+            }
+
+            LProxyRequest->Clear();
+            LProxyRequest->Host = Host;
+            LProxyRequest->Port = 0;
+            LProxyRequest->CloseConnection = true;
+            LProxyRequest->ContentType = CRequest::json;
+            LProxyRequest->Content << Json;
+
+            CRequest::Prepare(LProxyRequest, Method.c_str(), Uri.c_str());
+
+            LProxyRequest->AddHeader("Module-Address", ModuleAddress);
 
             LProxy->Active(true);
         }
@@ -269,6 +401,8 @@ namespace Apostol {
                     AConnection->SendReply(CReply::ok);
 
                 } else if (R2 == "user" && (R3 == "help" || R3 == "status")) {
+
+                    LRequest->Content.Clear();
 
                     RouteUser(AConnection, "GET", LRoute);
 

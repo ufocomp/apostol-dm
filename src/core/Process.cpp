@@ -852,11 +852,14 @@ namespace Apostol {
                 if (!UserAgent.IsEmpty()) lpUserAgent = UserAgent.c_str(); else lpUserAgent = _T("-");
                 //if (!ContentLength.IsEmpty()) lpContentLength = ContentLength.c_str(); else lpContentLength = _T("-");
 
-                Log()->Access(_T("%s %d %8.2f ms [%s] \"%s %s HTTP/%d.%d\" %d %d \"%s\" \"%s\"\r\n"),
-                        LConnection->Socket()->Binding()->PeerIP(), LConnection->Socket()->Binding()->PeerPort(),
-                        double((clock() - AConnection->Tag()) / (double) CLOCKS_PER_SEC * 1000), szTime,
-                        LRequest->Method.c_str(), LRequest->Uri.c_str(), LRequest->VMajor, LRequest->VMinor,
-                        LReply->Status, LReply->Content.Size(), lpReferer, lpUserAgent);
+                if (LConnection->Socket()->Binding() != nullptr) {
+                    Log()->Access(_T("%s %d %8.2f ms [%s] \"%s %s HTTP/%d.%d\" %d %d \"%s\" \"%s\"\r\n"),
+                                  LConnection->Socket()->Binding()->PeerIP(),
+                                  LConnection->Socket()->Binding()->PeerPort(),
+                                  double((clock() - AConnection->Tag()) / (double) CLOCKS_PER_SEC * 1000), szTime,
+                                  LRequest->Method.c_str(), LRequest->Uri.c_str(), LRequest->VMajor, LRequest->VMinor,
+                                  LReply->Status, LReply->Content.Size(), lpReferer, lpUserAgent);
+                }
             }
         }
         //--------------------------------------------------------------------------------------------------------------

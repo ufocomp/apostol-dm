@@ -38,6 +38,9 @@ namespace Apostol {
 
     namespace PGP {
 
+        bool CleartextSignature(const CString& Key, const CString &Pass, const CString &Hash, const CString& ClearText,
+                CString& SignText);
+
 #ifdef USE_LIB_GCRYPT
         class CPGP;
 
@@ -367,7 +370,6 @@ namespace Apostol {
         void check_rsa_keys(COnPGPVerboseEvent && Verbose = nullptr);
         void load_key(const char *KeyFile, const char* Passwd, COnPGPVerboseEvent &&Verbose = nullptr);
 #endif
-
     }
 }
 
