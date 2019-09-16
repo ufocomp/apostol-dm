@@ -351,6 +351,75 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        void CWebService::DoWWW(CHTTPServerConnection *AConnection) {
+            auto LServer = dynamic_cast<CHTTPServer *> (AConnection->Server());
+            auto LRequest = AConnection->Request();
+            auto LReply = AConnection->Reply();
+
+            TCHAR szExt[PATH_MAX] = {0};
+
+            // Decode url to path.
+            CString LRequestPath;
+            if (!LServer->URLDecode(LRequest->Uri, LRequestPath)) {
+                AConnection->SendStockReply(CReply::bad_request);
+                return;
+            }
+
+            // Request path must be absolute and not contain "..".
+            if (LRequestPath.empty() || LRequestPath.front() != '/' || LRequestPath.find("..") != CString::npos) {
+                AConnection->SendStockReply(CReply::bad_request);
+                return;
+            }
+
+            const CString& LAuthorization = LRequest->Headers.Values(_T("authorization"));
+            if (LAuthorization.IsEmpty()) {
+                AConnection->SendStockReply(CReply::unauthorized);
+                return;
+            }
+
+            if (LAuthorization.SubString(0, 5).Lower() == "basic") {
+                const CString LPassphrase(base64_decode(LAuthorization.SubString(6)));
+
+                const size_t LPos = LPassphrase.Find(':');
+                if (LPos == CString::npos) {
+                    AConnection->SendStockReply(CReply::bad_request);
+                    return;
+                }
+
+                const CAuthData LAuthData = { LPassphrase.SubString(0, LPos), LPassphrase.SubString(LPos + 1) };
+
+                if (LAuthData.Username.IsEmpty() || LAuthData.Password.IsEmpty()) {
+                    AConnection->SendStockReply(CReply::unauthorized);
+                    return;
+                }
+
+                if (LAuthData.Username != "module" || LAuthData.Password != Config()->ModuleAddress()) {
+                    AConnection->SendStockReply(CReply::unauthorized);
+                    return;
+                }
+            } else {
+                AConnection->SendStockReply(CReply::bad_request);
+            }
+
+            // If path ends in slash (i.e. is a directory) then add "index.html".
+            if (LRequestPath.back() == '/') {
+                LRequestPath += "index.html";
+            }
+
+            // Open the file to send back.
+            const CString LFullPath = LServer->DocRoot() + LRequestPath;
+            if (!FileExists(LFullPath.c_str())) {
+                AConnection->SendStockReply(CReply::not_found);
+                return;
+            }
+
+            LReply->Content.LoadFromFile(LFullPath.c_str());
+
+            // Fill out the CReply to be sent to the client.
+            AConnection->SendReply(CReply::ok, Mapping::ExtToType(ExtractFileExt(szExt, LRequestPath.c_str())));
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CWebService::DoGet(CHTTPServerConnection *AConnection) {
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
@@ -361,7 +430,7 @@ namespace Apostol {
             SplitColumns(LRequest->Uri.c_str(), LRequest->Uri.Size(), &LUri, '/');
 
             if (LUri.Count() < 2) {
-                AConnection->SendStockReply(CReply::not_found);
+                DoWWW(AConnection);
                 return;
             }
 
@@ -370,7 +439,7 @@ namespace Apostol {
             }
 
             if (LUri[0] != _T("api") || (LVersion == -1)) {
-                AConnection->SendStockReply(CReply::not_found);
+                DoWWW(AConnection);
                 return;
             }
 

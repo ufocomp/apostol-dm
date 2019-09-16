@@ -40,12 +40,19 @@ namespace Apostol {
         class CWebService: public CApostolModule {
         private:
 
+            typedef struct CAuthData {
+                CString Username;
+                CString Password;
+            } CAuthData;
+            //----------------------------------------------------------------------------------------------------------
+
             CHTTPProxyManager *m_ProxyManager;
 
             CHTTPProxy *GetProxy(CHTTPServerConnection *AConnection);
 
             void DoGet(CHTTPServerConnection *AConnection);
             void DoPost(CHTTPServerConnection *AConnection);
+            void DoWWW(CHTTPServerConnection *AConnection);
 
             void RouteUser(CHTTPServerConnection *AConnection, const CString& Method, const CString& Uri);
 
