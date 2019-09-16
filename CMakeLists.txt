@@ -6,6 +6,14 @@ project(deal-module)
 set(INSTALL_AS_ROOT OFF CACHE BOOL "Install as root")
 # ----------------------------------------------------------------------------------------------------------------------
 
+if (INSTALL_AS_ROOT)
+    set(INSTALL_BIN_PATH "/usr/sbin")
+    set(PROJECT_PREFIX "/etc/${PROJECT_NAME}")
+else()
+    set(INSTALL_BIN_PATH "/usr/bin")
+    set(PROJECT_PREFIX "$ENV{HOME}/.${PROJECT_NAME}")
+endif()
+
 list( APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake-modules" )
 
 add_compile_options("$<$<CONFIG:DEBUG>:-D_DEBUG>")
@@ -18,14 +26,6 @@ set(PROJECT_DESCRIPTION "Bitcoin Payment Service (Deal Module)")
 
 message(STATUS "Project name: ${PROJECT_NAME}")
 message(STATUS "Project description: ${PROJECT_DESCRIPTION}")
-
-if (INSTALL_AS_ROOT)
-    set(INSTALL_BIN_PATH "/usr/sbin")
-    set(PROJECT_PREFIX "/etc/${PROJECT_NAME}")
-else()
-    set(INSTALL_BIN_PATH "/usr/bin")
-    set(PROJECT_PREFIX "$ENV{HOME}/.${PROJECT_NAME}")
-endif()
 
 set(CORE_LIB_NAME apostol-core)
 set(MODULES_LIB_NAME apostol-modules)
