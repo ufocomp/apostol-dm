@@ -28,7 +28,7 @@ test -x $DAEMON || exit 0
 . /lib/lsb/init-functions
 
 # Try to extract bps-dm pidfile
-PID=$(cat /etc/bps-dm/bps-dm.conf | grep -Ev '^\s*#' | awk 'BEGIN { FS="=" } { if ($1 == "pid") print $2 }' | head -n1)
+PID=$(cat /etc/deal-module/bps-dm.conf | grep -Ev '^\s*#' | awk 'BEGIN { FS="=" } { if ($1 == "pid") print $2 }' | head -n1)
 if [ -z "$PID" ]
 then
 	PID=/run/bps-dm.pid
