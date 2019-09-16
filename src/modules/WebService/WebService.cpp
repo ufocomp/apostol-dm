@@ -358,6 +358,8 @@ namespace Apostol {
 
             TCHAR szExt[PATH_MAX] = {0};
 
+            LReply->ContentType = CReply::html;
+
             // Decode url to path.
             CString LRequestPath;
             if (!LServer->URLDecode(LRequest->Uri, LRequestPath)) {
