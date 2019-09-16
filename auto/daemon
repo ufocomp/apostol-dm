@@ -56,7 +56,7 @@ do_start()
 		|| return 2
 }
 
-test_bps-dm_config() {
+test_bps_dm_config() {
 	$DAEMON -t $DAEMON_OPTS >/dev/null 2>&1
 }
 
@@ -145,7 +145,7 @@ case "$1" in
 		log_daemon_msg "Restarting $DESC" "$NAME"
 
 		# Check configuration before stopping bps-dm
-		if ! test_bps-dm_config; then
+		if ! test_bps_dm_config; then
 			log_end_msg 1 # Configuration error
 			exit 0
 		fi
@@ -175,7 +175,7 @@ case "$1" in
 		# may differ from the in-memory one, but that`s not common.
 		# We prefer to check the configuration and return an error
 		# to the administrator.
-		if ! test_bps-dm_config; then
+		if ! test_bps_dm_config; then
 			log_end_msg 1 # Configuration error
 			exit 0
 		fi
@@ -185,7 +185,7 @@ case "$1" in
 		;;
 	configtest|testconfig)
 		log_daemon_msg "Testing $DESC configuration"
-		test_bps-dm_config
+		test_bps_dm_config
 		log_end_msg $?
 		;;
 	status)
