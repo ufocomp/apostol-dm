@@ -1,401 +1,484 @@
 <!DOCTYPE html>
-<html lang="en">
-<meta charset="utf-8">
-<head>
-<title>Welcome to apostol!</title>
-<style>
-    * {
-            box-sizing: border-box;
-    }
-    body {
-            background-color: #fff;
-            color: #24292e;
-            min-width: 1012px;
-            word-wrap: break-word;
-            font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
-            font-size: 14px;
-            line-height: 1.5;
-    }
-    code, pre, tt {
-            font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
-            font-size: 12px;
-    }
-    h3, h4 {
-            font-weight: 600;
-    }
-    h1, h2, h3, h4, h5, h6 {
-            margin-bottom: 0;
-            margin-top: 0;
-    }
-    p {
-            display: block;
-            margin-block-start: 1em;
-            margin-block-end: 1em;
-            margin-inline-start: 0px;
-            margin-inline-end: 0px;
-    }
-    .container {
-            margin-left: auto;
-            margin-right: auto;
-            width: 980px;
-    }
-    .Box--condensed {
-            line-height: 1.25;
-    }
-    .Box {
-            background-color: #fff;
-            border: 1px solid #d1d5da;
-            border-radius: 3px;
-    }
-    .Box-header {
-            padding: 8px 16px;
-    }
-    .d-flex {
-            display: flex!important;
-    }
-    .px-2 {
-            padding-right: 8px!important;
-    }
-    .flex-items-center {
-            align-items: center!important;
-    }
-    .flex-justify-between {
-            justify-content: space-between!important;
-    }
-    .Box-header {
-            background-color: #f6f8fa;
-            border: 1px solid #d1d5da;
-            border-top-left-radius: 3px;
-            border-top-right-radius: 3px;
-            margin: -1px -1px 0;
-            padding: 16px;
-    }
-    .Box-body:last-of-type {
-            border-bottom-left-radius: 2px;
-            border-bottom-right-radius: 2px;
-            margin-bottom: -1px;
-    }
-    .Box--condensed .Box-body, .Box--condensed .Box-footer, .Box--condensed .Box-header {
-            padding: 8px 16px;
-    }
-    .Box-body {
-            border-bottom: 1px solid #e1e4e8;
-            padding: 16px;
-    }
-    .markdown-body {
-            font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
-            font-size: 16px;
-            line-height: 1.5;
-            word-wrap: break-word;
-    }
-    .markdown-body pre {
-            background-color: #f6f8fa;
-            border-radius: 3px;
-            font-size: 85%;
-            line-height: 1.45;
-            overflow: auto;
-            padding: 16px;
-    }
-    .markdown-body pre {
-            word-wrap: normal;
-    }
-    .markdown-body pre code, .markdown-body pre tt {
-            background-color: transparent;
-            border: 0;
-            display: inline;
-            line-height: inherit;
-            margin: 0;
-            max-width: auto;
-            overflow: visible;
-            padding: 0;
-            word-wrap: normal;
-    }
-    .markdown-body pre>code {
-            background: transparent;
-            border: 0;
-            font-size: 100%;
-            margin: 0;
-            padding: 0;
-            white-space: pre;
-            word-break: normal;
-    }
-    .markdown-body code, .markdown-body tt {
-            background-color: rgba(27,31,35,.05);
-            border-radius: 3px;
-            font-size: 85%;
-            margin: 0;
-            padding: .2em .4em;
-    }
-    .p-5 {
-            padding: 32px!important;
-    }
-    .markdown-body>:first-child {
-            margin-top: 0!important;
-    }
-    .markdown-body h1, .markdown-body h2 {
-            border-bottom: 1px solid #eaecef;
-            padding-bottom: .3em;
-    }
-    .markdown-body h1 {
-            font-size: 2em;
-    }
-    .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6 {
-            font-weight: 600;
-            line-height: 1.25;
-            margin-bottom: 16px;
-            margin-top: 24px;
-    }
-    .markdown-body h2 {
-            font-size: 1.5em;
-    }
-    .markdown-body h1, .markdown-body h2 {
-            border-bottom: 1px solid #eaecef;
-            padding-bottom: .3em;
-    }
-    .pr-3 {
-            padding-right: 16px!important;
-    }
-    .Box-title {
-            font-size: 14px;
-            font-weight: 600;
-    }
-    .markdown-body h6 {
-            color: #6a737d;
-            font-size: .85em;
-    }
-    .markdown-body blockquote, .markdown-body details, .markdown-body dl, .markdown-body ol, .markdown-body p, .markdown-body pre, .markdown-body table, .markdown-body ul {
-            margin-bottom: 16px;
-            margin-top: 0;
-    }
-    tbody {
-            display: table-row-group;
-            vertical-align: middle;
-            border-color: inherit;
-    }
-    table {
-            border-collapse: collapse;
-            border-spacing: 0;
-    }
-    .markdown-body table tr {
-            background-color: #fff;
-            border-top: 1px solid #c6cbd1;
-    }
-    tr {
-            display: table-row;
-            vertical-align: inherit;
-            border-color: inherit;
-    }
-    .markdown-body table {
-            display: block;
-            overflow: auto;
-            width: 100%;
-    }
-    .markdown-body table tr {
-            background-color: #fff;
-            border-top: 1px solid #c6cbd1;
-    }
-    .markdown-body table th {
-            border: 1px solid #dfe2e5;
-            padding: 6px 13px;
-    }
-    .markdown-body table th {
-            font-weight: 600;
-    }
-    .markdown-body table td, .markdown-body table th {
-            border: 1px solid #dfe2e5;
-            padding: 6px 13px;
-    }
-</style>
-</head>
-<body>
-<div class="container">
-        <div id="readme" class="Box Box--condensed instapaper_body md js-code-block-container">
-        <div class="Box-header d-flex flex-items-center flex-justify-between px-2">
-                <h3 class="Box-title pr-3">
-                        Welcome to Apostol Web Service
-                </h3>
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>Dial Module: Debug</title>
+  </head>
+
+  <body>
+    <div id="wrapper">
+      <div class="container shadow-sm p-3 mb-5 bg-white rounded">
+        <h2>Deal Module</h2>
+        <br>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <a class="navbar-brand" href="#">Action</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="nav nav-tabs mr-auto">
+              <li class="nav-item">
+                <a class="nav-link active" href="#tab-help">Help <span class="sr-only">(current)</span></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#tab-status">Status</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#tab-new">New</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#tab-add">Add</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#tab-update">Update</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#tab-delete">Delete</a>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="other" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Other</a>
+                <div class="dropdown-menu" aria-labelledby="other">
+                  <a class="dropdown-item" data-toggle="tab" href="#tab-config">Settings</a>
+                </div>
+              </li>
+            </ul>
+            <span class="navbar-text">
+              Account registration
+            </span>
+          </div>
+        </nav>
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <div id="tab-help" class="container tab-pane active">
+              <div id="action-help" class="mt-3">
+                  <small class="form-text text-muted">Wait response...</small>
+              </div>
+          </div>
+          <div id="tab-status" class="container tab-pane fade">
+              <div class="mt-3">
+                  <form onsubmit="actionStatus()">
+                      <div class="form-group row">
+                          <label for="statusModuleAddress" class="col-sm-2 col-form-label">Module address</label>
+                          <div class="col-sm-10">
+                              <input type="text" readonly class="form-control-plaintext" id="statusModuleAddress" value="mjTbMV3cbjtGxYMKV2uKZpZt5v7LRp8TBJ">
+                          </div>
+                      </div>
+                      <div class="form-group row">
+                          <label for="statusUserAddress" class="col-sm-2 col-form-label">User address</label>
+                          <div class="col-sm-10">
+                              <input type="text" class="form-control" id="statusUserAddress" placeholder="User bitcoin address">
+                          </div>
+                      </div>
+                      <button type="submit" class="btn btn-primary">Execute</button>
+                  </form>
+                  <hr>
+                  <div id="action-status">
+                      <small class="form-text text-muted">Press Execute button...</small>
+                  </div>
+              </div>
+          </div>
+          <div id="tab-new" class="container tab-pane fade">
+              <div class="mt-3">
+                  <form onsubmit="actionNew()">
+                      <div class="form-row">
+                          <div class="form-group col-md-6">
+                              <label for="newAddress">Bitcoin address</label>
+                              <input type="text" class="form-control" id="newAddress" placeholder="Bitcoin address" required>
+                          </div>
+                          <div class="form-group col-md-6">
+                              <label for="newBitmessage">Bitmessage address</label>
+                              <input type="text" class="form-control" id="newBitmessage" placeholder="Bitmessage address">
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label for="newKey">Bitcoin public key</label>
+                          <input type="text" class="form-control" id="newKey" placeholder="Bitcoin public key">
+                      </div>
+                      <div class="form-group">
+                          <label for="newPGP">PGP public key</label>
+                          <textarea class="form-control" id="newPGP" rows="5" placeholder="PGP public key"></textarea>
+                      </div>
+                      <div class="form-group">
+                          <label for="newURL">URL List</label>
+                          <textarea class="form-control" id="newURL" rows="5" placeholder="URL List"></textarea>
+                      </div>
+                      <button type="submit" class="btn btn-primary">Sign in</button>
+                  </form>
+                  <hr>
+                  <div id="action-new">
+                      <small class="form-text text-muted">Press "Sign in" button...</small>
+                  </div>
+              </div>
+          </div>
+          <div id="tab-add" class="container tab-pane fade">
+              <div class="mt-3">
+                  <form onsubmit="actionAdd()">
+                      <div class="form-row">
+                          <div class="form-group col-md-6">
+                              <label for="addAddress">User Bitcoin address</label>
+                              <input type="text" class="form-control" id="addAddress" aria-describedby="addAddressHelp" placeholder="Enter Bitcoin address" required>
+                              <small id="addAddressHelp" class="form-text text-muted">Please enter the address of the user for whom you want to add data.</small>
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label for="addKey">Bitcoin public key</label>
+                          <input type="text" class="form-control" id="addKey" placeholder="Bitcoin public key">
+                      </div>
+                      <div class="form-group">
+                          <label for="addPGP">PGP public key</label>
+                          <textarea class="form-control" id="addPGP" rows="5" placeholder="PGP public key"></textarea>
+                      </div>
+                      <button type="submit" class="btn btn-primary">Sign in</button>
+                  </form>
+                  <hr>
+                  <div id="action-add">
+                      <small class="form-text text-muted">Press "Sign in" button...</small>
+                  </div>
+              </div>
+          </div>
+          <div id="tab-update" class="container tab-pane fade">
+              <div class="mt-3">
+                  <form onsubmit="actionUpdate()">
+                      <div class="form-row">
+                          <div class="form-group col-md-6">
+                              <label for="updateAddress">User Bitcoin address</label>
+                              <input type="text" class="form-control" id="updateAddress" aria-describedby="updateAddressHelp" placeholder="Enter Bitcoin address" required>
+                              <small id="updateAddressHelp" class="form-text text-muted">Please enter the address of the user whose data you want to update.</small>
+                          </div>
+                          <div class="form-group col-md-6">
+                              <label for="updateDate">Now</label>
+                              <input type="text" class="form-control" id="updateDate" aria-describedby="updateDateHelp" placeholder="Now">
+                              <small id="updateDateHelp" class="form-text text-muted">Format: YYYY-MM-DD</small>
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label for="updatePGP">PGP public key</label>
+                          <textarea class="form-control" id="updatePGP" rows="5" placeholder="PGP public key"></textarea>
+                      </div>
+                      <div class="form-group">
+                          <label for="updateURL">URL List</label>
+                          <textarea class="form-control" id="updateURL" rows="5" aria-describedby="updateURLHelp" placeholder="URL List"></textarea>
+                          <small id="updateURLHelp" class="form-text text-muted">Add(+) or delete(-) URL; format: http[s]://&lt;string&gt;.</small>
+                      </div>
+                      <div class="form-group">
+                          <label for="updateSign">Signature</label>
+                          <textarea class="form-control" id="updateSign" rows="5" aria-describedby="updateSignHelp" placeholder="Signature" required></textarea>
+                          <small id="updateSignHelp" class="form-text text-muted">Bitcoin signature for message text (use private key).</small>
+                      </div>
+                      <button type="submit" class="btn btn-primary">Sign in</button>
+                  </form>
+                  <hr>
+                  <div id="action-update">
+                      <small class="form-text text-muted">Press "Sign in" button...</small>
+                  </div>
+              </div>
+          </div>
+          <div id="tab-delete" class="container tab-pane fade">
+              <div class="mt-3">
+                  <form onsubmit="actionDelete()">
+                      <div class="form-row">
+                          <div class="form-group col-md-6">
+                              <label for="deleteAddress">User Bitcoin address</label>
+                              <input type="text" class="form-control" id="deleteAddress" aria-describedby="deleteAddressHelp" placeholder="Enter Bitcoin address" required>
+                              <small id="deleteAddressHelp" class="form-text text-muted">Please enter the address of the user whose data you want to delete.</small>
+                          </div>
+                          <div class="form-group col-md-6">
+                              <label for="deleteDate">Now</label>
+                              <input type="text" class="form-control" id="deleteDate" aria-describedby="deleteDateHelp" placeholder="Now">
+                              <small id="deleteDateHelp" class="form-text text-muted">Format: YYYY-MM-DD</small>
+                          </div>
+                      </div>
+                      <div class="form-group">
+                          <label for="deleteFlags">Flags</label>
+                          <textarea class="form-control" id="deleteFlags" rows="3" aria-describedby="deleteFlaHelp" placeholder="Flags"></textarea>
+                          <small id="deleteFlagsHelp" class="form-text text-muted">Values: -account; -key; -PGP.</small>
+                      </div>
+                      <div class="form-group">
+                          <label for="deleteSign">Signature</label>
+                          <textarea class="form-control" id="deleteSign" rows="5" aria-describedby="deleteSignHelp" placeholder="Signature" required></textarea>
+                          <small id="deleteSignHelp" class="form-text text-muted">Bitcoin signature for message text (use private key).</small>
+                      </div>
+                      <button type="submit" class="btn btn-primary">Sign in</button>
+                  </form>
+                  <hr>
+                  <div id="action-delete">
+                      <small class="form-text text-muted">Press "Sign in" button...</small>
+                  </div>
+              </div>
+          </div>
+          <div id="tab-config" class="container tab-pane fade">
+            <h3>Settings</h3>
+              <div class="mt-3">
+                  <form>
+                      <div class="form-row">
+                          <div class="form-group col-md-6">
+                              <label for="server">Server</label>
+                              <input type="text" class="form-control" id="server" aria-describedby="serverHelp" placeholder="Default: localhost" value="localhost" required>
+                              <small id="serverHelp" class="form-text text-muted">Server host or IP-address.</small>
+                          </div>
+                          <div class="form-group col-md-6">
+                              <label for="userAddress">User Bitcoin address</label>
+                              <input type="text" class="form-control" id="userAddress" value="1LkcBBr7zk72Bh88iU8sgSDBBaJThh1gjJ">
+                              <small id="userAddressHelp" class="form-text text-muted">User Bitcoin address.</small>
+                          </div>
+                      </div>
+                      <div class="custom-control custom-switch">
+                          <input type="checkbox" checked class="custom-control-input" id="pgp">
+                          <label class="custom-control-label" for="pgp">PGP</label>
+                      </div>
+                  </form>
+              </div>
+          </div>
         </div>
-                <div class="Box-body">
-                        <article class="markdown-body entry-content p-5" itemprop="text"><h1><a id="user-content-apostol-web-service" class="anchor" aria-hidden="true" href="#apostol-web-service"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Apostol Web Service</h1>
-                                <p>Поздравляем, если Вы видите эту страницу значит Веб-сервис <strong>Апостол</strong>, установлен и работает!</p>
-                                <h2><a id="user-content-описание" class="anchor" aria-hidden="true" href="#описание"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ОПИСАНИЕ</h2>
-                                <p><strong>Apostol Web Service</strong> (AWS) - платформа, написанная на C++, для быстрого создания <strong>RESTful API</strong>
-                                        сервисов под Linux, со встроенной поддержкой СУБД <a href="https://www.postgresql.org/" rel="nofollow">PostgreSQL</a>.</p>
-                                <p>Платформа <strong>AWS</strong> построена на базе библиотеки <strong><code>libdelphi</code></strong> с применением <strong>асинхронной</strong> модели программирования.</p>
-                                <p>Бинарный файл <strong><code>apostol</code></strong> - системная служба Linux (демон) в задачу которого входит запуск и поддержка
-                                        работоспособности двух внутренних служб:</p>
-                                <ol>
-                                        <li>Server (HTTP-сервер);</li>
-                                        <li>PQServer (PostgreSQL-сервер).</li>
-                                </ol>
-                                <h6><a id="user-content-при-реализации-apostol-вдохновение-черпалось-из-исходных-кодов-nginx-поэтому-управление-apostol-схоже-с-управлением-nginx-как-следствие-производительность-и-отказоустойчивость-apostol-на-уровне-nginx" class="anchor" aria-hidden="true" href="#при-реализации-apostol-вдохновение-черпалось-из-исходных-кодов-nginx-поэтому-управление-apostol-схоже-с-управлением-nginx-как-следствие-производительность-и-отказоустойчивость-apostol-на-уровне-nginx"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>При реализации <strong>apostol</strong>, вдохновение черпалось из исходных кодов <a href="http://nginx.org" rel="nofollow">nginx</a>. Поэтому управление <strong>apostol</strong> схоже с <a href="http://nginx.org/ru/docs/control.html#reconfiguration" rel="nofollow">управлением nginx</a>, как следствие производительность и отказоустойчивость <strong>apostol</strong> на уровне <a href="http://nginx.org" rel="nofollow">nginx</a>.</h6>
-                                <h3><a id="user-content-server" class="anchor" aria-hidden="true" href="#server"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Server</h3>
-                                <h4><a id="user-content-асинхронный-http-сервер" class="anchor" aria-hidden="true" href="#асинхронный-http-сервер"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><strong>Асинхронный HTTP сервер</strong>.</h4>
-                                <p>Принимает HTTP запросы от клиентов и в зависимости от значения в заголовке <code>User-Agent</code> распределяет их между модулями
-                                        (модификациями). При отсутствии заголовка <code>User-Agent</code> или должного, в нём, значения направляет запрос в модуль
-                                        <strong><code>Web-Server</code></strong> превращая AWS в <strong>Веб-сервер</strong>.</p>
-                                <h6><a id="user-content-асинхронная-работа-сервера-реализована-с-помощью-epoll-api" class="anchor" aria-hidden="true" href="#асинхронная-работа-сервера-реализована-с-помощью-epoll-api"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Асинхронная работа сервера реализована с помощью <code>epoll API</code>.</h6>
-                                <h3><a id="user-content-pqserver" class="anchor" aria-hidden="true" href="#pqserver"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>PQServer</h3>
-                                <h4><a id="user-content-асинхронный-postgresql-сервер" class="anchor" aria-hidden="true" href="#асинхронный-postgresql-сервер"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><strong>Асинхронный PostgreSQL сервер</strong>.</h4>
-                                <p>Сервер создаёт пул подключений к СУБД Postgres и позволяет отправлять SQL запросы в <strong>асинхронном</strong> режиме.
-                                        Указать диапазон минимального и максимального количества подключений к СУБД можно в файле конфигурации в секции <code>[postgres]</code></p>
-                                <h6><a id="user-content-сервер-построен-на-базе-библиотеки-libpq-с-применением-асинхронных-команд" class="anchor" aria-hidden="true" href="#сервер-построен-на-базе-библиотеки-libpq-с-применением-асинхронных-команд"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Сервер построен на базе библиотеки <code>libpq</code> с применением асинхронных команд.</h6>
-                                <h2><a id="user-content-модули" class="anchor" aria-hidden="true" href="#модули"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>МОДУЛИ</h2>
-                                <p>Апостол спроектирован таким образом, что основной код отвечает:</p>
-                                <ul>
-                                        <li>за работу приложения в качестве системной службы;</li>
-                                        <li>реализацию протоколов TCP/IP, HTTP;</li>
-                                        <li>взаимодействие с СУБД Postgres.</li>
-                                </ul>
-                                <p>Код реализующий логику того или иного сервиса находится отдельно от основного кода в расширениях (модулях).</p>
-                                <p>Модуль - это класс C++ принимающий на входе данные от HTTP-сервера и PQ-сервера (PostgeSQL). Программисту,
-                                        который реализует логику Веб-сервиса, не нужно вникать в особенности работы мультиплексированного ввода-вывода,
-                                        функций обработки сигналов Linux (для построения демона) и тонкостях реализации асинхронной работы с PostgreSQL.
-                                        Апостол всё это скрывает, позволяя разработчику сконцентрировать своё внимание только на реализации логики самого
-                                        Веб-сервиса, разрабатывая код в привычном для него стиле. Точками соприкосновения с Апостол будут только входящие
-                                        и исходящие структуры данных.</p>
-                                <h2><a id="user-content-чтобы-создать-новый-модуль-нужно-выполнить" class="anchor" aria-hidden="true" href="#чтобы-создать-новый-модуль-нужно-выполнить"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Чтобы создать новый модуль нужно выполнить:</h2>
-                                <ol>
-                                        <li>Собрать проект, как описано ниже;</li>
-                                        <li>В директории mod/ создать папку с названием Вашего модуля;</li>
-                                        <li>В директории с названием Вашего модуля создать, с аналогичным названием, файлы MyModuleName.cpp/.hpp;</li>
-                                        <li>В заголовочном файле MyModuleName.hpp объявить класс C++ производный от класса <code>CApostolModule</code>:</li>
-                                        <li>В <code>Mudules.hpp</code>, после класса <code>CApostolModule</code>, добавьте заголовочный файл Вашего модуля <code>#include "MyModuleName/MyModuleName.hpp"</code></li>
-                                        <li>В <code>Mudules.hpp</code> найдите функцию <code>CreateModule</code> и добавьте условие вызова Вашего модуля согласно значения в
-                                                <code>User-Agent</code>.</li>
-                                </ol>
-                                <p>Всё!</p>
-                                <p>Пример объявления класса <code>class MyModuleName</code>:</p>
-                                <pre><code>        class MyModuleName: public CApostolModule {
-        private:
+      </div>
+    </div>
 
-        protected:
+    <div id="footer">
+      <div class="container">
+        <hr>
+        <p class="text-center small" >Bitcoin Payment Service</p>
+      </div>
+    </div>
 
-            void DoPostgresQueryExecuted(CPQPollQuery *APollQuery) override {
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script>
+      /**
+       * @return {string}
+       */
+      async function AsyncRequest (uri, body, method = 'GET') {
+        // await response of fetch call
+        let response = await fetch('http://localhost:40977/' + uri, {
+            method: method,
+            body: body,
+            cache: "no-store"
+        });
+        // only proceed once promise is resolved
+        let data = await response.json();
+        // only proceed once second promise is resolved
+        return window.atob(data['payload']);
+      }
 
-            };
+      function empty(e) {
+        switch (e) {
+          case "":
+          case 0:
+          case "0":
+          case false:
+          case null:
+          case undefined:
+            return true;
+          default:
+            return false;
+        }
+      }
 
-            void DoPostgresQueryException(CPQPollQuery *APollQuery, Delphi::Exception::Exception *AException) override {
+      function getFormattedDate(date) {
+          var year = date.getFullYear();
 
-            };
+          var month = (1 + date.getMonth()).toString();
+          month = month.length > 1 ? month : '0' + month;
 
-        public:
+          var day = date.getDate().toString();
+          day = day.length > 1 ? day : '0' + day;
 
-            MyModuleName(): CApostolModule() {};
+          return year + '-' + month + '-' + day;
+      }
 
-            ~MyModuleName() override = default;
+      // Select tabs Help
+      $('.nav-tabs a[href="#tab-help"]').click(function(){
+          AsyncRequest('api/v1/user/help')
+              .then(data => $("#action-help").html(data))
+              .catch(reason => console.log(reason.message));
+          $(this).tab('show');
+      });
 
-            static class MyModuleName *CreateModule() {
-                return new MyModuleName();
-            }
+      // Select tabs status
+      $('.nav-tabs a[href="#tab-status"]').click(function(){
+          const address = $("input[id='userAddress']").val();
+          $("input[id='statusUserAddress']").val(address);
+          $(this).tab('show');
+      });
 
-            void Execute(CHTTPServerConnection *AConnection) override {
+      // Select tabs status
+      $('.nav-tabs a[href="#tab-add"]').click(function(){
+          const address = $("input[id='userAddress']").val();
+          $("input[id='addAddress']").val(address);
+          $(this).tab('show');
+      });
 
-            };
+      // Select tabs status
+      $('.nav-tabs a[href="#tab-update"]').click(function(){
+          const address = $("input[id='userAddress']").val();
+          $("input[id='updateAddress']").val(address);
+          $("input[id='updateDate']").val(getFormattedDate(new Date()));
+          $(this).tab('show');
+      });
 
-        };
-</code></pre>
-                                <h2><a id="user-content-сборка" class="anchor" aria-hidden="true" href="#сборка"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>СБОРКА</h2>
-                                <p>Для сборки проекта Вам потребуется:</p>
-                                <ol>
-                                        <li>Компилятор C++;</li>
-                                        <li><a href="https://cmake.org" rel="nofollow">CMake</a> или интегрированная среда разработки (IDE) с поддержкой <a href="https://cmake.org" rel="nofollow">CMake</a>;</li>
-                                        <li>Библиотека <a href="https://www.postgresql.org/download/" rel="nofollow">libpq-dev</a> (libraries and headers for C language frontend development).</li>
-                                        <li>Библиотека <a href="https://www.postgresql.org/download/" rel="nofollow">postgresql-server-dev-10</a> (libraries and headers for C language backend development)</li>
-                                </ol>
-                                <h6><a id="user-content-описание-установки-c-cmake-ide-и-иных-компонентов-необходимых-для-сборки-проекта-не-входит-в-данное-руководство" class="anchor" aria-hidden="true" href="#описание-установки-c-cmake-ide-и-иных-компонентов-необходимых-для-сборки-проекта-не-входит-в-данное-руководство"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Описание установки C++, CMake, IDE и иных компонентов необходимых для сборки проекта не входит в данное руководство.</h6>
-                                <p>Для сборки Апостол, необходимо:</p>
-                                <ol>
-                                        <li>Скачать Апостол по <a href="https://github.com/ufocomp/apostol/archive/master.zip">ссылке</a>;</li>
-                                        <li>Распаковать;</li>
-                                        <li>Скомпилировать (см. ниже).</li>
-                                </ol>
-                                <p>Для сборки Апостол, с помощью Git выполните:</p>
-                                <pre><code>git clone https://github.com/ufocomp/apostol.git
-</code></pre>
-                                <h6><a id="user-content-сборка-1" class="anchor" aria-hidden="true" href="#сборка-1"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Сборка:</h6>
-                                <pre><code>cd apostol
-cmake -DCMAKE_BUILD_TYPE=Release -G "CodeBlocks - Unix Makefiles" . -B cmake-build-release
-cmake --build cmake-build-release --target apostol -- -j 4
-</code></pre>
-                                <h2><a id="user-content-установка" class="anchor" aria-hidden="true" href="#установка"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>УСТАНОВКА</h2>
-                                <p>Для установки <strong>Апостол</strong> нужно выполнить:</p>
-                                <pre><code>sudo cmake --build cmake-build-release --target install -- -j 4
-</code></pre>
-                                <p>По умолчанию <strong>Апостол</strong> будет установлен в:</p>
-                                <pre><code>/usr/sbin
-</code></pre>
-                                <p>Файл конфигурации и необходимые для работы файлы будут расположены в:</p>
-                                <pre><code>/etc/apostol
-</code></pre>
-                                <h2><a id="user-content-запуск" class="anchor" aria-hidden="true" href="#запуск"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ЗАПУСК</h2>
-                                <p>Апостол - системная служба (демон) Linux.
-                                        Для управления Апостол используйте стандартные команды управления службами.</p>
-                                <p>Для запуска Апостол выполните:</p>
-                                <pre><code>sudo systemctl start apostol
-</code></pre>
-                                <p>Для проверки статуса выполните:</p>
-                                <pre><code>sudo systemctl status apostol
-</code></pre>
-                                <p>Результат должен быть примерно таким:</p>
-                                <pre><code>sudo systemctl status apostol
-● apostol.service - LSB: starts the apostol web service
-   Loaded: loaded (/etc/init.d/apostol)
-   Active: active (running) since Sun 2019-04-07 01:42:54 MSK; 21h ago
-   CGroup: /system.slice/apostol.service
-           ├─26772 apostol: master process /usr/sbin/apostol
-           └─26773 apostol: worker process (apostol)
-</code></pre>
-                                <h3><a id="user-content-управление-apostol" class="anchor" aria-hidden="true" href="#управление-apostol"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><strong>Управление apostol</strong>.</h3>
-                                <p>Управлять <strong><code>apostol</code></strong> можно с помощью сигналов.
-                                        Номер главного процесса по умолчанию записывается в файл <code>/usr/local/apostol/logs/apostol.pid</code>.
-                                        Изменить имя этого файла можно при конфигурации сборки или же в <code>apostol.conf</code> секция <code>[daemon]</code> ключ <code>pid</code>.</p>
-                                <p>Главный процесс поддерживает следующие сигналы:</p>
-                                <table>
-                                        <thead>
-                                        <tr>
-                                                <th>Сигнал</th>
-                                                <th>Действие</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <tr>
-                                                <td>TERM, INT</td>
-                                                <td>быстрое завершение</td>
-                                        </tr>
-                                        <tr>
-                                                <td>QUIT</td>
-                                                <td>плавное завершение</td>
-                                        </tr>
-                                        <tr>
-                                                <td>HUP</td>
-                                                <td>изменение конфигурации, запуск новых рабочих процессов с новой конфигурацией, плавное завершение старых рабочих процессов</td>
-                                        </tr>
-                                        <tr>
-                                                <td>WINCH</td>
-                                                <td>плавное завершение рабочих процессов</td>
-                                        </tr>
-                                        </tbody>
-                                </table>
-                                <p>Управлять рабочими процессами по отдельности не нужно. Тем не менее, они тоже поддерживают некоторые сигналы:</p>
-                                <table>
-                                        <thead>
-                                        <tr>
-                                                <th>Сигнал</th>
-                                                <th>Действие</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <tr>
-                                                <td>TERM, INT</td>
-                                                <td>быстрое завершение</td>
-                                        </tr>
-                                        <tr>
-                                                <td>QUIT</td>
-                                                <td>плавное завершение</td>
-                                        </tr>
-                                        </tbody>
-                                </table>
-                        </article>
-                </div></body>
+      // Select tabs status
+      $('.nav-tabs a[href="#tab-delete"]').click(function(){
+          const address = $("input[id='userAddress']").val();
+          $("input[id='deleteAddress']").val(address);
+          $("input[id='deleteDate']").val(getFormattedDate(new Date()));
+          $("textarea[id='deleteFlags']").val('-account');
+          $(this).tab('show');
+      });
+
+      function actionStatus() {
+          const address = $("input[id='statusUserAddress']").val();
+
+          const server = $("input[id='server']").val();
+          let settings = '?server=' + server;
+          if (!empty(address)) {
+              settings += '&address=' + address;
+          }
+
+          AsyncRequest('api/v1/user/status' + settings)
+                .then(data => $("#action-status").html(data))
+                .catch(reason => console.log(reason.message));
+      }
+
+      function actionNew() {
+          const address = $("input[id='newAddress']").val();
+          const bitmessage = $("input[id='newBitmessage']").val();
+          const key = $("input[id='newKey']").val();
+          const pgp = $("textarea[id='newPGP']").val();
+          const url = $("textarea[id='newURL']").val();
+
+          $("input[id='userAddress']").val(address);
+
+          let formData = new FormData();
+          formData.append('address', address);
+
+          if (!empty(bitmessage) ) {
+              formData.append('bitmessage', bitmessage);
+          }
+
+          if (!empty(key) ) {
+              formData.append('key', key);
+          }
+
+          if (!empty(pgp) ) {
+              formData.append('pgp', pgp);
+          }
+
+          if (!empty(url) ) {
+              formData.append('url', url);
+          }
+
+          const server = $("input[id='server']").val();
+          let settings = '?server=' + server;
+          if ($('input[id="pgp"]').prop("checked") === false) {
+              settings += '&pgp=off'
+          }
+
+          AsyncRequest('api/v1/user/new' + settings, formData, 'POST')
+              .then(data => $("#action-new").html(data))
+              .catch(reason => console.log(reason.message));
+      }
+
+      function actionAdd() {
+          const address = $("input[id='addAddress']").val();
+          const key = $("input[id='addKey']").val();
+          const pgp = $("textarea[id='addPGP']").val();
+
+          let formData = new FormData();
+
+          if (!empty(key) ) {
+              formData.append('key', key);
+          }
+
+          if (!empty(pgp) ) {
+              formData.append('pgp', pgp);
+          }
+
+          const server = $("input[id='server']").val();
+          let settings = '?server=' + server;
+          settings += '&address=' + address;
+          if ($('input[id="pgp"]').prop("checked") === false) {
+              settings += '&pgp=off'
+          }
+
+          AsyncRequest('api/v1/user/add' + settings, formData, 'POST')
+              .then(data => $("#action-add").html(data))
+              .catch(reason => console.log(reason.message));
+      }
+
+      function actionUpdate() {
+          const address = $("input[id='updateAddress']").val();
+          const date = $("input[id='updateDate']").val();
+          const bitmessage = $("input[id='updateBitmessage']").val();
+          const pgp = $("textarea[id='updatePGP']").val();
+          const url = $("textarea[id='updateURL']").val();
+          const sign = $("textarea[id='updateSign']").val();
+
+          let formData = new FormData();
+
+          formData.append('date', date);
+
+          if (!empty(bitmessage) ) {
+              formData.append('bitmessage', bitmessage);
+          }
+
+          if (!empty(pgp) ) {
+              formData.append('pgp', pgp);
+          }
+
+          if (!empty(url) ) {
+              formData.append('url', url);
+          }
+
+          formData.append('sign', sign);
+
+          const server = $("input[id='server']").val();
+          let settings = '?server=' + server;
+          settings += '&address=' + address;
+          if ($('input[id="pgp"]').prop("checked") === false) {
+              settings += '&pgp=off'
+          }
+
+          AsyncRequest('api/v1/user/update' + settings, formData, 'POST')
+              .then(data => $("#action-update").html(data))
+              .catch(reason => console.log(reason.message));
+      }
+
+      function actionDelete() {
+          const address = $("input[id='deleteAddress']").val();
+          const date = $("input[id='deleteDate']").val();
+          const flags = $("textarea[id='deleteFlags']").val();
+          const sign = $("textarea[id='deleteSign']").val();
+
+          let formData = new FormData();
+
+          formData.append('date', date);
+          formData.append('flags', flags);
+          formData.append('sign', sign);
+
+          const server = $("input[id='server']").val();
+          let settings = '?server=' + server;
+          settings += '&address=' + address;
+          if ($('input[id="pgp"]').prop("checked") === false) {
+              settings += '&pgp=off'
+          }
+
+          AsyncRequest('api/v1/user/delete' + settings, formData, 'POST')
+              .then(data => $("#action-delete").html(data))
+              .catch(reason => console.log(reason.message));
+      }
+
+      $(document).ready(function(){
+          $('.nav-tabs a[href="#tab-help"]').click();
+      });
+    </script>
+
+  </body>
 </html>
