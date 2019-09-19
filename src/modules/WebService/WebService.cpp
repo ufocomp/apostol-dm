@@ -208,23 +208,76 @@ namespace Apostol {
 
             CString ClearText;
             CString Payload;
+
             if (!LServerRequest->Content.IsEmpty()) {
 
                 const CString &ContentType = LServerRequest->Headers.Values(_T("content-type"));
 
                 if (ContentType == "application/x-www-form-urlencoded") {
-                    const CStringList& FormData = LServerRequest->FormData;
 
-                    const CString& formDate = FormData["date"];
-                    const CString& formAddress = FormData["address"];
-                    const CString& formBitmessage = FormData["bitmessage"];
-                    const CString& formKey = FormData["key"];
-                    const CString& formPGP = FormData["pgp"];
-                    const CString& formURL = FormData["url"];
-                    const CString& formSign = FormData["sign"];
+                    const CStringList &FormData = LServerRequest->FormData;
+
+                    const CString &formDate = FormData["date"];
+                    const CString &formAddress = FormData["address"];
+                    const CString &formBitmessage = FormData["bitmessage"];
+                    const CString &formKey = FormData["key"];
+                    const CString &formPGP = FormData["pgp"];
+                    const CString &formURL = FormData["url"];
+                    const CString &formFlags = FormData["flags"];
+                    const CString &formSign = FormData["sign"];
 
                     if (!formDate.IsEmpty()) {
                         ClearText << formDate << LINEFEED;
+                    }
+
+                    if (!formFlags.IsEmpty()) {
+                        ClearText << formFlags << LINEFEED;
+                    }
+
+                    if (!formAddress.IsEmpty()) {
+                        ClearText << formAddress << LINEFEED;
+                    }
+
+                    if (!formBitmessage.IsEmpty()) {
+                        ClearText << formBitmessage << LINEFEED;
+                    }
+
+                    if (!formKey.IsEmpty()) {
+                        ClearText << formKey << LINEFEED;
+                    }
+
+                    if (!formPGP.IsEmpty()) {
+                        ClearText << formPGP << LINEFEED;
+                    }
+
+                    if (!formURL.IsEmpty()) {
+                        ClearText << formURL << LINEFEED;
+                    }
+
+                    if (!formSign.IsEmpty()) {
+                        ClearText << formSign;
+                    }
+
+                } else if (ContentType == "multipart/form-data") {
+
+                    CFormData FormData;
+                    CRequestParser::ParseFormData(LServerRequest, FormData);
+
+                    const CString &formDate = FormData.Data("date");
+                    const CString &formAddress = FormData.Data("address");
+                    const CString &formBitmessage = FormData.Data("bitmessage");
+                    const CString &formKey = FormData.Data("key");
+                    const CString &formPGP = FormData.Data("pgp");
+                    const CString &formURL = FormData.Data("url");
+                    const CString &formFlags = FormData.Data("flags");
+                    const CString &formSign = FormData.Data("sign");
+
+                    if (!formDate.IsEmpty()) {
+                        ClearText << formDate << LINEFEED;
+                    }
+
+                    if (!formFlags.IsEmpty()) {
+                        ClearText << formFlags << LINEFEED;
                     }
 
                     if (!formAddress.IsEmpty()) {
@@ -252,6 +305,7 @@ namespace Apostol {
                     }
 
                 } else if (ContentType == "application/json") {
+
                     const CJSON contextJson(LServerRequest->Content);
 
                     const CString& jsonDate = contextJson["date"].AsSiring();
