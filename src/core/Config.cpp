@@ -365,13 +365,6 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CConfig::SetModuleURL(LPCTSTR AValue) {
-            if (m_sModuleURL != AValue) {
-                m_sModuleURL = AValue;
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
         void CConfig::SetPGPPrivate(LPCTSTR AValue) {
             if (m_sPGPPrivate != AValue) {
                 m_sPGPPrivate = AValue;
@@ -451,7 +444,6 @@ namespace Apostol {
             Add(new CConfigCommand(_T("server"), _T("log"), m_sAccessLog.c_str(), std::bind(&CConfig::SetAccessLog, this, _1)));
 
             Add(new CConfigCommand(_T("module"), _T("address"), m_sModuleAddress.c_str(), std::bind(&CConfig::SetModuleAddress, this, _1)));
-            Add(new CConfigCommand(_T("module"), _T("url"), m_sModuleURL.c_str(), std::bind(&CConfig::SetModuleURL, this, _1)));
 
             Add(new CConfigCommand(_T("pgp"), _T("private"), m_sPGPPrivate.c_str(), std::bind(&CConfig::SetPGPPrivate, this, _1)));
             Add(new CConfigCommand(_T("pgp"), _T("public"), m_sPGPPublic.c_str(), std::bind(&CConfig::SetPGPPublic, this, _1)));

@@ -52,7 +52,8 @@ namespace Apostol {
 
             void DoGet(CHTTPServerConnection *AConnection);
             void DoPost(CHTTPServerConnection *AConnection);
-            void DoWWW(CHTTPServerConnection *AConnection);
+
+            static void DoWWW(CHTTPServerConnection *AConnection);
 
             void RouteUser(CHTTPServerConnection *AConnection, const CString& Method, const CString& Uri);
 

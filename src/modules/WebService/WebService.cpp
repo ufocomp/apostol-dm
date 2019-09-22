@@ -155,7 +155,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::ExceptionToJson(int ErrorCode, Delphi::Exception::Exception *AException, CString &Json) {
+        void CWebService::ExceptionToJson(int ErrorCode, Delphi::Exception::Exception *AException, CString& Json) {
 
             LPCTSTR lpMessage = AException->what();
             CString Message;
@@ -201,8 +201,6 @@ namespace Apostol {
             const CString& Server = LServerRequest->Params["server"];
             const CString& pgpValue = LServerRequest->Params["pgp"];
 
-            DebugMessage("[RouteUser] Server request:\n%s\n", LServerRequest->Content.c_str());
-
             LProxy->Host() = Server.IsEmpty() ? "localhost" : Server;
             LProxy->Port(4977);
 
@@ -211,31 +209,31 @@ namespace Apostol {
 
             if (!LServerRequest->Content.IsEmpty()) {
 
-                const CString &ContentType = LServerRequest->Headers.Values(_T("content-type"));
+                const CString& ContentType = LServerRequest->Headers.Values(_T("content-type"));
 
                 if (ContentType == "application/x-www-form-urlencoded") {
 
-                    const CStringList &FormData = LServerRequest->FormData;
+                    const CStringList& FormData = LServerRequest->FormData;
 
-                    const CString &formDate = FormData["date"];
-                    const CString &formAddress = FormData["address"];
-                    const CString &formBitmessage = FormData["bitmessage"];
-                    const CString &formKey = FormData["key"];
-                    const CString &formPGP = FormData["pgp"];
-                    const CString &formURL = FormData["url"];
-                    const CString &formFlags = FormData["flags"];
-                    const CString &formSign = FormData["sign"];
+                    const CString& formDate = FormData["date"];
+                    const CString& formAddress = FormData["address"];
+                    const CString& formBitmessage = FormData["bitmessage"];
+                    const CString& formKey = FormData["key"];
+                    const CString& formPGP = FormData["pgp"];
+                    const CString& formURL = FormData["url"];
+                    const CString& formFlags = FormData["flags"];
+                    const CString& formSign = FormData["sign"];
 
                     if (!formDate.IsEmpty()) {
                         ClearText << formDate << LINEFEED;
                     }
 
-                    if (!formFlags.IsEmpty()) {
-                        ClearText << formFlags << LINEFEED;
-                    }
-
                     if (!formAddress.IsEmpty()) {
                         ClearText << formAddress << LINEFEED;
+                    }
+
+                    if (!formFlags.IsEmpty()) {
+                        ClearText << formFlags << LINEFEED;
                     }
 
                     if (!formBitmessage.IsEmpty()) {
@@ -263,25 +261,25 @@ namespace Apostol {
                     CFormData FormData;
                     CRequestParser::ParseFormData(LServerRequest, FormData);
 
-                    const CString &formDate = FormData.Data("date");
-                    const CString &formAddress = FormData.Data("address");
-                    const CString &formBitmessage = FormData.Data("bitmessage");
-                    const CString &formKey = FormData.Data("key");
-                    const CString &formPGP = FormData.Data("pgp");
-                    const CString &formURL = FormData.Data("url");
-                    const CString &formFlags = FormData.Data("flags");
-                    const CString &formSign = FormData.Data("sign");
+                    const CString& formDate = FormData.Data("date");
+                    const CString& formAddress = FormData.Data("address");
+                    const CString& formBitmessage = FormData.Data("bitmessage");
+                    const CString& formKey = FormData.Data("key");
+                    const CString& formPGP = FormData.Data("pgp");
+                    const CString& formURL = FormData.Data("url");
+                    const CString& formFlags = FormData.Data("flags");
+                    const CString& formSign = FormData.Data("sign");
 
                     if (!formDate.IsEmpty()) {
                         ClearText << formDate << LINEFEED;
                     }
 
-                    if (!formFlags.IsEmpty()) {
-                        ClearText << formFlags << LINEFEED;
-                    }
-
                     if (!formAddress.IsEmpty()) {
                         ClearText << formAddress << LINEFEED;
+                    }
+
+                    if (!formFlags.IsEmpty()) {
+                        ClearText << formFlags << LINEFEED;
                     }
 
                     if (!formBitmessage.IsEmpty()) {
@@ -313,6 +311,7 @@ namespace Apostol {
                     const CString& jsonBitmessage = contextJson["bitmessage"].AsSiring();
                     const CString& jsonKey = contextJson["key"].AsSiring();
                     const CString& jsonPGP = contextJson["pgp"].AsSiring();
+                    const CString& jsonFlags = contextJson["flags"].AsSiring();
                     const CString& jsonSign = contextJson["sign"].AsSiring();
 
                     if (!jsonDate.IsEmpty()) {
@@ -321,6 +320,10 @@ namespace Apostol {
 
                     if (!jsonAddress.IsEmpty()) {
                         ClearText << jsonAddress << LINEFEED;
+                    }
+
+                    if (!jsonFlags.IsEmpty()) {
+                        ClearText << jsonFlags << LINEFEED;
                     }
 
                     if (!jsonBitmessage.IsEmpty()) {
@@ -363,7 +366,8 @@ namespace Apostol {
                 }
             }
 
-            DebugMessage("[RouteUser] Payload:\n%s\n", Payload.c_str());
+            //DebugMessage("[RouteUser] Server request:\n%s\n", LServerRequest->Content.c_str());
+            //DebugMessage("[RouteUser] Payload:\n%s\n", Payload.c_str());
 
             CJSON Json(jvtObject);
 
@@ -374,25 +378,9 @@ namespace Apostol {
                 Json.Object().AddPair("payload", base64_encode(Payload));
             }
 
-            const CString http("http://");
-            const CString https("https://");
-
-            const CString& url = Config()->ModuleURL();
-            CString Host(url);
-
-            size_t Pos = url.Find(http);
-            if (Pos != CString::npos) {
-                Host = url.SubString(http.Size());
-            }
-
-            Pos = url.Find(https);
-            if (Pos != CString::npos) {
-                Host = url.SubString(http.Size());
-            }
-
             LProxyRequest->Clear();
-            LProxyRequest->Host = Host;
-            LProxyRequest->Port = 0;
+            LProxyRequest->Host = LServerRequest->Host;
+            LProxyRequest->Port = LServerRequest->Port;
             LProxyRequest->CloseConnection = true;
             LProxyRequest->ContentType = CRequest::json;
             LProxyRequest->Content << Json;
@@ -499,7 +487,7 @@ namespace Apostol {
                 return;
             }
 
-            const CString &LContentType = LRequest->Headers.Values(_T("content-type"));
+            const CString& LContentType = LRequest->Headers.Values(_T("content-type"));
             if (!LContentType.IsEmpty() && LRequest->ContentLength == 0) {
                 AConnection->SendStockReply(CReply::no_content);
                 return;
@@ -654,7 +642,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        bool CWebService::CheckUserAgent(const CString &Value) {
+        bool CWebService::CheckUserAgent(const CString& Value) {
             return true;
         }
 

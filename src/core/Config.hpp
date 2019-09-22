@@ -279,7 +279,6 @@ namespace Apostol {
             CString m_sAccessLog;
 
             CString m_sModuleAddress;
-            CString m_sModuleURL;
 
             CString m_sPGPPrivate;
             CString m_sPGPPublic;
@@ -314,7 +313,6 @@ namespace Apostol {
             void SetAccessLog(LPCTSTR AValue);
 
             void SetModuleAddress(LPCTSTR AValue);
-            void SetModuleURL(LPCTSTR AValue);
 
             void SetPGPPrivate(LPCTSTR AValue);
             void SetPGPPublic(LPCTSTR AValue);
@@ -423,10 +421,6 @@ namespace Apostol {
             const CString& ModuleAddress() const { return m_sModuleAddress; };
             void ModuleAddress(const CString& AValue) { SetModuleAddress(AValue.c_str()); };
             void ModuleAddress(LPCTSTR AValue) { SetModuleAddress(AValue); };
-
-            const CString& ModuleURL() const { return m_sModuleURL; };
-            void ModuleURL(const CString& AValue) { SetModuleURL(AValue.c_str()); };
-            void ModuleURL(LPCTSTR AValue) { SetModuleURL(AValue); };
 
             const CString& PGPPrivate() const { return m_sPGPPrivate; };
             void PGPPrivate(const CString& AValue) { SetPGPPrivate(AValue.c_str()); };
