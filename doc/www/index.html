@@ -304,21 +304,27 @@
       // Select tabs status
       $('.nav-tabs a[href="#tab-status"]').click(function(){
           const address = $("input[id='userAddress']").val();
-          $("input[id='statusUserAddress']").val(address);
+          let objectAddress = $("input[id='statusUserAddress']");
+          if (empty(objectAddress.val()))
+              objectAddress.val(address);
           $(this).tab('show');
       });
 
       // Select tabs status
       $('.nav-tabs a[href="#tab-add"]').click(function(){
           const address = $("input[id='userAddress']").val();
-          $("input[id='addAddress']").val(address);
+          let objectAddress = $("input[id='addAddress']");
+          if (empty(objectAddress.val()))
+              objectAddress.val(address);
           $(this).tab('show');
       });
 
       // Select tabs status
       $('.nav-tabs a[href="#tab-update"]').click(function(){
           const address = $("input[id='userAddress']").val();
-          $("input[id='updateAddress']").val(address);
+          let objectAddress = $("input[id='updateAddress']");
+          if (empty(objectAddress.val()))
+              objectAddress.val(address);
           $("input[id='updateDate']").val(getFormattedDate(new Date()));
           $(this).tab('show');
       });
@@ -326,7 +332,9 @@
       // Select tabs status
       $('.nav-tabs a[href="#tab-delete"]').click(function(){
           const address = $("input[id='userAddress']").val();
-          $("input[id='deleteAddress']").val(address);
+          let objectAddress = $("input[id='deleteAddress']");
+          if (empty(objectAddress.val()))
+              objectAddress.val(address);
           $("input[id='deleteDate']").val(getFormattedDate(new Date()));
           $("textarea[id='deleteFlags']").val('-account');
           $(this).tab('show');
