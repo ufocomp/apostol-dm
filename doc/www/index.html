@@ -79,7 +79,7 @@
                   </form>
                   <hr>
                   <div id="action-status">
-                      <small class="form-text text-muted">Press Execute button...</small>
+                      <small class="form-text text-muted">Press "Execute" button...</small>
                   </div>
               </div>
           </div>
@@ -108,11 +108,11 @@
                           <label for="newURL">URL List</label>
                           <textarea class="form-control" id="newURL" rows="5" placeholder="URL List"></textarea>
                       </div>
-                      <button type="submit" class="btn btn-primary">Sign in</button>
+                      <button type="submit" class="btn btn-primary">Execute</button>
                   </form>
                   <hr>
                   <div id="action-new">
-                      <small class="form-text text-muted">Press "Sign in" button...</small>
+                      <small class="form-text text-muted">Press "Execute" button...</small>
                   </div>
               </div>
           </div>
@@ -134,11 +134,11 @@
                           <label for="addPGP">PGP public key</label>
                           <textarea class="form-control" id="addPGP" rows="5" placeholder="PGP public key"></textarea>
                       </div>
-                      <button type="submit" class="btn btn-primary">Sign in</button>
+                      <button type="submit" class="btn btn-primary">Execute</button>
                   </form>
                   <hr>
                   <div id="action-add">
-                      <small class="form-text text-muted">Press "Sign in" button...</small>
+                      <small class="form-text text-muted">Press "Execute" button...</small>
                   </div>
               </div>
           </div>
@@ -164,18 +164,18 @@
                       <div class="form-group">
                           <label for="updateURL">URL List</label>
                           <textarea class="form-control" id="updateURL" rows="5" aria-describedby="updateURLHelp" placeholder="URL List"></textarea>
-                          <small id="updateURLHelp" class="form-text text-muted">Add(+) or delete(-) URL; format: http[s]://&lt;string&gt;.</small>
+                          <small id="updateURLHelp" class="form-text text-muted">Add(+) or delete(-) URL; format: http[s]://&lt;tstring&gt;.</small>
                       </div>
                       <div class="form-group">
                           <label for="updateSign">Signature</label>
                           <textarea class="form-control" id="updateSign" rows="5" aria-describedby="updateSignHelp" placeholder="Signature" required></textarea>
                           <small id="updateSignHelp" class="form-text text-muted">Bitcoin signature for message text (use private key).</small>
                       </div>
-                      <button type="submit" class="btn btn-primary">Sign in</button>
+                      <button type="submit" class="btn btn-primary">Execute</button>
                   </form>
                   <hr>
                   <div id="action-update">
-                      <small class="form-text text-muted">Press "Sign in" button...</small>
+                      <small class="form-text text-muted">Press "Execute" button...</small>
                   </div>
               </div>
           </div>
@@ -197,18 +197,18 @@
                       <div class="form-group">
                           <label for="deleteFlags">Flags</label>
                           <textarea class="form-control" id="deleteFlags" rows="3" aria-describedby="deleteFlaHelp" placeholder="Flags"></textarea>
-                          <small id="deleteFlagsHelp" class="form-text text-muted">Values: -account; -key; -PGP.</small>
+                          <small id="deleteFlagsHelp" class="form-text text-muted">Values: -account</small>
                       </div>
                       <div class="form-group">
                           <label for="deleteSign">Signature</label>
                           <textarea class="form-control" id="deleteSign" rows="5" aria-describedby="deleteSignHelp" placeholder="Signature" required></textarea>
                           <small id="deleteSignHelp" class="form-text text-muted">Bitcoin signature for message text (use private key).</small>
                       </div>
-                      <button type="submit" class="btn btn-primary">Sign in</button>
+                      <button type="submit" class="btn btn-primary">Execute</button>
                   </form>
                   <hr>
                   <div id="action-delete">
-                      <small class="form-text text-muted">Press "Sign in" button...</small>
+                      <small class="form-text text-muted">Press "Execute" button...</small>
                   </div>
               </div>
           </div>
@@ -255,17 +255,18 @@
       /**
        * @return {string}
        */
-      async function AsyncRequest (uri, body, method = 'GET') {
-        // await response of fetch call
-        let response = await fetch('http://localhost:40977/' + uri, {
-            method: method,
-            body: body,
-            cache: "no-store"
-        });
-        // only proceed once promise is resolved
-        let data = await response.json();
-        // only proceed once second promise is resolved
-        return window.atob(data['payload']);
+      async function AsyncFetch (uri, body, method = "GET") {
+          // await response of fetch call
+          let response = await fetch("http://localhost:40977/" + uri, {
+              method: method,
+              body: body,
+              mode: "cors",
+              cache: "no-store"
+          });
+          // only proceed once promise is resolved
+          let data = await response.json();
+          // only proceed once second promise is resolved
+          return window.atob(data['payload']);
       }
 
       function empty(e) {
@@ -283,12 +284,12 @@
       }
 
       function getFormattedDate(date) {
-          var year = date.getFullYear();
+          const year = date.getFullYear();
 
-          var month = (1 + date.getMonth()).toString();
+          let month = (1 + date.getMonth()).toString();
           month = month.length > 1 ? month : '0' + month;
 
-          var day = date.getDate().toString();
+          let day = date.getDate().toString();
           day = day.length > 1 ? day : '0' + day;
 
           return year + '-' + month + '-' + day;
@@ -296,9 +297,7 @@
 
       // Select tabs Help
       $('.nav-tabs a[href="#tab-help"]').click(function(){
-          AsyncRequest('api/v1/user/help')
-              .then(data => $("#action-help").html(data))
-              .catch(reason => console.log(reason.message));
+          actionHelp();
           $(this).tab('show');
       });
 
@@ -333,6 +332,12 @@
           $(this).tab('show');
       });
 
+      function actionHelp() {
+          AsyncFetch('api/v1/user/help')
+              .then(data => $("#action-help").html(data))
+              .catch(reason => console.log(reason.message));
+      }
+
       function actionStatus() {
           const address = $("input[id='statusUserAddress']").val();
 
@@ -342,7 +347,7 @@
               settings += '&address=' + address;
           }
 
-          AsyncRequest('api/v1/user/status' + settings)
+          AsyncFetch('api/v1/user/status' + settings)
                 .then(data => $("#action-status").html(data))
                 .catch(reason => console.log(reason.message));
       }
@@ -381,7 +386,7 @@
               settings += '&pgp=off'
           }
 
-          AsyncRequest('api/v1/user/new' + settings, formData, 'POST')
+          AsyncFetch('api/v1/user/new' + settings, formData, 'POST')
               .then(data => $("#action-new").html(data))
               .catch(reason => console.log(reason.message));
       }
@@ -408,7 +413,7 @@
               settings += '&pgp=off'
           }
 
-          AsyncRequest('api/v1/user/add' + settings, formData, 'POST')
+          AsyncFetch('api/v1/user/add' + settings, formData, 'POST')
               .then(data => $("#action-add").html(data))
               .catch(reason => console.log(reason.message));
       }
@@ -446,7 +451,7 @@
               settings += '&pgp=off'
           }
 
-          AsyncRequest('api/v1/user/update' + settings, formData, 'POST')
+          AsyncFetch('api/v1/user/update' + settings, formData, 'POST')
               .then(data => $("#action-update").html(data))
               .catch(reason => console.log(reason.message));
       }
@@ -470,13 +475,13 @@
               settings += '&pgp=off'
           }
 
-          AsyncRequest('api/v1/user/delete' + settings, formData, 'POST')
+          AsyncFetch('api/v1/user/delete' + settings, formData, 'POST')
               .then(data => $("#action-delete").html(data))
               .catch(reason => console.log(reason.message));
       }
 
       $(document).ready(function(){
-          $('.nav-tabs a[href="#tab-help"]').click();
+          actionHelp();
       });
     </script>
 

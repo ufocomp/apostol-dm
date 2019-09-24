@@ -47,7 +47,7 @@ namespace Apostol {
 
         CWebService::CWebService(CModuleManager *AManager): CApostolModule(AManager) {
             m_ProxyManager = new CHTTPProxyManager();
-            InitHeaders();
+            InitMethods();
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -56,16 +56,16 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::InitHeaders() {
-            m_Headers->AddObject(_T("GET"), (CObject *) new CHeaderHandler(true, std::bind(&CWebService::DoGet, this, _1)));
-            m_Headers->AddObject(_T("POST"), (CObject *) new CHeaderHandler(true, std::bind(&CWebService::DoPost, this, _1)));
-            m_Headers->AddObject(_T("OPTIONS"), (CObject *) new CHeaderHandler(true, std::bind(&CWebService::DoOptions, this, _1)));
-            m_Headers->AddObject(_T("PUT"), (CObject *) new CHeaderHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
-            m_Headers->AddObject(_T("DELETE"), (CObject *) new CHeaderHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
-            m_Headers->AddObject(_T("TRACE"), (CObject *) new CHeaderHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
-            m_Headers->AddObject(_T("HEAD"), (CObject *) new CHeaderHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
-            m_Headers->AddObject(_T("PATCH"), (CObject *) new CHeaderHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
-            m_Headers->AddObject(_T("CONNECT"), (CObject *) new CHeaderHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
+        void CWebService::InitMethods() {
+            m_Methods.AddObject(_T("GET"), (CObject *) new CMethodHandler(true, std::bind(&CWebService::DoGet, this, _1)));
+            m_Methods.AddObject(_T("POST"), (CObject *) new CMethodHandler(true, std::bind(&CWebService::DoPost, this, _1)));
+            m_Methods.AddObject(_T("OPTIONS"), (CObject *) new CMethodHandler(true, std::bind(&CWebService::DoOptions, this, _1)));
+            m_Methods.AddObject(_T("PUT"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
+            m_Methods.AddObject(_T("DELETE"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
+            m_Methods.AddObject(_T("TRACE"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
+            m_Methods.AddObject(_T("HEAD"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
+            m_Methods.AddObject(_T("PATCH"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
+            m_Methods.AddObject(_T("CONNECT"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -95,8 +95,12 @@ namespace Apostol {
                     LProxy->Connection()->SendStockReply(LProxyReply->Status, true);
                 }
             } else {
-                LServerReply->Content = LProxyReply->Content;
-                LProxy->Connection()->SendReply(LProxyReply->Status, nullptr, true);
+                if (LProxyReply->Status == CReply::ok) {
+                    LServerReply->Content = LProxyReply->Content;
+                    LProxy->Connection()->SendReply(LProxyReply->Status, nullptr, true);
+                } else {
+                    LProxy->Connection()->SendStockReply(LProxyReply->Status, true);
+                }
             }
 
             LConnection->CloseConnection(true);
@@ -156,16 +160,13 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CWebService::ExceptionToJson(int ErrorCode, Delphi::Exception::Exception *AException, CString& Json) {
-
+            TCHAR ch;
             LPCTSTR lpMessage = AException->what();
             CString Message;
-            TCHAR ch = 0;
 
-            while (*lpMessage) {
-                ch = *lpMessage++;
-                if ((ch == '"') || (ch == '\\')) {
+            while ((ch = *lpMessage++) != 0) {
+                if ((ch == '"') || (ch == '\\'))
                     Message.Append('\\');
-                }
                 Message.Append(ch);
             }
 
@@ -196,12 +197,14 @@ namespace Apostol {
             auto LServerRequest = AConnection->Request();
             auto LProxyRequest = LProxy->Request();
 
-            const CString& ModuleAddress = Config()->ModuleAddress();
-            const CString& UserAddress = LServerRequest->Params["address"];
-            const CString& Server = LServerRequest->Params["server"];
+            const CString& LModuleAddress = Config()->ModuleAddress();
+            const CString& LOrigin = LServerRequest->Headers.Values("origin");
+            const CString& LUserAddress = LServerRequest->Params["address"];
+
+            const CString& LServer = LServerRequest->Params["server"];
             const CString& pgpValue = LServerRequest->Params["pgp"];
 
-            LProxy->Host() = Server.IsEmpty() ? "localhost" : Server;
+            LProxy->Host() = LServer.IsEmpty() ? "localhost" : LServer;
             LProxy->Port(4977);
 
             CString ClearText;
@@ -372,22 +375,36 @@ namespace Apostol {
             CJSON Json(jvtObject);
 
             Json.Object().AddPair("id", GetUID(APOSTOL_MODULE_UID_LENGTH));
-            Json.Object().AddPair("address", UserAddress.IsEmpty() ? ModuleAddress : UserAddress);
+            Json.Object().AddPair("address", LUserAddress.IsEmpty() ? LModuleAddress : LUserAddress);
 
-            if (!Payload.IsEmpty()) {
+            if (!Payload.IsEmpty())
                 Json.Object().AddPair("payload", base64_encode(Payload));
-            }
 
             LProxyRequest->Clear();
-            LProxyRequest->Host = LServerRequest->Host;
-            LProxyRequest->Port = LServerRequest->Port;
+
+            const CString& LHost = LServerRequest->Headers.Values("host");
+            if (!LHost.IsEmpty()) {
+                const size_t Pos = LHost.Find(':');
+                if (Pos != CString::npos) {
+                    LProxyRequest->Host = LHost.SubString(0, Pos);
+                    LProxyRequest->Port = StrToIntDef(LHost.SubString(Pos + 1).c_str(), 0);
+                } else {
+                    LProxyRequest->Host = LHost;
+                    LProxyRequest->Port = 0;
+                }
+            }
+
             LProxyRequest->CloseConnection = true;
             LProxyRequest->ContentType = CRequest::json;
             LProxyRequest->Content << Json;
 
             CRequest::Prepare(LProxyRequest, Method.c_str(), Uri.c_str());
 
-            LProxyRequest->AddHeader("Module-Address", ModuleAddress);
+            if (!LModuleAddress.IsEmpty())
+                LProxyRequest->AddHeader("Module-Address", LModuleAddress);
+
+            if (!LOrigin.IsEmpty())
+                LProxyRequest->AddHeader("Origin", LOrigin);
 
             LProxy->Active(true);
         }
@@ -461,6 +478,11 @@ namespace Apostol {
 
             // Fill out the CReply to be sent to the client.
             AConnection->SendReply(CReply::ok, Mapping::ExtToType(ExtractFileExt(szExt, LRequestPath.c_str())));
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::DoOptions(CHTTPServerConnection *AConnection) {
+            CApostolModule::DoOptions(AConnection);
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -612,21 +634,21 @@ namespace Apostol {
 
             LReply->Clear();
             LReply->ContentType = CReply::json;
-            LReply->AddHeader("Access-Control-Allow-Origin", "*");
 
-            CHeaderHandler *Handler;
-            for (i = 0; i < m_Headers->Count(); ++i) {
-                Handler = (CHeaderHandler *) m_Headers->Objects(i);
+            CMethodHandler *Handler;
+            for (i = 0; i < m_Methods.Count(); ++i) {
+                Handler = (CMethodHandler *) m_Methods.Objects(i);
                 if (Handler->Allow()) {
-                    const CString& Method = m_Headers->Strings(i);
+                    const CString& Method = m_Methods.Strings(i);
                     if (Method == LRequest->Method) {
+                        CORS(AConnection);
                         Handler->Handler(AConnection);
                         break;
                     }
                 }
             }
 
-            if (i == m_Headers->Count()) {
+            if (i == m_Methods.Count()) {
                 AConnection->SendStockReply(CReply::not_implemented);
             }
         }

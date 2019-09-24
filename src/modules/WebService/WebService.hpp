@@ -50,6 +50,8 @@ namespace Apostol {
 
             CHTTPProxy *GetProxy(CHTTPServerConnection *AConnection);
 
+            void DoOptions(CHTTPServerConnection *AConnection) override;
+
             void DoGet(CHTTPServerConnection *AConnection);
             void DoPost(CHTTPServerConnection *AConnection);
 
@@ -79,7 +81,7 @@ namespace Apostol {
                 return new CWebService(AManager);
             }
 
-            void InitHeaders() override;
+            void InitMethods() override;
 
             void BeforeExecute(Pointer Data) override;
             void AfterExecute(Pointer Data) override;

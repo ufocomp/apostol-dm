@@ -35,21 +35,21 @@ namespace Apostol {
         typedef TList<TList<CStringList>> CQueryResult;
         //--------------------------------------------------------------------------------------------------------------
 
-        typedef std::function<void (CHTTPServerConnection *AConnection)> COnHeaderHandlerEvent;
+        typedef std::function<void (CHTTPServerConnection *AConnection)> COnMethodHandlerEvent;
         //--------------------------------------------------------------------------------------------------------------
 
         CString GetUID(unsigned int len);
         //--------------------------------------------------------------------------------------------------------------
 
-        class CHeaderHandler: CObject {
+        class CMethodHandler: CObject {
         private:
 
             bool m_Allow;
-            COnHeaderHandlerEvent m_Handler;
+            COnMethodHandlerEvent m_Handler;
 
         public:
 
-            CHeaderHandler(bool Allow, COnHeaderHandlerEvent && Handler): CObject(),
+            CMethodHandler(bool Allow, COnMethodHandlerEvent && Handler): CObject(),
                 m_Allow(Allow), m_Handler(Handler) {
 
             };
@@ -62,7 +62,7 @@ namespace Apostol {
             }
         };
         //--------------------------------------------------------------------------------------------------------------
-#ifdef WITH_POSTGESQL
+#ifdef DELPHI_POSTGRESQL
         class CJob: CCollectionItem {
         private:
 
@@ -135,13 +135,15 @@ namespace Apostol {
 
         protected:
 
-            CStringList *m_Headers;
+            CStringList m_Methods;
+
+            virtual void CORS(CHTTPServerConnection *AConnection);
 
             virtual void DoOptions(CHTTPServerConnection *AConnection);
 
             virtual void MethodNotAllowed(CHTTPServerConnection *AConnection);
 
-#ifdef WITH_POSTGESQL
+#ifdef DELPHI_POSTGRESQL
             virtual void DoPostgresQueryExecuted(CPQPollQuery *APollQuery) abstract;
             virtual void DoPostgresQueryException(CPQPollQuery *APollQuery, Delphi::Exception::Exception *AException) abstract;
 #endif
@@ -151,9 +153,9 @@ namespace Apostol {
 
             explicit CApostolModule(CModuleManager *AManager);
 
-            ~CApostolModule() override;
+            ~CApostolModule() override = default;
 
-            virtual void InitHeaders() abstract;
+            virtual void InitMethods() abstract;
 
             virtual bool CheckUserAgent(const CString& Value) abstract;
 
@@ -164,7 +166,7 @@ namespace Apostol {
 
             const CString& AllowedMethods() { return GetAllowedMethods(m_AllowedMethods); };
 
-#ifdef WITH_POSTGESQL
+#ifdef DELPHI_POSTGRESQL
 
             static void QueryToResult(CPQPollQuery *APollQuery, CQueryResult& AResult);
 

@@ -69,7 +69,7 @@ namespace Apostol {
 
             return S;
         }
-#ifdef WITH_POSTGESQL
+#ifdef DELPHI_POSTGRESQL
         //--------------------------------------------------------------------------------------------------------------
 
         //-- CJob ------------------------------------------------------------------------------------------------------
@@ -137,26 +137,21 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         CApostolModule::CApostolModule(CModuleManager *AManager): CCollectionItem(AManager), CGlobalComponent() {
-            m_Headers = new CStringList(true);
-        }
-        //--------------------------------------------------------------------------------------------------------------
 
-        CApostolModule::~CApostolModule() {
-            delete m_Headers;
         }
         //--------------------------------------------------------------------------------------------------------------
 
         const CString &CApostolModule::GetAllowedMethods(CString &AllowedMethods) const {
             if (AllowedMethods.IsEmpty()) {
-                if (m_Headers->Count() > 0) {
-                    CHeaderHandler *Handler;
-                    for (int i = 0; i < m_Headers->Count(); ++i) {
-                        Handler = (CHeaderHandler *) m_Headers->Objects(i);
+                if (m_Methods.Count() > 0) {
+                    CMethodHandler *Handler;
+                    for (int i = 0; i < m_Methods.Count(); ++i) {
+                        Handler = (CMethodHandler *) m_Methods.Objects(i);
                         if (Handler->Allow()) {
                             if (AllowedMethods.IsEmpty())
-                                AllowedMethods = m_Headers->Strings(i);
+                                AllowedMethods = m_Methods.Strings(i);
                             else
-                                AllowedMethods += _T(", ") + m_Headers->Strings(i);
+                                AllowedMethods += _T(", ") + m_Methods.Strings(i);
                         }
                     }
                 }
@@ -178,21 +173,41 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CApostolModule::DoOptions(CHTTPServerConnection *AConnection) {
-            auto LReply = AConnection->Reply();
-#ifdef _DEBUG
             auto LRequest = AConnection->Request();
-            if (LRequest->Uri == _T("/quit"))
-                Application::Application->SignalProcess()->Quit();
-#endif
-            CReply::GetStockReply(LReply, CReply::ok);
+            auto LReply = AConnection->Reply();
+
+            CReply::GetStockReply(LReply, CReply::no_content);
 
             if (!AllowedMethods().IsEmpty())
                 LReply->AddHeader(_T("Allow"), AllowedMethods());
 
             AConnection->SendReply();
+#ifdef _DEBUG
+            if (LRequest->Uri == _T("/quit"))
+                Application::Application->SignalProcess()->Quit();
+#endif
         }
         //--------------------------------------------------------------------------------------------------------------
-#ifdef WITH_POSTGESQL
+
+        void CApostolModule::CORS(CHTTPServerConnection *AConnection) {
+            auto LRequest = AConnection->Request();
+            auto LReply = AConnection->Reply();
+
+            const CHeaders& LRequestHeaders = LRequest->Headers;
+            CHeaders& LReplyHeaders = LReply->Headers;
+
+            const CString& Origin = LRequestHeaders.Values("origin");
+            if (!Origin.IsEmpty()) {
+                LReplyHeaders.AddPair("Access-Control-Allow-Origin", Origin);
+                LReplyHeaders.AddPair("Access-Control-Allow-Methods", AllowedMethods());
+
+                const CString& ControlRequestHeaders = LRequestHeaders.Values("Access-Control-Request-Headers");
+                if (!ControlRequestHeaders.IsEmpty())
+                    LReplyHeaders.AddPair("Access-Control-Allow-Headers", ControlRequestHeaders);
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+#ifdef DELPHI_POSTGRESQL
         void CApostolModule::QueryToResult(CPQPollQuery *APollQuery, CQueryResult &AResult) {
             CPQResult *LResult = nullptr;
             CStringList LFields;
