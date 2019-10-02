@@ -3,7 +3,9 @@ project(deal-module)
 
 # Settings
 # ----------------------------------------------------------------------------------------------------------------------
-set(INSTALL_AS_ROOT ON CACHE BOOL "Install as root")
+set(INSTALL_AS_ROOT  ON  CACHE BOOL "Install as root")
+set(WITH_POSTGRESQL  OFF CACHE BOOL "Build with PostgreSQL")
+set(WITH_SQLITE3     OFF CACHE BOOL "Build with Sqlite3")
 # ----------------------------------------------------------------------------------------------------------------------
 
 if (INSTALL_AS_ROOT)
@@ -41,6 +43,16 @@ add_custom_target(
 # ----------------------------------------------------------------------------------------------------------------------
 add_compile_options("-DDELPHI_LIB_EXPORTS")
 add_compile_options(-DWWWServerName="${PROJECT_DESCRIPTION}")
+
+if (WITH_POSTGRESQL)
+    set(PQ_LIB_NAME "pq")
+    add_compile_options("-DDELPHI_POSTGRESQL")
+endif()
+
+if (WITH_SQLITE3)
+    set(SQLITE3_LIB_NAME "sqlite3")
+    add_compile_options("-DDELPHI_SQLITE3")
+endif()
 
 set(DELPHI_LIB_DIR "src/lib/delphi")
 
@@ -139,7 +151,7 @@ target_compile_definitions(${CORE_LIB_NAME} PUBLIC
         APP_DOC_ROOT="www/"
         )
 
-target_link_libraries(${CORE_LIB_NAME} pthread)
+target_link_libraries(${CORE_LIB_NAME} pthread ${PQ_LIB_NAME} ${SQLITE3_LIB_NAME})
 
 # Apostol modules
 # ----------------------------------------------------------------------------------------------------------------------

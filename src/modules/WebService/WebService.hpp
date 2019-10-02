@@ -29,7 +29,7 @@ extern "C++" {
 
 namespace Apostol {
 
-    namespace WebService {
+    namespace Module {
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -95,6 +95,6 @@ namespace Apostol {
     }
 }
 
-using namespace Apostol::WebService;
+using namespace Apostol::Module;
 }
 #endif //APOSTOL_WEBSERVICE_HPP

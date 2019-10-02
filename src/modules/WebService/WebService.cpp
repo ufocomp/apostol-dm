@@ -31,7 +31,7 @@ extern "C++" {
 
 namespace Apostol {
 
-    namespace WebService {
+    namespace Module {
 
         CString to_string(unsigned long Value) {
             TCHAR szString[_INT_T_LEN + 1] = {0};
