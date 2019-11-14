@@ -766,7 +766,7 @@ namespace Apostol {
             SplitColumns(LRequest->Uri.c_str(), LRequest->Uri.Size(), &LUri, '/');
 
             if (LUri.Count() < 3) {
-                AConnection->SendStockReply(CReply::not_found);
+                DoWWW(AConnection);
                 return;
             }
 
