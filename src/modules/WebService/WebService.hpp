@@ -40,6 +40,8 @@ namespace Apostol {
         class CWebService: public CApostolModule {
         private:
 
+            int m_Version;
+
             typedef struct CAuthData {
                 CString Username;
                 CString Password;
@@ -57,7 +59,8 @@ namespace Apostol {
 
             static void DoWWW(CHTTPServerConnection *AConnection);
 
-            void RouteUser(CHTTPServerConnection *AConnection, const CString& Method, const CString& Uri);
+            void RouteUser(CHTTPServerConnection *AConnection, const CString &Method, const CString &Uri);
+            void RouteDeal(CHTTPServerConnection *AConnection, const CString &Method, const CString &Uri, const CString &Action);
 
         protected:
 
@@ -69,7 +72,7 @@ namespace Apostol {
             void DoProxyConnected(CObject *Sender);
             void DoProxyDisconnected(CObject *Sender);
 
-            static void ExceptionToJson(int ErrorCode, Delphi::Exception::Exception *AException, CString& Json);
+            static void ExceptionToJson(int ErrorCode, const std::exception &AException, CString& Json);
 
         public:
 
@@ -88,7 +91,7 @@ namespace Apostol {
 
             void Execute(CHTTPServerConnection *AConnection) override;
 
-            bool CheckUserAgent(const CString& Value) override;
+            bool CheckUserAgent(const CString &Value) override;
 
         };
 

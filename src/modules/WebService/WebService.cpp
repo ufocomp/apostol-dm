@@ -27,6 +27,9 @@ Author:
 #include "WebService.hpp"
 //----------------------------------------------------------------------------------------------------------------------
 
+#include "yaml-cpp/yaml.h"
+//----------------------------------------------------------------------------------------------------------------------
+
 extern "C++" {
 
 namespace Apostol {
@@ -46,6 +49,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         CWebService::CWebService(CModuleManager *AManager): CApostolModule(AManager) {
+            m_Version = -1;
             m_ProxyManager = new CHTTPProxyManager();
             InitMethods();
         }
@@ -82,7 +86,7 @@ namespace Apostol {
             auto LServerReply = LProxy->Connection()->Reply();
             auto LProxyReply = LConnection->Reply();
 
-            const CString& Format = LServerRequest->Params["format"];
+            const auto& Format = LServerRequest->Params["format"];
             if (Format == "html") {
                 LServerReply->ContentType = CReply::html;
                 if (LProxyReply->Status == CReply::ok) {
@@ -116,7 +120,7 @@ namespace Apostol {
             auto LServerRequest = LProxy->Connection()->Request();
             auto LServerReply = LProxy->Connection()->Reply();
 
-            const CString& Format = LServerRequest->Params["format"];
+            const auto& Format = LServerRequest->Params["format"];
             if (Format == "html") {
                 LServerReply->ContentType = CReply::html;
             }
@@ -133,7 +137,7 @@ namespace Apostol {
 
             if (Assigned(LProxy)) {
                 auto LReply = LProxy->Connection()->Reply();
-                ExceptionToJson(0, AException, LReply->Content);
+                ExceptionToJson(0, *AException, LReply->Content);
                 LProxy->Connection()->SendReply(CReply::internal_server_error, nullptr, true);
             }
 
@@ -159,9 +163,9 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::ExceptionToJson(int ErrorCode, Delphi::Exception::Exception *AException, CString& Json) {
+        void CWebService::ExceptionToJson(int ErrorCode, const std::exception &AException, CString& Json) {
             TCHAR ch;
-            LPCTSTR lpMessage = AException->what();
+            LPCTSTR lpMessage = AException.what();
             CString Message;
 
             while ((ch = *lpMessage++) != 0) {
@@ -197,12 +201,12 @@ namespace Apostol {
             auto LServerRequest = AConnection->Request();
             auto LProxyRequest = LProxy->Request();
 
-            const CString& LModuleAddress = Config()->ModuleAddress();
-            const CString& LOrigin = LServerRequest->Headers.Values("origin");
-            const CString& LUserAddress = LServerRequest->Params["address"];
+            const auto& LModuleAddress = Config()->ModuleAddress();
+            const auto& LOrigin = LServerRequest->Headers.Values("origin");
+            const auto& LUserAddress = LServerRequest->Params["address"];
 
-            const CString& LServer = LServerRequest->Params["server"];
-            const CString& pgpValue = LServerRequest->Params["pgp"];
+            const auto& LServer = LServerRequest->Params["server"];
+            const auto& pgpValue = LServerRequest->Params["pgp"];
 
             LProxy->Host() = LServer.IsEmpty() ? "localhost" : LServer;
             LProxy->Port(4977);
@@ -212,20 +216,20 @@ namespace Apostol {
 
             if (!LServerRequest->Content.IsEmpty()) {
 
-                const CString& ContentType = LServerRequest->Headers.Values(_T("content-type"));
+                const auto& ContentType = LServerRequest->Headers.Values(_T("content-type"));
 
                 if (ContentType == "application/x-www-form-urlencoded") {
 
                     const CStringList& FormData = LServerRequest->FormData;
 
-                    const CString& formDate = FormData["date"];
-                    const CString& formAddress = FormData["address"];
-                    const CString& formBitmessage = FormData["bitmessage"];
-                    const CString& formKey = FormData["key"];
-                    const CString& formPGP = FormData["pgp"];
-                    const CString& formURL = FormData["url"];
-                    const CString& formFlags = FormData["flags"];
-                    const CString& formSign = FormData["sign"];
+                    const auto& formDate = FormData["date"];
+                    const auto& formAddress = FormData["address"];
+                    const auto& formBitmessage = FormData["bitmessage"];
+                    const auto& formKey = FormData["key"];
+                    const auto& formPGP = FormData["pgp"];
+                    const auto& formURL = FormData["url"];
+                    const auto& formFlags = FormData["flags"];
+                    const auto& formSign = FormData["sign"];
 
                     if (!formDate.IsEmpty()) {
                         ClearText << formDate << LINEFEED;
@@ -264,14 +268,14 @@ namespace Apostol {
                     CFormData FormData;
                     CRequestParser::ParseFormData(LServerRequest, FormData);
 
-                    const CString& formDate = FormData.Data("date");
-                    const CString& formAddress = FormData.Data("address");
-                    const CString& formBitmessage = FormData.Data("bitmessage");
-                    const CString& formKey = FormData.Data("key");
-                    const CString& formPGP = FormData.Data("pgp");
-                    const CString& formURL = FormData.Data("url");
-                    const CString& formFlags = FormData.Data("flags");
-                    const CString& formSign = FormData.Data("sign");
+                    const auto& formDate = FormData.Data("date");
+                    const auto& formAddress = FormData.Data("address");
+                    const auto& formBitmessage = FormData.Data("bitmessage");
+                    const auto& formKey = FormData.Data("key");
+                    const auto& formPGP = FormData.Data("pgp");
+                    const auto& formURL = FormData.Data("url");
+                    const auto& formFlags = FormData.Data("flags");
+                    const auto& formSign = FormData.Data("sign");
 
                     if (!formDate.IsEmpty()) {
                         ClearText << formDate << LINEFEED;
@@ -309,13 +313,13 @@ namespace Apostol {
 
                     const CJSON contextJson(LServerRequest->Content);
 
-                    const CString& jsonDate = contextJson["date"].AsSiring();
-                    const CString& jsonAddress = contextJson["address"].AsSiring();
-                    const CString& jsonBitmessage = contextJson["bitmessage"].AsSiring();
-                    const CString& jsonKey = contextJson["key"].AsSiring();
-                    const CString& jsonPGP = contextJson["pgp"].AsSiring();
-                    const CString& jsonFlags = contextJson["flags"].AsSiring();
-                    const CString& jsonSign = contextJson["sign"].AsSiring();
+                    const auto& jsonDate = contextJson["date"].AsSiring();
+                    const auto& jsonAddress = contextJson["address"].AsSiring();
+                    const auto& jsonBitmessage = contextJson["bitmessage"].AsSiring();
+                    const auto& jsonKey = contextJson["key"].AsSiring();
+                    const auto& jsonPGP = contextJson["pgp"].AsSiring();
+                    const auto& jsonFlags = contextJson["flags"].AsSiring();
+                    const auto& jsonSign = contextJson["sign"].AsSiring();
 
                     if (!jsonDate.IsEmpty()) {
                         ClearText << jsonDate << LINEFEED;
@@ -382,7 +386,274 @@ namespace Apostol {
 
             LProxyRequest->Clear();
 
-            const CString& LHost = LServerRequest->Headers.Values("host");
+            const auto& LHost = LServerRequest->Headers.Values("host");
+            if (!LHost.IsEmpty()) {
+                const size_t Pos = LHost.Find(':');
+                if (Pos != CString::npos) {
+                    LProxyRequest->Host = LHost.SubString(0, Pos);
+                    LProxyRequest->Port = StrToIntDef(LHost.SubString(Pos + 1).c_str(), 0);
+                } else {
+                    LProxyRequest->Host = LHost;
+                    LProxyRequest->Port = 0;
+                }
+            }
+
+            LProxyRequest->CloseConnection = true;
+            LProxyRequest->ContentType = CRequest::json;
+            LProxyRequest->Content << Json;
+
+            CRequest::Prepare(LProxyRequest, Method.c_str(), Uri.c_str());
+
+            if (!LModuleAddress.IsEmpty())
+                LProxyRequest->AddHeader("Module-Address", LModuleAddress);
+
+            if (!LOrigin.IsEmpty())
+                LProxyRequest->AddHeader("Origin", LOrigin);
+
+            LProxy->Active(true);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::RouteDeal(CHTTPServerConnection *AConnection, const CString &Method, const CString &Uri, const CString &Action) {
+            auto LProxy = GetProxy(AConnection);
+            auto LServerRequest = AConnection->Request();
+            auto LProxyRequest = LProxy->Request();
+
+            const auto& LModuleAddress = Config()->ModuleAddress();
+            const auto& LOrigin = LServerRequest->Headers.Values("origin");
+            const auto& LUserAddress = LServerRequest->Params["address"];
+
+            const auto& LServer = LServerRequest->Params["server"];
+            const auto& pgpValue = LServerRequest->Params["pgp"];
+
+            LProxy->Host() = LServer.IsEmpty() ? "localhost" : LServer;
+            LProxy->Port(4977);
+
+            YAML::Node Root;
+            YAML::Node Deal = Root["deal"];
+
+            Deal["order"] = Action.c_str();
+
+            CString ClearText;
+            CString Payload;
+            CStringList Data;
+
+            if (!LServerRequest->Content.IsEmpty()) {
+
+                const auto& ContentType = LServerRequest->Headers.Values(_T("content-type"));
+
+                if (ContentType == "application/x-www-form-urlencoded") {
+
+                    const CStringList& FormData = LServerRequest->FormData;
+
+                    const auto& formAt = FormData["at"];
+                    const auto& formDate = FormData["date"];
+                    const auto& formSellerAddress = FormData["seller_address"];
+                    const auto& formSellerRating = FormData["seller_rating"];
+                    const auto& formCustomerAddress = FormData["customer_address"];
+                    const auto& formCustomerRating = FormData["customer_rating"];
+                    const auto& formPaymentAddress = FormData["payment_address"];
+                    const auto& formPaymentUntil = FormData["payment_until"];
+                    const auto& formPaymentSum = FormData["payment_sum"];
+                    const auto& formFeedbackLeaveBefore = FormData["feedback_leave_before"];
+                    const auto& formFeedbackPositive = FormData["feedback_positive"];
+                    const auto& formFeedbackComments = FormData["feedback_comments"];
+
+                    Deal["at"] = formAt.c_str();
+                    Deal["date"] = formDate.c_str();
+
+                    YAML::Node Seller = Deal["seller"];
+
+                    Seller["address"] = formSellerAddress.c_str();
+
+                    if (!formSellerRating.IsEmpty())
+                        Seller["rating"] = formSellerRating.c_str();
+
+                    YAML::Node Customer = Deal["customer"];
+
+                    Customer["address"] = formCustomerAddress.c_str();
+
+                    if (!formSellerRating.IsEmpty())
+                        Customer["rating"] = formCustomerRating.c_str();
+
+                    YAML::Node Payment = Deal["payment"];
+
+                    if (!formPaymentAddress.IsEmpty())
+                        Payment["address"] = formPaymentAddress.c_str();
+
+                    if (!formPaymentUntil.IsEmpty())
+                        Payment["until"] = formPaymentUntil.c_str();
+
+                    Payment["sum"] = formPaymentSum.c_str();
+
+                    if (!formFeedbackLeaveBefore.IsEmpty()) {
+                        YAML::Node Feedback = Deal["feedback"];
+
+                        Feedback["leave-before"] = formFeedbackLeaveBefore.c_str();
+
+                        if (!formFeedbackPositive.IsEmpty())
+                            Feedback["positive"] = formFeedbackPositive.c_str();
+
+                        if (!formFeedbackComments.IsEmpty())
+                            Feedback["comments"] = formFeedbackComments.c_str();
+                    }
+
+                } else if (ContentType == "multipart/form-data") {
+
+                    CFormData FormData;
+                    CRequestParser::ParseFormData(LServerRequest, FormData);
+
+                    const auto& formAt = FormData.Data("at");
+                    const auto& formDate = FormData.Data("date");
+                    const auto& formSellerAddress = FormData.Data("seller_address");
+                    const auto& formSellerRating = FormData.Data("seller_rating");
+                    const auto& formCustomerAddress = FormData.Data("customer_address");
+                    const auto& formCustomerRating = FormData.Data("customer_rating");
+                    const auto& formPaymentAddress = FormData.Data("payment_address");
+                    const auto& formPaymentUntil = FormData.Data("payment_until");
+                    const auto& formPaymentSum = FormData.Data("payment_sum");
+                    const auto& formFeedbackLeaveBefore = FormData.Data("feedback_leave_before");
+                    const auto& formFeedbackPositive = FormData.Data("feedback_positive");
+                    const auto& formFeedbackComments = FormData.Data("feedback_comments");
+
+                    Deal["at"] = formAt.c_str();
+                    Deal["date"] = formDate.c_str();
+
+                    YAML::Node Seller = Deal["seller"];
+
+                    Seller["address"] = formSellerAddress.c_str();
+
+                    if (!formSellerRating.IsEmpty())
+                        Seller["rating"] = formSellerRating.c_str();
+
+                    YAML::Node Customer = Deal["customer"];
+
+                    Customer["address"] = formCustomerAddress.c_str();
+
+                    if (!formSellerRating.IsEmpty())
+                        Customer["rating"] = formCustomerRating.c_str();
+
+                    YAML::Node Payment = Deal["payment"];
+
+                    if (!formPaymentAddress.IsEmpty())
+                        Payment["address"] = formPaymentAddress.c_str();
+
+                    if (!formPaymentUntil.IsEmpty())
+                        Payment["until"] = formPaymentUntil.c_str();
+
+                    Payment["sum"] = formPaymentSum.c_str();
+
+                    if (!formFeedbackLeaveBefore.IsEmpty()) {
+                        YAML::Node Feedback = Deal["feedback"];
+
+                        Feedback["leave-before"] = formFeedbackLeaveBefore.c_str();
+
+                        if (!formFeedbackPositive.IsEmpty())
+                            Feedback["positive"] = formFeedbackPositive.c_str();
+
+                        if (!formFeedbackComments.IsEmpty())
+                            Feedback["comments"] = formFeedbackComments.c_str();
+                    }
+
+                } else if (ContentType == "application/json") {
+
+                    const CJSON jsonData(LServerRequest->Content);
+
+                    const auto& formAt = jsonData["at"].AsSiring();
+                    const auto& formDate = jsonData["date"].AsSiring();
+
+                    const CJSONValue& jsonSeller = jsonData["seller"];
+
+                    const auto& formSellerAddress = jsonSeller["address"].AsSiring();
+                    const auto& formSellerRating = jsonSeller["rating"].AsSiring();
+
+                    const CJSONValue& jsonCustomer = jsonData["customer"];
+
+                    const auto& formCustomerAddress = jsonCustomer["address"].AsSiring();
+                    const auto& formCustomerRating = jsonCustomer["rating"].AsSiring();
+
+                    const CJSONValue& jsonPayment = jsonData["payment"];
+
+                    const auto& formPaymentAddress = jsonPayment["address"].AsSiring();
+                    const auto& formPaymentUntil = jsonPayment["until"].AsSiring();
+                    const auto& formPaymentSum = jsonPayment["sum"].AsSiring();
+
+                    const CJSONValue& jsonFeedback = jsonData["feedback"];
+
+                    const auto& formFeedbackLeaveBefore = jsonFeedback["leave-before"].AsSiring();
+                    const auto& formFeedbackPositive = jsonFeedback["positive"].AsSiring();
+                    const auto& formFeedbackComments = jsonFeedback["comments"].AsSiring();
+
+                    Deal["at"] = formAt.c_str();
+                    Deal["date"] = formDate.c_str();
+
+                    YAML::Node Seller = Deal["seller"];
+
+                    Seller["address"] = formSellerAddress.c_str();
+
+                    if (!formSellerRating.IsEmpty())
+                        Seller["rating"] = formSellerRating.c_str();
+
+                    YAML::Node Customer = Deal["customer"];
+
+                    Customer["address"] = formCustomerAddress.c_str();
+
+                    if (!formSellerRating.IsEmpty())
+                        Customer["rating"] = formCustomerRating.c_str();
+
+                    YAML::Node Payment = Deal["payment"];
+
+                    if (!formPaymentAddress.IsEmpty())
+                        Payment["address"] = formPaymentAddress.c_str();
+
+                    if (!formPaymentUntil.IsEmpty())
+                        Payment["until"] = formPaymentUntil.c_str();
+
+                    Payment["sum"] = formPaymentSum.c_str();
+
+                    if (!formFeedbackLeaveBefore.IsEmpty()) {
+                        YAML::Node Feedback = Deal["feedback"];
+
+                        Feedback["leave-before"] = formFeedbackLeaveBefore.c_str();
+
+                        if (!formFeedbackPositive.IsEmpty())
+                            Feedback["positive"] = formFeedbackPositive.c_str();
+
+                        if (!formFeedbackComments.IsEmpty())
+                            Feedback["comments"] = formFeedbackComments.c_str();
+                    }
+
+                } else {
+                    Deal = YAML::Load(LServerRequest->Content.c_str());
+                }
+
+                ClearText = YAML::Dump(Deal);
+
+                if (pgpValue == "off" || pgpValue == "false") {
+                    Payload = ClearText;
+                } else {
+                    Apostol::PGP::CleartextSignature(
+                            Config()->PGPPrivate(),
+                            Config()->PGPPassphrase(),
+                            "SHA256",
+                            ClearText,
+                            Payload);
+                }
+            }
+
+            DebugMessage("[RouteDeal] Server request:\n%s\n", LServerRequest->Content.c_str());
+            DebugMessage("[RouteDeal] Payload:\n%s\n", Payload.c_str());
+
+            CJSON Json(jvtObject);
+
+            Json.Object().AddPair("id", GetUID(APOSTOL_MODULE_UID_LENGTH));
+
+            if (!Payload.IsEmpty())
+                Json.Object().AddPair("payload", base64_encode(Payload));
+
+            LProxyRequest->Clear();
+
+            const auto& LHost = LServerRequest->Headers.Values("host");
             if (!LHost.IsEmpty()) {
                 const size_t Pos = LHost.Find(':');
                 if (Pos != CString::npos) {
@@ -432,7 +703,7 @@ namespace Apostol {
                 return;
             }
 
-            const CString& LAuthorization = LRequest->Headers.Values(_T("authorization"));
+            const auto& LAuthorization = LRequest->Headers.Values(_T("authorization"));
             if (LAuthorization.IsEmpty()) {
                 AConnection->SendStockReply(CReply::unauthorized);
                 return;
@@ -487,29 +758,35 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CWebService::DoGet(CHTTPServerConnection *AConnection) {
+
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
-
-            int LVersion = -1;
 
             CStringList LUri;
             SplitColumns(LRequest->Uri.c_str(), LRequest->Uri.Size(), &LUri, '/');
 
-            if (LUri.Count() < 2) {
-                DoWWW(AConnection);
+            if (LUri.Count() < 3) {
+                AConnection->SendStockReply(CReply::not_found);
                 return;
             }
 
-            if (LUri[1] == _T("v1")) {
-                LVersion = 1;
+            const auto& LService = LUri[0].Lower();
+            const auto& LVersion = LUri[1].Lower();
+            const auto& LCommand = LUri[2].Lower();
+            const auto& LAction = LUri.Count() == 4 ? LUri[3].Lower() : "";
+
+            if (LVersion == "v1") {
+                m_Version = 1;
+            } else if (LVersion == "v2") {
+                m_Version = 2;
             }
 
-            if (LUri[0] != _T("api") || (LVersion == -1)) {
-                DoWWW(AConnection);
+            if (LService != "api" || (m_Version == -1)) {
+                AConnection->SendStockReply(CReply::not_found);
                 return;
             }
 
-            const CString& LContentType = LRequest->Headers.Values(_T("content-type"));
+            const CString &LContentType = LRequest->Headers.Values("content-type");
             if (!LContentType.IsEmpty() && LRequest->ContentLength == 0) {
                 AConnection->SendStockReply(CReply::no_content);
                 return;
@@ -522,20 +799,17 @@ namespace Apostol {
             }
 
             try {
-                const CString& R2 = LUri[2].Lower();
-                const CString& R3 = LUri.Count() == 4 ? LUri[3].Lower() : "help";
-
-                if (R2 == "ping") {
+                if (LCommand == "ping") {
 
                     AConnection->SendStockReply(CReply::ok);
 
-                } else if (R2 == "time") {
+                } else if (LCommand == "time") {
 
                     LReply->Content << "{\"serverTime\": " << to_string(MsEpoch()) << "}";
 
                     AConnection->SendReply(CReply::ok);
 
-                } else if (R2 == "user" && (R3 == "help" || R3 == "status")) {
+                } else if (m_Version == 1 && LCommand == "user" && (LAction == "help" || LAction == "status")) {
 
                     LRequest->Content.Clear();
 
@@ -547,13 +821,13 @@ namespace Apostol {
 
                 }
 
-            } catch (Delphi::Exception::Exception &E) {
+            } catch (std::exception &e) {
                 CReply::status_type LStatus = CReply::internal_server_error;
 
-                ExceptionToJson(0, &E, LReply->Content);
+                ExceptionToJson(0, e, LReply->Content);
 
                 AConnection->SendReply(LStatus);
-                Log()->Error(APP_LOG_EMERG, 0, E.what());
+                Log()->Error(APP_LOG_EMERG, 0, e.what());
             }
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -561,21 +835,35 @@ namespace Apostol {
         void CWebService::DoPost(CHTTPServerConnection *AConnection) {
 
             auto LRequest = AConnection->Request();
-            int LVersion = -1;
+            auto LReply = AConnection->Reply();
 
             CStringList LUri;
             SplitColumns(LRequest->Uri.c_str(), LRequest->Uri.Size(), &LUri, '/');
+
             if (LUri.Count() < 3) {
                 AConnection->SendStockReply(CReply::not_found);
                 return;
             }
 
-            if (LUri[1] == _T("v1")) {
-                LVersion = 1;
+            const auto& LService = LUri[0].Lower();
+            const auto& LVersion = LUri[1].Lower();
+            const auto& LCommand = LUri[2].Lower();
+            const auto& LAction = LUri.Count() == 4 ? LUri[3].Lower() : "";
+
+            if (LVersion == "v1") {
+                m_Version = 1;
+            } else if (LVersion == "v2") {
+                m_Version = 2;
             }
 
-            if (LUri[0] != _T("api") || (LVersion == -1)) {
+            if (LService != "api" || (m_Version == -1)) {
                 AConnection->SendStockReply(CReply::not_found);
+                return;
+            }
+
+            const CString &LContentType = LRequest->Headers.Values("content-type");
+            if (!LContentType.IsEmpty() && LRequest->ContentLength == 0) {
+                AConnection->SendStockReply(CReply::no_content);
                 return;
             }
 
@@ -585,29 +873,15 @@ namespace Apostol {
                 LRoute.Append(LUri[I]);
             }
 
-            auto LReply = AConnection->Reply();
-
             try {
 
-                if (LUri[2] == _T("user")) {
+                if (LCommand == "user") {
 
                     RouteUser(AConnection, "POST", LRoute);
 
-                } else if (LUri[2] == _T("deal")) {
+                } else if (LCommand == "deal") {
 
-                    if (LUri[3] == _T("new")) {
-
-                    } else if (LUri[3] == _T("check")) {
-
-                    } else if (LUri[3] == _T("complete")) {
-
-                    }
-
-                } else if (LUri[2] == _T("key")) {
-
-                    if (LUri[3] == _T("update")) {
-
-                    }
+                    RouteDeal(AConnection, "POST", LRoute, LAction);
 
                 } else {
 
@@ -615,13 +889,13 @@ namespace Apostol {
 
                 }
 
-            } catch (Delphi::Exception::Exception &E) {
+            } catch (std::exception &e) {
                 CReply::status_type LStatus = CReply::internal_server_error;
 
-                ExceptionToJson(0, &E, LReply->Content);
+                ExceptionToJson(0, e, LReply->Content);
 
                 AConnection->SendReply(LStatus);
-                Log()->Error(APP_LOG_EMERG, 0, E.what());
+                Log()->Error(APP_LOG_EMERG, 0, e.what());
             }
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -639,7 +913,7 @@ namespace Apostol {
             for (i = 0; i < m_Methods.Count(); ++i) {
                 Handler = (CMethodHandler *) m_Methods.Objects(i);
                 if (Handler->Allow()) {
-                    const CString& Method = m_Methods.Strings(i);
+                    const auto& Method = m_Methods.Strings(i);
                     if (Method == LRequest->Method) {
                         CORS(AConnection);
                         Handler->Handler(AConnection);
