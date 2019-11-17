@@ -429,10 +429,7 @@ namespace Apostol {
             LProxy->Host() = LServer.IsEmpty() ? "localhost" : LServer;
             LProxy->Port(4977);
 
-            YAML::Node Root;
-            YAML::Node Deal = Root["deal"];
-
-            Deal["order"] = Action.c_str();
+            YAML::Node Node;
 
             CString ClearText;
             CString Payload;
@@ -458,6 +455,9 @@ namespace Apostol {
                     const auto& formFeedbackLeaveBefore = FormData["feedback_leave_before"];
                     const auto& formFeedbackPositive = FormData["feedback_positive"];
                     const auto& formFeedbackComments = FormData["feedback_comments"];
+
+                    Node["deal"]["order"] = Action.IsEmpty() ? "" : Action.c_str();
+                    YAML::Node Deal = Node["deal"];
 
                     Deal["at"] = formAt.c_str();
                     Deal["date"] = formDate.c_str();
@@ -516,6 +516,9 @@ namespace Apostol {
                     const auto& formFeedbackPositive = FormData.Data("feedback_positive");
                     const auto& formFeedbackComments = FormData.Data("feedback_comments");
 
+                    Node["deal"]["order"] = Action.IsEmpty() ? "" : Action.c_str();
+                    YAML::Node Deal = Node["deal"];
+
                     Deal["at"] = formAt.c_str();
                     Deal["date"] = formDate.c_str();
 
@@ -559,6 +562,8 @@ namespace Apostol {
 
                     const CJSON jsonData(LServerRequest->Content);
 
+                    const auto& formOrder = jsonData["order"].AsSiring();
+
                     const auto& formAt = jsonData["at"].AsSiring();
                     const auto& formDate = jsonData["date"].AsSiring();
 
@@ -583,6 +588,9 @@ namespace Apostol {
                     const auto& formFeedbackLeaveBefore = jsonFeedback["leave-before"].AsSiring();
                     const auto& formFeedbackPositive = jsonFeedback["positive"].AsSiring();
                     const auto& formFeedbackComments = jsonFeedback["comments"].AsSiring();
+
+                    Node["deal"]["order"] = formOrder.c_str();
+                    YAML::Node Deal = Node["deal"];
 
                     Deal["at"] = formAt.c_str();
                     Deal["date"] = formDate.c_str();
@@ -624,10 +632,10 @@ namespace Apostol {
                     }
 
                 } else {
-                    Deal = YAML::Load(LServerRequest->Content.c_str());
+                    Node = YAML::Load(LServerRequest->Content.c_str());
                 }
 
-                ClearText = YAML::Dump(Deal);
+                ClearText = YAML::Dump(Node);
 
                 if (pgpValue == "off" || pgpValue == "false") {
                     Payload = ClearText;
