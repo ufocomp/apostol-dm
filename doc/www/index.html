@@ -16,226 +16,408 @@
       <div class="container shadow-sm p-3 mb-5 bg-white rounded">
         <h2>Deal Module</h2>
         <br>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-          <a class="navbar-brand" href="#">Action</a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarText">
-            <ul class="nav nav-tabs mr-auto">
-              <li class="nav-item">
-                <a class="nav-link active" href="#tab-help">Help <span class="sr-only">(current)</span></a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#tab-status">Status</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-toggle="tab" href="#tab-new">New</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#tab-add">Add</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#tab-update">Update</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#tab-delete">Delete</a>
-              </li>
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="other" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Other</a>
-                <div class="dropdown-menu" aria-labelledby="other">
-                  <a class="dropdown-item" data-toggle="tab" href="#tab-config">Settings</a>
-                </div>
-              </li>
-            </ul>
-            <span class="navbar-text">
-              Account registration
-            </span>
-          </div>
-        </nav>
-        <!-- Tab panes -->
-        <div class="tab-content">
-          <div id="tab-help" class="container tab-pane active">
-              <div id="action-help" class="mt-3">
-                  <small class="form-text text-muted">Wait response...</small>
+          <nav class="nav nav-pills nav-fill">
+              <a class="text-sm-center nav-link active" data-toggle="tab" href="#tab-account">Account</a>
+              <a class="text-sm-center nav-link" data-toggle="tab" href="#tab-deal">Deal</a>
+          </nav>
+          <div class="tab-content">
+              <div id="tab-account" class="tab-pane active">
+                  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                      <a class="navbar-brand" href="#">Action</a>
+                      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarAccount" aria-controls="navbarAccount" aria-expanded="false" aria-label="Toggle navigation">
+                          <span class="navbar-toggler-icon"></span>
+                      </button>
+                      <div class="collapse navbar-collapse" id="navbarAccount">
+                          <ul class="nav nav-tabs mr-auto">
+                              <li class="nav-item">
+                                  <a class="nav-link active" href="#tab-account-help">Help <span class="sr-only">(current)</span></a>
+                              </li>
+                              <li class="nav-item">
+                                  <a class="nav-link" href="#tab-account-status">Status</a>
+                              </li>
+                              <li class="nav-item">
+                                  <a class="nav-link" data-toggle="tab" href="#tab-account-new">New</a>
+                              </li>
+                              <li class="nav-item">
+                                  <a class="nav-link" href="#tab-account-add">Add</a>
+                              </li>
+                              <li class="nav-item">
+                                  <a class="nav-link" href="#tab-account-update">Update</a>
+                              </li>
+                              <li class="nav-item">
+                                  <a class="nav-link" href="#tab-account-delete">Delete</a>
+                              </li>
+                              <li class="nav-item dropdown">
+                                  <a class="nav-link dropdown-toggle" href="#" id="btnSettings" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Other</a>
+                                  <div class="dropdown-menu" aria-labelledby="other">
+                                      <a class="dropdown-item" data-toggle="tab" href="#tab-config">Settings</a>
+                                  </div>
+                              </li>
+                          </ul>
+                          <span class="navbar-text">
+                              Account registration
+                          </span>
+                      </div>
+                  </nav>
+                  <!-- Tab panes -->
+                  <div class="tab-content">
+                      <div id="tab-account-help" class="container tab-pane active">
+                          <div id="action-help" class="mt-3">
+                              <small class="form-text text-muted">Wait response...</small>
+                          </div>
+                      </div>
+                      <div id="tab-account-status" class="container tab-pane fade">
+                          <div class="mt-3">
+                              <form onsubmit="actionStatus()">
+                                  <div class="form-group row">
+                                      <label for="statusModuleAddress" class="col-sm-2 col-form-label">Module address</label>
+                                      <div class="col-sm-10">
+                                          <input type="text" readonly class="form-control-plaintext" id="statusModuleAddress" value="mjTbMV3cbjtGxYMKV2uKZpZt5v7LRp8TBJ">
+                                      </div>
+                                  </div>
+                                  <div class="form-group row">
+                                      <label for="statusUserAddress" class="col-sm-2 col-form-label">User address</label>
+                                      <div class="col-sm-10">
+                                          <input type="text" class="form-control" id="statusUserAddress" placeholder="User bitcoin address">
+                                      </div>
+                                  </div>
+                                  <button type="submit" class="btn btn-primary">Execute</button>
+                              </form>
+                              <hr>
+                              <div id="action-status">
+                                  <small class="form-text text-muted">Press "Execute" button...</small>
+                              </div>
+                          </div>
+                      </div>
+                      <div id="tab-account-new" class="container tab-pane fade">
+                          <div class="mt-3">
+                              <form onsubmit="actionNew()">
+                                  <div class="form-row">
+                                      <div class="form-group col-md-6">
+                                          <label for="newAddress">Bitcoin address</label>
+                                          <input type="text" class="form-control" id="newAddress" placeholder="Bitcoin address" required>
+                                      </div>
+                                      <div class="form-group col-md-6">
+                                          <label for="newBitmessage">Bitmessage address</label>
+                                          <input type="text" class="form-control" id="newBitmessage" placeholder="Bitmessage address">
+                                      </div>
+                                  </div>
+                                  <div class="form-group">
+                                      <label for="newKey">Bitcoin public key</label>
+                                      <input type="text" class="form-control" id="newKey" placeholder="Bitcoin public key">
+                                  </div>
+                                  <div class="form-group">
+                                      <label for="newPGP">PGP public key</label>
+                                      <textarea class="form-control" id="newPGP" rows="5" placeholder="PGP public key"></textarea>
+                                  </div>
+                                  <div class="form-group">
+                                      <label for="newURL">URL List</label>
+                                      <textarea class="form-control" id="newURL" rows="5" placeholder="URL List"></textarea>
+                                  </div>
+                                  <button type="submit" class="btn btn-primary">Execute</button>
+                              </form>
+                              <hr>
+                              <div id="action-new">
+                                  <small class="form-text text-muted">Press "Execute" button...</small>
+                              </div>
+                          </div>
+                      </div>
+                      <div id="tab-account-add" class="container tab-pane fade">
+                          <div class="mt-3">
+                              <form onsubmit="actionAdd()">
+                                  <div class="form-row">
+                                      <div class="form-group col-md-6">
+                                          <label for="addAddress">User Bitcoin address</label>
+                                          <input type="text" class="form-control" id="addAddress" aria-describedby="addAddressHelp" placeholder="Enter Bitcoin address" required>
+                                          <small id="addAddressHelp" class="form-text text-muted">Please enter the address of the user for whom you want to add data.</small>
+                                      </div>
+                                  </div>
+                                  <div class="form-group">
+                                      <label for="addKey">Bitcoin public key</label>
+                                      <input type="text" class="form-control" id="addKey" placeholder="Bitcoin public key">
+                                  </div>
+                                  <div class="form-group">
+                                      <label for="addPGP">PGP public key</label>
+                                      <textarea class="form-control" id="addPGP" rows="5" placeholder="PGP public key"></textarea>
+                                  </div>
+                                  <button type="submit" class="btn btn-primary">Execute</button>
+                              </form>
+                              <hr>
+                              <div id="action-add">
+                                  <small class="form-text text-muted">Press "Execute" button...</small>
+                              </div>
+                          </div>
+                      </div>
+                      <div id="tab-account-update" class="container tab-pane fade">
+                          <div class="mt-3">
+                              <form onsubmit="actionUpdate()">
+                                  <div class="form-row">
+                                      <div class="form-group col-md-6">
+                                          <label for="updateAddress">User Bitcoin address</label>
+                                          <input type="text" class="form-control" id="updateAddress" aria-describedby="updateAddressHelp" placeholder="Enter Bitcoin address" required>
+                                          <small id="updateAddressHelp" class="form-text text-muted">Please enter the address of the user whose data you want to update.</small>
+                                      </div>
+                                      <div class="form-group col-md-6">
+                                          <label for="updateDate">Now</label>
+                                          <input type="text" class="form-control" id="updateDate" aria-describedby="updateDateHelp" placeholder="Now">
+                                          <small id="updateDateHelp" class="form-text text-muted">Format: YYYY-MM-DD</small>
+                                      </div>
+                                  </div>
+                                  <div class="form-group">
+                                      <label for="updatePGP">PGP public key</label>
+                                      <textarea class="form-control" id="updatePGP" rows="5" placeholder="PGP public key"></textarea>
+                                  </div>
+                                  <div class="form-group">
+                                      <label for="updateURL">URL List</label>
+                                      <textarea class="form-control" id="updateURL" rows="5" aria-describedby="updateURLHelp" placeholder="URL List"></textarea>
+                                      <small id="updateURLHelp" class="form-text text-muted">Add(+) or delete(-) URL; format: http[s]://&lt;tstring&gt;.</small>
+                                  </div>
+                                  <div class="form-group">
+                                      <label for="updateSign">Signature</label>
+                                      <textarea class="form-control" id="updateSign" rows="5" aria-describedby="updateSignHelp" placeholder="Signature" required></textarea>
+                                      <small id="updateSignHelp" class="form-text text-muted">Bitcoin signature for message text (use private key).</small>
+                                  </div>
+                                  <button type="submit" class="btn btn-primary">Execute</button>
+                              </form>
+                              <hr>
+                              <div id="action-update">
+                                  <small class="form-text text-muted">Press "Execute" button...</small>
+                              </div>
+                          </div>
+                      </div>
+                      <div id="tab-account-delete" class="container tab-pane fade">
+                          <div class="mt-3">
+                              <form onsubmit="actionDelete()">
+                                  <div class="form-row">
+                                      <div class="form-group col-md-6">
+                                          <label for="deleteAddress">User Bitcoin address</label>
+                                          <input type="text" class="form-control" id="deleteAddress" aria-describedby="deleteAddressHelp" placeholder="Enter Bitcoin address" required>
+                                          <small id="deleteAddressHelp" class="form-text text-muted">Please enter the address of the user whose data you want to delete.</small>
+                                      </div>
+                                      <div class="form-group col-md-6">
+                                          <label for="deleteDate">Now</label>
+                                          <input type="text" class="form-control" id="deleteDate" aria-describedby="deleteDateHelp" placeholder="Now">
+                                          <small id="deleteDateHelp" class="form-text text-muted">Format: YYYY-MM-DD</small>
+                                      </div>
+                                  </div>
+                                  <div class="form-group">
+                                      <label for="deleteFlags">Flags</label>
+                                      <textarea class="form-control" id="deleteFlags" rows="3" aria-describedby="deleteFlaHelp" placeholder="Flags"></textarea>
+                                      <small id="deleteFlagsHelp" class="form-text text-muted">Values: -account</small>
+                                  </div>
+                                  <div class="form-group">
+                                      <label for="deleteSign">Signature</label>
+                                      <textarea class="form-control" id="deleteSign" rows="5" aria-describedby="deleteSignHelp" placeholder="Signature" required></textarea>
+                                      <small id="deleteSignHelp" class="form-text text-muted">Bitcoin signature for message text (use private key).</small>
+                                  </div>
+                                  <button type="submit" class="btn btn-primary">Execute</button>
+                              </form>
+                              <hr>
+                              <div id="action-delete">
+                                  <small class="form-text text-muted">Press "Execute" button...</small>
+                              </div>
+                          </div>
+                      </div>
+                      <div id="tab-config" class="container tab-pane fade">
+                          <h3>Settings</h3>
+                          <div class="mt-3">
+                              <form>
+                                  <div class="form-row">
+                                      <div class="form-group col-md-6">
+                                          <label for="server">Server</label>
+                                          <input type="text" class="form-control" id="server" aria-describedby="serverHelp" placeholder="Default: localhost" value="localhost" required>
+                                          <small id="serverHelp" class="form-text text-muted">Server host or IP-address.</small>
+                                      </div>
+                                      <div class="form-group col-md-6">
+                                          <label for="userAddress">User Bitcoin address</label>
+                                          <input type="text" class="form-control" id="userAddress">
+                                          <small id="userAddressHelp" class="form-text text-muted">User Bitcoin address.</small>
+                                      </div>
+                                  </div>
+                                  <div class="custom-control custom-switch">
+                                      <input type="checkbox" checked class="custom-control-input" id="pgp">
+                                      <label class="custom-control-label" for="pgp">PGP</label>
+                                  </div>
+                              </form>
+                          </div>
+                      </div>
+                  </div>
               </div>
-          </div>
-          <div id="tab-status" class="container tab-pane fade">
-              <div class="mt-3">
-                  <form onsubmit="actionStatus()">
-                      <div class="form-group row">
-                          <label for="statusModuleAddress" class="col-sm-2 col-form-label">Module address</label>
-                          <div class="col-sm-10">
-                              <input type="text" readonly class="form-control-plaintext" id="statusModuleAddress" value="mjTbMV3cbjtGxYMKV2uKZpZt5v7LRp8TBJ">
+
+              <div id="tab-deal" class="tab-pane fade">
+                  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                      <a class="navbar-brand" href="#">Format</a>
+                      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarDeal" aria-controls="navbarDeal" aria-expanded="false" aria-label="Toggle navigation">
+                          <span class="navbar-toggler-icon"></span>
+                      </button>
+                      <div class="collapse navbar-collapse" id="navbarDeal">
+                          <ul class="nav nav-tabs mr-auto">
+                              <li class="nav-item">
+                                  <a class="nav-link active" data-toggle="tab" href="#tab-deal-form">Form</a>
+                              </li>
+                              <li class="nav-item">
+                                  <a class="nav-link" data-toggle="tab" href="#tab-deal-json">JSON</a>
+                              </li>
+                              <li class="nav-item">
+                                  <a class="nav-link" data-toggle="tab" href="#tab-deal-yaml">YAML</a>
+                              </li>
+                          </ul>
+                          <span class="navbar-text">
+                            Deal
+                          </span>
+                      </div>
+                  </nav>
+                  <!-- Tab panes -->
+                  <div class="tab-content">
+                      <div id="tab-deal-form" class="container tab-pane active">
+                          <div class="mt-3">
+                              <form onsubmit="executeDealForm()">
+                                  <div class="form-group">
+                                      <div>deal:</div>
+                                  </div>
+
+                                  <div class="form-group row ml-1">
+                                      <label for="formOrder" class="col-sm-2 col-form-label">order:</label>
+                                      <div class="col-sm-10 ml-n1">
+                                          <select id="formOrder" class="form-control" onchange="OnChangeOrder()">
+                                              <option selected>Create</option>
+                                              <option>Pay</option>
+                                              <option>Prepare</option>
+                                              <option>Complete</option>
+                                              <option>Cancel</option>
+                                          </select>
+                                      </div>
+                                  </div>
+
+                                  <div class="form-group row ml-1">
+                                      <label for="formAt" class="col-sm-2 col-form-label">at:</label>
+                                      <div class="col-sm-10 ml-n1">
+                                          <input type="text" class="form-control" id="formAt" placeholder="http://host:port" required>
+                                      </div>
+                                  </div>
+                                  <div class="form-group row ml-1">
+                                      <label for="formDate" class="col-sm-2 col-form-label">date:</label>
+                                      <div class="col-sm-10 ml-n1">
+                                          <input type="text" class="form-control" id="formDate" placeholder="YYYY-MM-DD HH24:MM:SS" required>
+                                      </div>
+                                  </div>
+
+                                  <div class="form-group row ml-1">
+                                      <div class="col-sm-2">seller:</div>
+                                  </div>
+                                  <div class="form-group row ml-3">
+                                      <label for="formSellerAddress" class="col-sm-2 col-form-label">address:</label>
+                                      <div class="col-sm-10 ml-n3">
+                                          <input type="text" class="form-control" id="formSellerAddress" placeholder="Bitcoin address" required>
+                                      </div>
+                                  </div>
+                                  <div class="form-group row ml-3">
+                                      <label for="formSellerRating" class="col-sm-2 col-form-label">rating:</label>
+                                      <div class="col-sm-10 ml-n3">
+                                          <input type="text" class="form-control" id="formSellerRating" placeholder="(count, percent%)" disabled>
+                                      </div>
+                                  </div>
+
+                                  <div class="form-group row ml-1">
+                                      <div class="col-sm-2">customer:</div>
+                                  </div>
+                                  <div class="form-group row ml-3">
+                                      <label for="formCustomerAddress" class="col-sm-2 col-form-label">address:</label>
+                                      <div class="col-sm-10 ml-n3">
+                                          <input type="text" class="form-control" id="formCustomerAddress" placeholder="Bitcoin address" required>
+                                      </div>
+                                  </div>
+                                  <div class="form-group row ml-3">
+                                      <label for="formCustomerRating" class="col-sm-2 col-form-label">rating:</label>
+                                      <div class="col-sm-10 ml-n3">
+                                          <input type="text" class="form-control" id="formCustomerRating" placeholder="(count, percent%)" disabled>
+                                      </div>
+                                  </div>
+
+                                  <div class="form-group row ml-1">
+                                      <div class="col-sm-2">payment:</div>
+                                  </div>
+                                  <div class="form-group row ml-3">
+                                      <label for="formPaymentAddress" class="col-sm-2 col-form-label">address:</label>
+                                      <div class="col-sm-10 ml-n3">
+                                          <input type="text" class="form-control" id="formPaymentAddress" placeholder="Bitcoin address" disabled>
+                                      </div>
+                                  </div>
+                                  <div class="form-group row ml-3">
+                                      <label for="formPaymentUntil" class="col-sm-2 col-form-label">until:</label>
+                                      <div class="col-sm-10 ml-n3">
+                                          <input type="text" class="form-control" id="formPaymentUntil" placeholder="YYYY-MM-DD HH24:MM:SS" disabled>
+                                      </div>
+                                  </div>
+                                  <div class="form-group row ml-3">
+                                      <label for="formPaymentSum" class="col-sm-2 col-form-label">sum:</label>
+                                      <div class="col-sm-10 ml-n3">
+                                          <input type="text" class="form-control" id="formPaymentSum" placeholder="BTC (0.00000000)" required>
+                                      </div>
+                                  </div>
+
+                                  <div class="form-group row ml-1">
+                                      <div class="col-sm-2">feedback:</div>
+                                  </div>
+                                  <div class="form-group row ml-3">
+                                      <label for="formFeedbackLeaveBefore" class="col-sm-2 col-form-label">leave-before:</label>
+                                      <div class="col-sm-10 ml-n3">
+                                          <input type="text" class="form-control" id="formFeedbackLeaveBefore" placeholder="YYYY-MM-DD HH24:MM:SS" disabled>
+                                      </div>
+                                  </div>
+                                  <div class="form-group row ml-3">
+                                      <label for="formFeedbackPositive" class="col-sm-2 col-form-label">positive:</label>
+                                      <div class="col-sm-10 ml-n3">
+                                          <select id="formFeedbackPositive" class="form-control" disabled>
+                                              <option selected>True</option>
+                                              <option>False</option>
+                                          </select>
+                                      </div>
+                                  </div>
+                                  <div class="form-group row ml-3">
+                                      <label for="formFeedbackComments" class="col-sm-2 col-form-label">comments:</label>
+                                      <div class="col-sm-10 ml-n3">
+                                          <input type="text" class="form-control" id="formFeedbackComments" placeholder="Sample text" disabled>
+                                      </div>
+                                  </div>
+                                  <hr>
+                                  <button type="submit" class="btn btn-primary">Execute</button>
+                              </form>
+                              <hr>
+                              <div id="deal-form">
+                                  <small class="form-text text-muted">Press "Execute" button...</small>
+                              </div>
                           </div>
                       </div>
-                      <div class="form-group row">
-                          <label for="statusUserAddress" class="col-sm-2 col-form-label">User address</label>
-                          <div class="col-sm-10">
-                              <input type="text" class="form-control" id="statusUserAddress" placeholder="User bitcoin address">
+                      <div id="tab-deal-json" class="container tab-pane fade">
+                          <form onsubmit="executeDealJSON()">
+                              <div class="form-group">
+                                  <label for="dealJSON">Input:</label>
+                                  <textarea class="form-control" id="dealJSON" rows="20" placeholder="JSON"></textarea>
+                              </div>
+                              <button type="submit" class="btn btn-primary">Execute</button>
+                          </form>
+                          <hr>
+                          <div id="deal-json" class="mt-3">
+                              <small class="form-text text-muted">Press "Execute" button...</small>
                           </div>
                       </div>
-                      <button type="submit" class="btn btn-primary">Execute</button>
-                  </form>
-                  <hr>
-                  <div id="action-status">
-                      <small class="form-text text-muted">Press "Execute" button...</small>
+                      <div id="tab-deal-yaml" class="container tab-pane fade">
+                          <form onsubmit="executeDealYAML()">
+                              <div class="form-group">
+                                  <label for="dealYAML">Input:</label>
+                                  <textarea class="form-control" id="dealYAML" rows="20" placeholder="YAML"></textarea>
+                              </div>
+                              <button type="submit" class="btn btn-primary">Execute</button>
+                          </form>
+                          <hr>
+                          <div id="deal-yaml" class="mt-3">
+                              <small class="form-text text-muted">Press "Execute" button...</small>
+                          </div>
+                      </div>
                   </div>
               </div>
           </div>
-          <div id="tab-new" class="container tab-pane fade">
-              <div class="mt-3">
-                  <form onsubmit="actionNew()">
-                      <div class="form-row">
-                          <div class="form-group col-md-6">
-                              <label for="newAddress">Bitcoin address</label>
-                              <input type="text" class="form-control" id="newAddress" placeholder="Bitcoin address" required>
-                          </div>
-                          <div class="form-group col-md-6">
-                              <label for="newBitmessage">Bitmessage address</label>
-                              <input type="text" class="form-control" id="newBitmessage" placeholder="Bitmessage address">
-                          </div>
-                      </div>
-                      <div class="form-group">
-                          <label for="newKey">Bitcoin public key</label>
-                          <input type="text" class="form-control" id="newKey" placeholder="Bitcoin public key">
-                      </div>
-                      <div class="form-group">
-                          <label for="newPGP">PGP public key</label>
-                          <textarea class="form-control" id="newPGP" rows="5" placeholder="PGP public key"></textarea>
-                      </div>
-                      <div class="form-group">
-                          <label for="newURL">URL List</label>
-                          <textarea class="form-control" id="newURL" rows="5" placeholder="URL List"></textarea>
-                      </div>
-                      <button type="submit" class="btn btn-primary">Execute</button>
-                  </form>
-                  <hr>
-                  <div id="action-new">
-                      <small class="form-text text-muted">Press "Execute" button...</small>
-                  </div>
-              </div>
-          </div>
-          <div id="tab-add" class="container tab-pane fade">
-              <div class="mt-3">
-                  <form onsubmit="actionAdd()">
-                      <div class="form-row">
-                          <div class="form-group col-md-6">
-                              <label for="addAddress">User Bitcoin address</label>
-                              <input type="text" class="form-control" id="addAddress" aria-describedby="addAddressHelp" placeholder="Enter Bitcoin address" required>
-                              <small id="addAddressHelp" class="form-text text-muted">Please enter the address of the user for whom you want to add data.</small>
-                          </div>
-                      </div>
-                      <div class="form-group">
-                          <label for="addKey">Bitcoin public key</label>
-                          <input type="text" class="form-control" id="addKey" placeholder="Bitcoin public key">
-                      </div>
-                      <div class="form-group">
-                          <label for="addPGP">PGP public key</label>
-                          <textarea class="form-control" id="addPGP" rows="5" placeholder="PGP public key"></textarea>
-                      </div>
-                      <button type="submit" class="btn btn-primary">Execute</button>
-                  </form>
-                  <hr>
-                  <div id="action-add">
-                      <small class="form-text text-muted">Press "Execute" button...</small>
-                  </div>
-              </div>
-          </div>
-          <div id="tab-update" class="container tab-pane fade">
-              <div class="mt-3">
-                  <form onsubmit="actionUpdate()">
-                      <div class="form-row">
-                          <div class="form-group col-md-6">
-                              <label for="updateAddress">User Bitcoin address</label>
-                              <input type="text" class="form-control" id="updateAddress" aria-describedby="updateAddressHelp" placeholder="Enter Bitcoin address" required>
-                              <small id="updateAddressHelp" class="form-text text-muted">Please enter the address of the user whose data you want to update.</small>
-                          </div>
-                          <div class="form-group col-md-6">
-                              <label for="updateDate">Now</label>
-                              <input type="text" class="form-control" id="updateDate" aria-describedby="updateDateHelp" placeholder="Now">
-                              <small id="updateDateHelp" class="form-text text-muted">Format: YYYY-MM-DD</small>
-                          </div>
-                      </div>
-                      <div class="form-group">
-                          <label for="updatePGP">PGP public key</label>
-                          <textarea class="form-control" id="updatePGP" rows="5" placeholder="PGP public key"></textarea>
-                      </div>
-                      <div class="form-group">
-                          <label for="updateURL">URL List</label>
-                          <textarea class="form-control" id="updateURL" rows="5" aria-describedby="updateURLHelp" placeholder="URL List"></textarea>
-                          <small id="updateURLHelp" class="form-text text-muted">Add(+) or delete(-) URL; format: http[s]://&lt;tstring&gt;.</small>
-                      </div>
-                      <div class="form-group">
-                          <label for="updateSign">Signature</label>
-                          <textarea class="form-control" id="updateSign" rows="5" aria-describedby="updateSignHelp" placeholder="Signature" required></textarea>
-                          <small id="updateSignHelp" class="form-text text-muted">Bitcoin signature for message text (use private key).</small>
-                      </div>
-                      <button type="submit" class="btn btn-primary">Execute</button>
-                  </form>
-                  <hr>
-                  <div id="action-update">
-                      <small class="form-text text-muted">Press "Execute" button...</small>
-                  </div>
-              </div>
-          </div>
-          <div id="tab-delete" class="container tab-pane fade">
-              <div class="mt-3">
-                  <form onsubmit="actionDelete()">
-                      <div class="form-row">
-                          <div class="form-group col-md-6">
-                              <label for="deleteAddress">User Bitcoin address</label>
-                              <input type="text" class="form-control" id="deleteAddress" aria-describedby="deleteAddressHelp" placeholder="Enter Bitcoin address" required>
-                              <small id="deleteAddressHelp" class="form-text text-muted">Please enter the address of the user whose data you want to delete.</small>
-                          </div>
-                          <div class="form-group col-md-6">
-                              <label for="deleteDate">Now</label>
-                              <input type="text" class="form-control" id="deleteDate" aria-describedby="deleteDateHelp" placeholder="Now">
-                              <small id="deleteDateHelp" class="form-text text-muted">Format: YYYY-MM-DD</small>
-                          </div>
-                      </div>
-                      <div class="form-group">
-                          <label for="deleteFlags">Flags</label>
-                          <textarea class="form-control" id="deleteFlags" rows="3" aria-describedby="deleteFlaHelp" placeholder="Flags"></textarea>
-                          <small id="deleteFlagsHelp" class="form-text text-muted">Values: -account</small>
-                      </div>
-                      <div class="form-group">
-                          <label for="deleteSign">Signature</label>
-                          <textarea class="form-control" id="deleteSign" rows="5" aria-describedby="deleteSignHelp" placeholder="Signature" required></textarea>
-                          <small id="deleteSignHelp" class="form-text text-muted">Bitcoin signature for message text (use private key).</small>
-                      </div>
-                      <button type="submit" class="btn btn-primary">Execute</button>
-                  </form>
-                  <hr>
-                  <div id="action-delete">
-                      <small class="form-text text-muted">Press "Execute" button...</small>
-                  </div>
-              </div>
-          </div>
-          <div id="tab-config" class="container tab-pane fade">
-            <h3>Settings</h3>
-              <div class="mt-3">
-                  <form>
-                      <div class="form-row">
-                          <div class="form-group col-md-6">
-                              <label for="server">Server</label>
-                              <input type="text" class="form-control" id="server" aria-describedby="serverHelp" placeholder="Default: localhost" value="localhost" required>
-                              <small id="serverHelp" class="form-text text-muted">Server host or IP-address.</small>
-                          </div>
-                          <div class="form-group col-md-6">
-                              <label for="userAddress">User Bitcoin address</label>
-                              <input type="text" class="form-control" id="userAddress" value="1LkcBBr7zk72Bh88iU8sgSDBBaJThh1gjJ">
-                              <small id="userAddressHelp" class="form-text text-muted">User Bitcoin address.</small>
-                          </div>
-                      </div>
-                      <div class="custom-control custom-switch">
-                          <input type="checkbox" checked class="custom-control-input" id="pgp">
-                          <label class="custom-control-label" for="pgp">PGP</label>
-                      </div>
-                  </form>
-              </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -295,14 +477,35 @@
           return year + '-' + month + '-' + day;
       }
 
+      function getFormattedDateTime(date) {
+          const year = date.getFullYear();
+
+          let month = (1 + date.getMonth()).toString();
+          month = month.length > 1 ? month : '0' + month;
+
+          let day = date.getDate().toString();
+          day = day.length > 1 ? day : '0' + day;
+
+          let hours = date.getHours().toString();
+          hours = hours.length > 1 ? hours : '0' + hours;
+
+          let minutes = date.getMinutes().toString();
+          minutes = minutes.length > 1 ? minutes : '0' + minutes;
+
+          let seconds = date.getSeconds().toString();
+          seconds = seconds.length > 1 ? seconds : '0' + seconds;
+
+          return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+      }
+
       // Select tabs Help
-      $('.nav-tabs a[href="#tab-help"]').click(function(){
+      $('.nav-tabs a[href="#tab-account-help"]').click(function(){
           actionHelp();
           $(this).tab('show');
       });
 
       // Select tabs status
-      $('.nav-tabs a[href="#tab-status"]').click(function(){
+      $('.nav-tabs a[href="#tab-account-status"]').click(function(){
           const address = $("input[id='userAddress']").val();
           let objectAddress = $("input[id='statusUserAddress']");
           if (empty(objectAddress.val()))
@@ -311,7 +514,7 @@
       });
 
       // Select tabs status
-      $('.nav-tabs a[href="#tab-add"]').click(function(){
+      $('.nav-tabs a[href="#tab-account-add"]').click(function(){
           const address = $("input[id='userAddress']").val();
           let objectAddress = $("input[id='addAddress']");
           if (empty(objectAddress.val()))
@@ -320,7 +523,7 @@
       });
 
       // Select tabs status
-      $('.nav-tabs a[href="#tab-update"]').click(function(){
+      $('.nav-tabs a[href="#tab-account-update"]').click(function(){
           const address = $("input[id='userAddress']").val();
           let objectAddress = $("input[id='updateAddress']");
           if (empty(objectAddress.val()))
@@ -330,7 +533,7 @@
       });
 
       // Select tabs status
-      $('.nav-tabs a[href="#tab-delete"]').click(function(){
+      $('.nav-tabs a[href="#tab-account-delete"]').click(function(){
           const address = $("input[id='userAddress']").val();
           let objectAddress = $("input[id='deleteAddress']");
           if (empty(objectAddress.val()))
@@ -341,7 +544,9 @@
       });
 
       function actionHelp() {
-          AsyncFetch('api/v1/user/help')
+          const server = $("input[id='server']").val();
+          let settings = '?server=' + server;
+          AsyncFetch('api/v1/user/help' + settings)
               .then(data => $("#action-help").html(data))
               .catch(reason => console.log(reason.message));
       }
@@ -488,8 +693,170 @@
               .catch(reason => console.log(reason.message));
       }
 
+      function OnDeal() {
+          let parser = document.createElement('a');
+          parser.href = window.location;
+
+          let formAt = $("input[id='formAt']");
+          let formDate = $("input[id='formDate']");
+
+          formAt.val(parser.protocol + '//' + parser.host);
+          formDate.val(getFormattedDateTime(new Date()));
+
+          $(this).tab('show');
+      }
+
+      function OnChangeOrder() {
+          const formOrder = $("select[id='formOrder']").val();
+
+          let formSellerRating = $("input[id='formSellerRating']");
+          let formCustomerRating = $("input[id='formCustomerRating']");
+          let formPaymentAddress = $("input[id='formPaymentAddress']");
+          let formPaymentUntil = $("input[id='formPaymentUntil']");
+          let formFeedbackLeaveBefore = $("input[id='formFeedbackLeaveBefore']");
+          let formFeedbackPositive = $("select[id='formFeedbackPositive']");
+          let formFeedbackComments = $("input[id='formFeedbackComments']");
+
+          if (formOrder === 'Create') {
+              formSellerRating.prop('disabled', true);
+              formCustomerRating.prop('disabled', true);
+              formPaymentAddress.prop('disabled', true);
+              formPaymentUntil.prop('disabled', true);
+              formFeedbackLeaveBefore.prop('disabled', true);
+              formFeedbackPositive.prop('disabled', true);
+              formFeedbackComments.prop('disabled', true);
+          } else if (formOrder === 'Pay') {
+              formSellerRating.prop('disabled', false);
+              formCustomerRating.prop('disabled', false);
+              formPaymentAddress.prop('disabled', false);
+              formPaymentUntil.prop('disabled', false);
+              formFeedbackLeaveBefore.prop('disabled', true);
+              formFeedbackPositive.prop('disabled', true);
+              formFeedbackComments.prop('disabled', true);
+          } else if (formOrder === 'Prepare') {
+              formSellerRating.prop('disabled', false);
+              formCustomerRating.prop('disabled', false);
+              formPaymentAddress.prop('disabled', false);
+              formPaymentUntil.prop('disabled', false);
+              formFeedbackLeaveBefore.prop('disabled', false);
+              formFeedbackPositive.prop('disabled', false);
+              formFeedbackComments.prop('disabled', false);
+          } else if (formOrder === 'Complete') {
+              formSellerRating.prop('disabled', false);
+              formCustomerRating.prop('disabled', false);
+              formPaymentAddress.prop('disabled', false);
+              formPaymentUntil.prop('disabled', false);
+              formFeedbackLeaveBefore.prop('disabled', false);
+              formFeedbackPositive.prop('disabled', false);
+              formFeedbackComments.prop('disabled', false);
+          } else if (formOrder === 'Cancel') {
+              formSellerRating.prop('disabled', false);
+              formCustomerRating.prop('disabled', false);
+              formPaymentAddress.prop('disabled', false);
+              formPaymentUntil.prop('disabled', false);
+              formFeedbackLeaveBefore.prop('disabled', false);
+              formFeedbackPositive.prop('disabled', false);
+              formFeedbackComments.prop('disabled', false);
+          }
+
+          console.log(formOrder);
+      }
+
+      function executeDealForm() {
+          const formOrder = $("select[id='formOrder']");
+
+          const formAt = $("input[id='formAt']");
+          const formDate = $("input[id='formDate']");
+          const formSellerAddress = $("input[id='formSellerAddress']");
+          const formSellerRating = $("input[id='formSellerRating']");
+          const formCustomerAddress = $("input[id='formCustomerAddress']");
+          const formCustomerRating = $("input[id='formCustomerRating']");
+          const formPaymentAddress = $("input[id='formPaymentAddress']");
+          const formPaymentUntil = $("input[id='formPaymentUntil']");
+          const formPaymentSum = $("input[id='formPaymentSum']");
+          const formFeedbackLeaveBefore = $("input[id='formFeedbackLeaveBefore']");
+          const formFeedbackPositive = $("select[id='formFeedbackPositive']");
+          const formFeedbackComments = $("input[id='formFeedbackComments']");
+
+          let formData = new FormData();
+
+          formData.append('at', formAt.val());
+          formData.append('date', formDate.val());
+
+          formData.append('seller_address', formSellerAddress.val());
+          if (!formSellerRating.attr('disabled')) {
+              formData.append('seller_rating', formSellerRating.val());
+          }
+
+          formData.append('customer_address', formCustomerAddress.val());
+          if (!formCustomerRating.attr('disabled')) {
+              formData.append('customer_rating', formCustomerRating.val());
+          }
+
+          if (!formPaymentAddress.attr('disabled')) {
+              formData.append('payment_address', formPaymentAddress.val());
+          }
+
+          if (!formPaymentUntil.attr('disabled')) {
+              formData.append('payment_until', formPaymentUntil.val());
+          }
+
+          formData.append('payment_sum', formPaymentSum.val());
+
+          if (!formFeedbackLeaveBefore.attr('disabled')) {
+              formData.append('feedback_leave_before', formFeedbackLeaveBefore.val());
+          }
+
+          if (!formFeedbackPositive.attr('disabled')) {
+              formData.append('feedback_positive', formFeedbackPositive.val());
+          }
+
+          if (!formFeedbackComments.attr('disabled')) {
+              formData.append('feedback_comments', formFeedbackComments.val());
+          }
+
+          const server = $("input[id='server']").val();
+          let settings = '?server=' + server;
+          if ($('input[id="pgp"]').prop("checked") === false) {
+              settings += '&pgp=off'
+          }
+
+          AsyncFetch('api/v1/deal/' + formOrder.val() + settings, formData, 'POST')
+              .then(data => $("#deal-form").html(data))
+              .catch(reason => console.log(reason.message));
+      }
+
+      function executeDealJSON() {
+          const dealJSON = $("textarea[id='dealJSON']");
+
+          const server = $("input[id='server']").val();
+          let settings = '?server=' + server;
+          if ($('input[id="pgp"]').prop("checked") === false) {
+              settings += '&pgp=off'
+          }
+
+          AsyncFetch('api/v1/deal' + settings, dealJSON.val(), 'POST')
+              .then(data => $("#deal-json").html(data))
+              .catch(reason => console.log(reason.message));
+      }
+
+      function executeDealYAML() {
+          const dealYAML = $("textarea[id='dealYAML']");
+
+          const server = $("input[id='server']").val();
+          let settings = '?server=' + server;
+          if ($('input[id="pgp"]').prop("checked") === false) {
+              settings += '&pgp=off'
+          }
+
+          AsyncFetch('api/v1/deal' + settings, dealYAML.val(), 'POST')
+              .then(data => $("#deal-yaml").html(data))
+              .catch(reason => console.log(reason.message));
+      }
+
       $(document).ready(function(){
           actionHelp();
+          new OnDeal();
       });
     </script>
 
