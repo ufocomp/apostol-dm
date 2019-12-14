@@ -1,5 +1,14 @@
 cmake_minimum_required(VERSION 3.13)
-project(deal-module)
+project(apostol-dm)
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+
+set(PROJECT_NAME "dm")
+set(PROJECT_DESCRIPTION "Bitcoin Payment Service (Deal Module)")
+
+message(STATUS "Project name: ${PROJECT_NAME}")
+message(STATUS "Project description: ${PROJECT_DESCRIPTION}")
 
 # Settings
 # ----------------------------------------------------------------------------------------------------------------------
@@ -19,15 +28,6 @@ endif()
 list( APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake-modules" )
 
 add_compile_options("$<$<CONFIG:DEBUG>:-D_DEBUG>")
-
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
-
-set(PROJECT_NAME "bps-dm")
-set(PROJECT_DESCRIPTION "Bitcoin Payment Service (Deal Module)")
-
-message(STATUS "Project name: ${PROJECT_NAME}")
-message(STATUS "Project description: ${PROJECT_DESCRIPTION}")
 
 set(CORE_LIB_NAME apostol-core)
 set(MODULES_LIB_NAME apostol-modules)

@@ -1,23 +1,23 @@
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:          bps-dm
+# Provides:          dm
 # Required-Start:    $local_fs $remote_fs $network $syslog $named
 # Required-Stop:     $local_fs $remote_fs $network $syslog $named
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: starts the Deal Module
+# Short-Description: starts the deal module
 # Description:       starts Deal Module using start-stop-daemon
 ### END INIT INFO
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-DAEMON=/usr/sbin/bps-dm
+DAEMON=/usr/sbin/dm
+#DAEMOD_OPTS="-p /etc/dm -c /etc/dm/dm.conf"
+NAME=dm
+DESC="Deal Module"
 
-NAME=bps-dm
-DESC="Bitcoin Payment Service (Deal Module)"
-
-# Include bps-dm defaults if available
-if [ -r /etc/default/bps-dm ]; then
-	. /etc/default/bps-dm
+# Include dm defaults if available
+if [ -r /etc/default/dm ]; then
+	. /etc/default/dm
 fi
 
 STOP_SCHEDULE="${STOP_SCHEDULE:-QUIT/5/TERM/5/KILL/5}"
@@ -27,14 +27,14 @@ test -x $DAEMON || exit 0
 . /lib/init/vars.sh
 . /lib/lsb/init-functions
 
-# Try to extract bps-dm pidfile
-PID=$(cat /etc/deal-module/bps-dm.conf | grep -Ev '^\s*#' | awk 'BEGIN { FS="=" } { if ($1 == "pid") print $2 }' | head -n1)
+# Try to extract dm pidfile
+PID=$(cat /etc/dm/dm.conf | grep -Ev '^\s*#' | awk 'BEGIN { FS="=" } { if ($1 == "pid") print $2 }' | head -n1)
 if [ -z "$PID" ]
 then
-	PID=/run/bps-dm.pid
+	PID=/run/dm.pid
 fi
 
-# Check if the ULIMIT is set in /etc/default/bps-dm
+# Check if the ULIMIT is set in /etc/default/dm
 if [ -n "$ULIMIT" ]; then
 	# Set the ulimits
 	ulimit $ULIMIT
@@ -56,7 +56,7 @@ do_start()
 		|| return 2
 }
 
-test_bps_dm_config() {
+test_dm_config() {
 	$DAEMON -t $DAEMON_OPTS >/dev/null 2>&1
 }
 
@@ -94,14 +94,14 @@ do_rotate() {
 }
 
 #
-# Online upgrade bps-dm executable
+# Online upgrade dm executable
 #
 # "Upgrading Executable on the Fly"
 #
 do_upgrade() {
 	# Return
-	#   0 if bps-dm has been successfully upgraded
-	#   1 if bps-dm is not running
+	#   0 if dm has been successfully upgraded
+	#   1 if dm is not running
 	#   2 if the pid files were not created on time
 	#   3 if the old master could not be killed
 	if start-stop-daemon --stop --signal USR2 --quiet --pidfile $PID --name $NAME; then
@@ -144,8 +144,8 @@ case "$1" in
 	restart)
 		log_daemon_msg "Restarting $DESC" "$NAME"
 
-		# Check configuration before stopping bps-dm
-		if ! test_bps_dm_config; then
+		# Check configuration before stopping dm
+		if ! test_dm_config; then
 			log_end_msg 1 # Configuration error
 			exit 0
 		fi
@@ -169,13 +169,13 @@ case "$1" in
 	reload|force-reload)
 		log_daemon_msg "Reloading $DESC configuration" "$NAME"
 
-		# Check configuration before reload bps-dm
+		# Check configuration before reload dm
 		#
-		# This is not entirely correct since the on-disk bps-dm binary
+		# This is not entirely correct since the on-disk dm binary
 		# may differ from the in-memory one, but that`s not common.
 		# We prefer to check the configuration and return an error
 		# to the administrator.
-		if ! test_bps_dm_config; then
+		if ! test_dm_config; then
 			log_end_msg 1 # Configuration error
 			exit 0
 		fi
@@ -185,7 +185,7 @@ case "$1" in
 		;;
 	configtest|testconfig)
 		log_daemon_msg "Testing $DESC configuration"
-		test_bps_dm_config
+		test_dm_config
 		log_end_msg $?
 		;;
 	status)

@@ -1,6 +1,6 @@
-# deal-module
+# apostol-dm
 
-**Deal Module** - Модуль сделок, исходные коды на C++.
+**Bitcoin Payment Service (Deal Module)** - Модуль сделок, исходные коды на C++.
 
 СТРУКТУРА КАТАЛОГОВ
 -
@@ -21,7 +21,7 @@
 ОПИСАНИЕ
 -
 
-**Bitcoin Payment Service (Deal Module)** (bps-dm) - Модуль сделок сервиса обработки и учёта платежей Bitcoin. Построен на базе [Апостол](https://github.com/ufocomp/apostol).
+**Deal Module** (dm) - Модуль сделок сервиса обработки и учёта платежей Bitcoin. Построен на базе [Апостол](https://github.com/ufocomp/apostol).
 
 СБОРКА И УСТАНОВКА
 -
@@ -42,7 +42,7 @@ sudo apt-get install build-essential libssl-dev libcurl4-openssl-dev make cmake 
 
 Для установки **Модуля сделок** (без Git) необходимо:
 
-1. Скачать **Модуль сделок** по [ссылке](https://github.com/ufocomp/deal-module/archive/master.zip);
+1. Скачать **Модуль сделок** по [ссылке](https://github.com/ufocomp/dm/archive/master.zip);
 1. Распаковать;
 1. Скачать **libdelphi** по [ссылке](https://github.com/ufocomp/libdelphi/archive/master.zip);
 1. Распаковать в `src/lib/delphi`;
@@ -51,19 +51,19 @@ sudo apt-get install build-essential libssl-dev libcurl4-openssl-dev make cmake 
 
 Для установки **Модуля сделок** с помощью Git выполните:
 ~~~
-git clone https://github.com/ufocomp/deal-module.git
+git clone https://github.com/ufocomp/dm.git
 ~~~
 
 Чтобы добавить **libdelphi** в проект с помощью Git выполните:
 ~~~
-cd deal-module/src/lib
+cd dm/src/lib
 git clone https://github.com/ufocomp/libdelphi.git delphi
 cd ../../../
 ~~~
 
 ###### Сборка:
 ~~~
-cd deal-module
+cd dm
 cmake -DCMAKE_BUILD_TYPE=Release . -B cmake-build-release
 ~~~
 
@@ -81,47 +81,47 @@ sudo make install
 
 Файл конфигурации и необходимые для работы файлы, в зависимости от варианта установки, будут расположены в: 
 ~~~
-/etc/deal-module
+/etc/dm
 или
-~/deal-module
+~/dm
 ~~~
 
 ЗАПУСК 
 -
 ###### Если `INSTALL_AS_ROOT` установлено в `ON`.
 
-**`bps-dm`** - это системная служба (демон) Linux. 
-Для управления **`bps-dm`** используйте стандартные команды управления службами.
+**`dm`** - это системная служба (демон) Linux. 
+Для управления **`dm`** используйте стандартные команды управления службами.
 
 Для запуска Апостол выполните:
 ~~~
-sudo service bps-dm start
+sudo service dm start
 ~~~
 
 Для проверки статуса выполните:
 ~~~
-sudo service bps-dm status
+sudo service dm status
 ~~~
 
 Результат должен быть **примерно** таким:
 ~~~
-● bps-dm.service - LSB: starts the Deal Module
-   Loaded: loaded (/etc/init.d/bps-dm; generated; vendor preset: enabled)
+● dm.service - LSB: starts the Deal Module
+   Loaded: loaded (/etc/init.d/dm; generated; vendor preset: enabled)
    Active: active (running) since Thu 2019-08-15 14:11:34 BST; 1h 1min ago
      Docs: man:systemd-sysv-generator(8)
-  Process: 16465 ExecStop=/etc/init.d/bps-dm stop (code=exited, status=0/SUCCESS)
-  Process: 16509 ExecStart=/etc/init.d/bps-dm start (code=exited, status=0/SUCCESS)
+  Process: 16465 ExecStop=/etc/init.d/dm stop (code=exited, status=0/SUCCESS)
+  Process: 16509 ExecStart=/etc/init.d/dm start (code=exited, status=0/SUCCESS)
     Tasks: 3 (limit: 4915)
-   CGroup: /system.slice/bps-dm.service
-           ├─16520 bps-dm: master process /usr/sbin/abc
-           └─16521 bps-dm: worker process
+   CGroup: /system.slice/dm.service
+           ├─16520 dm: master process /usr/sbin/abc
+           └─16521 dm: worker process
 ~~~
 
-### **Управление bps-dm**.
+### **Управление dm**.
 
-Управлять **`bps-dm`** можно с помощью сигналов.
-Номер главного процесса по умолчанию записывается в файл `/run/bps-dm.pid`. 
-Изменить имя этого файла можно при конфигурации сборки или же в `bps-dm.conf` секция `[daemon]` ключ `pid`. 
+Управлять **`dm`** можно с помощью сигналов.
+Номер главного процесса по умолчанию записывается в файл `/run/dm.pid`. 
+Изменить имя этого файла можно при конфигурации сборки или же в `dm.conf` секция `[daemon]` ключ `pid`. 
 
 Главный процесс поддерживает следующие сигналы:
 

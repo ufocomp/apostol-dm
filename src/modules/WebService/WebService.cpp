@@ -73,6 +73,62 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        void CWebService::DebugRequest(CRequest *ARequest) {
+            DebugMessage("[%p] Request:\n%s %s HTTP/%d.%d\n", ARequest, ARequest->Method.c_str(), ARequest->Uri.c_str(), ARequest->VMajor, ARequest->VMinor);
+
+            for (int i = 0; i < ARequest->Headers.Count(); i++)
+                DebugMessage("%s: %s\n", ARequest->Headers[i].Name.c_str(), ARequest->Headers[i].Value.c_str());
+
+            if (!ARequest->Content.IsEmpty())
+                DebugMessage("\n%s\n", ARequest->Content.c_str());
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::DebugReply(CReply *AReply) {
+            DebugMessage("[%p] Reply:\nHTTP/%d.%d %d %s\n", AReply, AReply->VMajor, AReply->VMinor, AReply->Status, AReply->StatusText.c_str());
+
+            for (int i = 0; i < AReply->Headers.Count(); i++)
+                DebugMessage("%s: %s\n", AReply->Headers[i].Name.c_str(), AReply->Headers[i].Value.c_str());
+
+            if (!AReply->Content.IsEmpty())
+                DebugMessage("\n%s\n", AReply->Content.c_str());
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::DebugConnection(CHTTPServerConnection *AConnection) {
+            DebugMessage("\n[%p] [%s:%d] [%d] ", AConnection, AConnection->Socket()->Binding()->PeerIP(),
+                         AConnection->Socket()->Binding()->PeerPort(), AConnection->Socket()->Binding()->Handle());
+
+            DebugRequest(AConnection->Request());
+
+            static auto OnReply = [](CObject *Sender) {
+                auto LConnection = dynamic_cast<CHTTPServerConnection *> (Sender);
+
+                DebugMessage("\n[%p] [%s:%d] [%d] ", LConnection, LConnection->Socket()->Binding()->PeerIP(),
+                             LConnection->Socket()->Binding()->PeerPort(), LConnection->Socket()->Binding()->Handle());
+
+                DebugReply(LConnection->Reply());
+            };
+
+            AConnection->OnReply(OnReply);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::ExceptionToJson(int ErrorCode, const std::exception &AException, CString& Json) {
+            TCHAR ch;
+            LPCTSTR lpMessage = AException.what();
+            CString Message;
+
+            while ((ch = *lpMessage++) != 0) {
+                if ((ch == '"') || (ch == '\\'))
+                    Message.Append('\\');
+                Message.Append(ch);
+            }
+
+            Json.Format(R"({"error": {"code": %u, "message": "%s"}})", ErrorCode, Message.c_str());
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CWebService::DoVerbose(CSocketEvent *Sender, CTCPConnection *AConnection, LPCTSTR AFormat, va_list args) {
             Log()->Debug(0, AFormat, args);
         }
@@ -160,21 +216,6 @@ namespace Apostol {
                 Log()->Message(_T("[%s:%d] Client disconnected."), LConnection->Socket()->Binding()->PeerIP(),
                                LConnection->Socket()->Binding()->PeerPort());
             }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CWebService::ExceptionToJson(int ErrorCode, const std::exception &AException, CString& Json) {
-            TCHAR ch;
-            LPCTSTR lpMessage = AException.what();
-            CString Message;
-
-            while ((ch = *lpMessage++) != 0) {
-                if ((ch == '"') || (ch == '\\'))
-                    Message.Append('\\');
-                Message.Append(ch);
-            }
-
-            Json.Format(R"({"error": {"code": %u, "message": "%s"}})", ErrorCode, Message.c_str());
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -717,46 +758,34 @@ namespace Apostol {
                 return;
             }
 
-            if (LAuthorization.SubString(0, 5).Lower() == "basic") {
-                const CString LPassphrase(base64_decode(LAuthorization.SubString(6)));
+            try {
+                CAuthorization Authorization(LAuthorization);
 
-                const size_t LPos = LPassphrase.Find(':');
-                if (LPos == CString::npos) {
-                    AConnection->SendStockReply(CReply::bad_request);
-                    return;
-                }
-
-                const CAuthData LAuthData = { LPassphrase.SubString(0, LPos), LPassphrase.SubString(LPos + 1) };
-
-                if (LAuthData.Username.IsEmpty() || LAuthData.Password.IsEmpty()) {
+                if (Authorization.Username != "module" || Authorization.Password != Config()->ModuleAddress()) {
                     AConnection->SendStockReply(CReply::unauthorized);
                     return;
                 }
 
-                if (LAuthData.Username != "module" || LAuthData.Password != Config()->ModuleAddress()) {
-                    AConnection->SendStockReply(CReply::unauthorized);
+                // If path ends in slash (i.e. is a directory) then add "index.html".
+                if (LRequestPath.back() == '/') {
+                    LRequestPath += "index.html";
+                }
+
+                // Open the file to send back.
+                const CString LFullPath = LServer->DocRoot() + LRequestPath;
+                if (!FileExists(LFullPath.c_str())) {
+                    AConnection->SendStockReply(CReply::not_found);
                     return;
                 }
-            } else {
+
+                LReply->Content.LoadFromFile(LFullPath.c_str());
+
+                // Fill out the CReply to be sent to the client.
+                AConnection->SendReply(CReply::ok, Mapping::ExtToType(ExtractFileExt(szExt, LRequestPath.c_str())));
+            } catch (Delphi::Exception::Exception &E) {
                 AConnection->SendStockReply(CReply::bad_request);
+                Log()->Error(APP_LOG_EMERG, 0, E.what());
             }
-
-            // If path ends in slash (i.e. is a directory) then add "index.html".
-            if (LRequestPath.back() == '/') {
-                LRequestPath += "index.html";
-            }
-
-            // Open the file to send back.
-            const CString LFullPath = LServer->DocRoot() + LRequestPath;
-            if (!FileExists(LFullPath.c_str())) {
-                AConnection->SendStockReply(CReply::not_found);
-                return;
-            }
-
-            LReply->Content.LoadFromFile(LFullPath.c_str());
-
-            // Fill out the CReply to be sent to the client.
-            AConnection->SendReply(CReply::ok, Mapping::ExtToType(ExtractFileExt(szExt, LRequestPath.c_str())));
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -790,7 +819,7 @@ namespace Apostol {
             }
 
             if (LService != "api" || (m_Version == -1)) {
-                AConnection->SendStockReply(CReply::not_found);
+                DoWWW(AConnection);
                 return;
             }
 
@@ -909,11 +938,13 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CWebService::Execute(CHTTPServerConnection *AConnection) {
-
             int i = 0;
+
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
-
+#ifdef _DEBUG
+            DebugConnection(AConnection);
+#endif
             LReply->Clear();
             LReply->ContentType = CReply::json;
 
