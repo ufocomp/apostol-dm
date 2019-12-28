@@ -103,9 +103,12 @@ namespace Apostol {
 
             static auto OnReply = [](CObject *Sender) {
                 auto LConnection = dynamic_cast<CHTTPServerConnection *> (Sender);
+                auto LBinding = LConnection->Socket()->Binding();
 
-                DebugMessage("\n[%p] [%s:%d] [%d] ", LConnection, LConnection->Socket()->Binding()->PeerIP(),
-                             LConnection->Socket()->Binding()->PeerPort(), LConnection->Socket()->Binding()->Handle());
+                if (Assigned(LBinding)) {
+                    DebugMessage("\n[%p] [%s:%d] [%d] ", LConnection, LBinding->PeerIP(),
+                                 LBinding->PeerPort(), LBinding->Handle());
+                }
 
                 DebugReply(LConnection->Reply());
             };
