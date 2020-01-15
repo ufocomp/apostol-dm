@@ -497,7 +497,7 @@ namespace Apostol {
                     const auto& formPaymentUntil = FormData["payment_until"];
                     const auto& formPaymentSum = FormData["payment_sum"];
                     const auto& formFeedbackLeaveBefore = FormData["feedback_leave_before"];
-                    const auto& formFeedbackPositive = FormData["feedback_positive"];
+                    const auto& formFeedbackStatus = FormData["feedback_status"];
                     const auto& formFeedbackComments = FormData["feedback_comments"];
 
                     Node["deal"]["order"] = Action.IsEmpty() ? "" : Action.c_str();
@@ -535,8 +535,8 @@ namespace Apostol {
 
                         Feedback["leave-before"] = formFeedbackLeaveBefore.c_str();
 
-                        if (!formFeedbackPositive.IsEmpty())
-                            Feedback["positive"] = formFeedbackPositive.c_str();
+                        if (!formFeedbackStatus.IsEmpty())
+                            Feedback["status"] = formFeedbackStatus.c_str();
 
                         if (!formFeedbackComments.IsEmpty())
                             Feedback["comments"] = formFeedbackComments.c_str();
@@ -557,7 +557,7 @@ namespace Apostol {
                     const auto& formPaymentUntil = FormData.Data("payment_until");
                     const auto& formPaymentSum = FormData.Data("payment_sum");
                     const auto& formFeedbackLeaveBefore = FormData.Data("feedback_leave_before");
-                    const auto& formFeedbackPositive = FormData.Data("feedback_positive");
+                    const auto& formFeedbackStatus = FormData.Data("feedback_status");
                     const auto& formFeedbackComments = FormData.Data("feedback_comments");
 
                     Node["deal"]["order"] = Action.IsEmpty() ? "" : Action.c_str();
@@ -595,8 +595,8 @@ namespace Apostol {
 
                         Feedback["leave-before"] = formFeedbackLeaveBefore.c_str();
 
-                        if (!formFeedbackPositive.IsEmpty())
-                            Feedback["positive"] = formFeedbackPositive.c_str();
+                        if (!formFeedbackStatus.IsEmpty())
+                            Feedback["status"] = formFeedbackStatus.c_str();
 
                         if (!formFeedbackComments.IsEmpty())
                             Feedback["comments"] = formFeedbackComments.c_str();
@@ -630,7 +630,7 @@ namespace Apostol {
                     const CJSONValue& jsonFeedback = jsonData["feedback"];
 
                     const auto& formFeedbackLeaveBefore = jsonFeedback["leave-before"].AsSiring();
-                    const auto& formFeedbackPositive = jsonFeedback["positive"].AsSiring();
+                    const auto& formFeedbackStatus = jsonFeedback["status"].AsSiring();
                     const auto& formFeedbackComments = jsonFeedback["comments"].AsSiring();
 
                     Node["deal"]["order"] = formOrder.c_str();
@@ -668,8 +668,8 @@ namespace Apostol {
 
                         Feedback["leave-before"] = formFeedbackLeaveBefore.c_str();
 
-                        if (!formFeedbackPositive.IsEmpty())
-                            Feedback["positive"] = formFeedbackPositive.c_str();
+                        if (!formFeedbackStatus.IsEmpty())
+                            Feedback["status"] = formFeedbackStatus.c_str();
 
                         if (!formFeedbackComments.IsEmpty())
                             Feedback["comments"] = formFeedbackComments.c_str();

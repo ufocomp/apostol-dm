@@ -366,11 +366,12 @@
                                       </div>
                                   </div>
                                   <div class="form-group row ml-3">
-                                      <label for="formFeedbackPositive" class="col-sm-2 col-form-label">positive:</label>
+                                      <label for="formFeedbackStatus" class="col-sm-2 col-form-label">status:</label>
                                       <div class="col-sm-10 ml-n3">
-                                          <select id="formFeedbackPositive" class="form-control" disabled>
-                                              <option selected>True</option>
-                                              <option>False</option>
+                                          <select id="formFeedbackStatus" class="form-control" disabled>
+                                              <option>Negative</option>
+                                              <option selected>Neutral</option>
+                                              <option>Positive</option>
                                           </select>
                                       </div>
                                   </div>
@@ -381,7 +382,7 @@
                                       </div>
                                   </div>
                                   <hr>
-                                  <button type="submit" class="btn btn-primary">Execute</button>
+                                  <button id="btnDealForm" type="submit" class="btn btn-primary">Execute</button>
                               </form>
                               <hr>
                               <div id="deal-form">
@@ -399,7 +400,7 @@
                           </form>
                           <hr>
                           <div id="deal-json" class="mt-3">
-                              <small class="form-text text-muted">Press "Execute" button...</small>
+                              <small id="btnDealJSON" class="form-text text-muted">Press "Execute" button...</small>
                           </div>
                       </div>
                       <div id="tab-deal-yaml" class="container tab-pane fade">
@@ -408,7 +409,7 @@
                                   <label for="dealYAML">Input:</label>
                                   <textarea class="form-control" id="dealYAML" rows="20" placeholder="YAML"></textarea>
                               </div>
-                              <button type="submit" class="btn btn-primary">Execute</button>
+                              <button id="btnDealYAML" type="submit" class="btn btn-primary">Execute</button>
                           </form>
                           <hr>
                           <div id="deal-yaml" class="mt-3">
@@ -447,8 +448,10 @@
           });
           // only proceed once promise is resolved
           let data = await response.json();
+          let payload = window.atob(data['payload']);
+          let html = '<html lang="ru"><body><pre>' + payload + '</pre></body></html>';
           // only proceed once second promise is resolved
-          return window.atob(data['payload']);
+          return payload;
       }
 
       function empty(e) {
@@ -547,7 +550,7 @@
           const server = $("input[id='server']").val();
           let settings = '?server=' + server;
           AsyncFetch('api/v1/user/help' + settings)
-              .then(data => $("#action-help").html(data))
+              .then(payload => $("#action-help").html(payload))
               .catch(reason => console.log(reason.message));
       }
 
@@ -561,7 +564,7 @@
           }
 
           AsyncFetch('api/v1/user/status' + settings)
-                .then(data => $("#action-status").html(data))
+                .then(payload => $("#action-status").html(payload))
                 .catch(reason => console.log(reason.message));
       }
 
@@ -600,7 +603,7 @@
           }
 
           AsyncFetch('api/v1/user/new' + settings, formData, 'POST')
-              .then(data => $("#action-new").html(data))
+              .then(payload => $("#action-new").html(payload))
               .catch(reason => console.log(reason.message));
       }
 
@@ -627,7 +630,7 @@
           }
 
           AsyncFetch('api/v1/user/add' + settings, formData, 'POST')
-              .then(data => $("#action-add").html(data))
+              .then(payload => $("#action-add").html(payload))
               .catch(reason => console.log(reason.message));
       }
 
@@ -665,7 +668,7 @@
           }
 
           AsyncFetch('api/v1/user/update' + settings, formData, 'POST')
-              .then(data => $("#action-update").html(data))
+              .then(payload => $("#action-update").html(payload))
               .catch(reason => console.log(reason.message));
       }
 
@@ -689,7 +692,7 @@
           }
 
           AsyncFetch('api/v1/user/delete' + settings, formData, 'POST')
-              .then(data => $("#action-delete").html(data))
+              .then(payload => $("#action-delete").html(payload))
               .catch(reason => console.log(reason.message));
       }
 
@@ -714,7 +717,7 @@
           let formPaymentAddress = $("input[id='formPaymentAddress']");
           let formPaymentUntil = $("input[id='formPaymentUntil']");
           let formFeedbackLeaveBefore = $("input[id='formFeedbackLeaveBefore']");
-          let formFeedbackPositive = $("select[id='formFeedbackPositive']");
+          let formFeedbackStatus = $("select[id='formFeedbackStatus']");
           let formFeedbackComments = $("input[id='formFeedbackComments']");
 
           if (formOrder === 'Create') {
@@ -723,7 +726,7 @@
               formPaymentAddress.prop('disabled', true);
               formPaymentUntil.prop('disabled', true);
               formFeedbackLeaveBefore.prop('disabled', true);
-              formFeedbackPositive.prop('disabled', true);
+              formFeedbackStatus.prop('disabled', true);
               formFeedbackComments.prop('disabled', true);
           } else if (formOrder === 'Pay') {
               formSellerRating.prop('disabled', false);
@@ -731,7 +734,7 @@
               formPaymentAddress.prop('disabled', false);
               formPaymentUntil.prop('disabled', false);
               formFeedbackLeaveBefore.prop('disabled', true);
-              formFeedbackPositive.prop('disabled', true);
+              formFeedbackStatus.prop('disabled', true);
               formFeedbackComments.prop('disabled', true);
           } else if (formOrder === 'Prepare') {
               formSellerRating.prop('disabled', false);
@@ -739,7 +742,7 @@
               formPaymentAddress.prop('disabled', false);
               formPaymentUntil.prop('disabled', false);
               formFeedbackLeaveBefore.prop('disabled', false);
-              formFeedbackPositive.prop('disabled', false);
+              formFeedbackStatus.prop('disabled', false);
               formFeedbackComments.prop('disabled', false);
           } else if (formOrder === 'Complete') {
               formSellerRating.prop('disabled', false);
@@ -747,7 +750,7 @@
               formPaymentAddress.prop('disabled', false);
               formPaymentUntil.prop('disabled', false);
               formFeedbackLeaveBefore.prop('disabled', false);
-              formFeedbackPositive.prop('disabled', false);
+              formFeedbackStatus.prop('disabled', false);
               formFeedbackComments.prop('disabled', false);
           } else if (formOrder === 'Cancel') {
               formSellerRating.prop('disabled', false);
@@ -755,7 +758,7 @@
               formPaymentAddress.prop('disabled', false);
               formPaymentUntil.prop('disabled', false);
               formFeedbackLeaveBefore.prop('disabled', false);
-              formFeedbackPositive.prop('disabled', false);
+              formFeedbackStatus.prop('disabled', false);
               formFeedbackComments.prop('disabled', false);
           }
 
@@ -775,7 +778,7 @@
           const formPaymentUntil = $("input[id='formPaymentUntil']");
           const formPaymentSum = $("input[id='formPaymentSum']");
           const formFeedbackLeaveBefore = $("input[id='formFeedbackLeaveBefore']");
-          const formFeedbackPositive = $("select[id='formFeedbackPositive']");
+          const formFeedbackStatus = $("select[id='formFeedbackStatus']");
           const formFeedbackComments = $("input[id='formFeedbackComments']");
 
           let formData = new FormData();
@@ -807,8 +810,8 @@
               formData.append('feedback_leave_before', formFeedbackLeaveBefore.val());
           }
 
-          if (!formFeedbackPositive.attr('disabled')) {
-              formData.append('feedback_positive', formFeedbackPositive.val());
+          if (!formFeedbackStatus.attr('disabled')) {
+              formData.append('feedback_status', formFeedbackStatus.val());
           }
 
           if (!formFeedbackComments.attr('disabled')) {
@@ -821,8 +824,14 @@
               settings += '&pgp=off'
           }
 
+          let execute = $("button[id='btnDealForm']");
+          execute.prop('disabled', true);
+
           AsyncFetch('api/v1/deal/' + formOrder.val() + settings, formData, 'POST')
-              .then(data => $("#deal-form").html(data))
+              .then(function(html) {
+                  $("#deal-form").html(html);
+                  execute.prop('disabled', false);
+              })
               .catch(reason => console.log(reason.message));
       }
 
@@ -836,7 +845,7 @@
           }
 
           AsyncFetch('api/v1/deal' + settings, dealJSON.val(), 'POST')
-              .then(data => $("#deal-json").html(data))
+              .then(payload => $("#deal-json").html(payload))
               .catch(reason => console.log(reason.message));
       }
 
@@ -850,7 +859,7 @@
           }
 
           AsyncFetch('api/v1/deal' + settings, dealYAML.val(), 'POST')
-              .then(data => $("#deal-yaml").html(data))
+              .then(payload => $("#deal-yaml").html(payload))
               .catch(reason => console.log(reason.message));
       }
 
