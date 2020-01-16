@@ -20,6 +20,7 @@
               <a class="text-sm-center nav-link active" data-toggle="tab" href="#tab-account">Account</a>
               <a class="text-sm-center nav-link" data-toggle="tab" href="#tab-deal">Deal</a>
           </nav>
+
           <div class="tab-content">
               <div id="tab-account" class="tab-pane active">
                   <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -223,12 +224,17 @@
                           <div class="mt-3">
                               <form>
                                   <div class="form-row">
-                                      <div class="form-group col-md-6">
+                                      <div class="form-group col-md-4">
+                                          <label for="apiURL">API</label>
+                                          <input type="text" class="form-control" id="apiURL" aria-describedby="apiURLHelp" placeholder="Default: http://localhost:40977/api/v1" value="http://localhost:40977/api/v1" required>
+                                          <small id="apiURLHelp" class="form-text text-muted">API URL.</small>
+                                      </div>
+                                      <div class="form-group col-md-4">
                                           <label for="server">Server</label>
                                           <input type="text" class="form-control" id="server" aria-describedby="serverHelp" placeholder="Default: localhost" value="localhost" required>
                                           <small id="serverHelp" class="form-text text-muted">Server host or IP-address.</small>
                                       </div>
-                                      <div class="form-group col-md-6">
+                                      <div class="form-group col-md-4">
                                           <label for="userAddress">User Bitcoin address</label>
                                           <input type="text" class="form-control" id="userAddress">
                                           <small id="userAddressHelp" class="form-text text-muted">User Bitcoin address.</small>
@@ -253,7 +259,7 @@
                       <div class="collapse navbar-collapse" id="navbarDeal">
                           <ul class="nav nav-tabs mr-auto">
                               <li class="nav-item">
-                                  <a class="nav-link active" data-toggle="tab" href="#tab-deal-form">Form</a>
+                                  <a class="nav-link active" href="#tab-deal-form">Form</a>
                               </li>
                               <li class="nav-item">
                                   <a class="nav-link" data-toggle="tab" href="#tab-deal-json">JSON</a>
@@ -394,7 +400,7 @@
                           <form onsubmit="executeDealJSON()">
                               <div class="form-group">
                                   <label for="dealJSON">Input:</label>
-                                  <textarea class="form-control" id="dealJSON" rows="20" placeholder="JSON"></textarea>
+                                  <textarea class="form-control" id="dealJSON" rows="20" placeholder="JSON" required></textarea>
                               </div>
                               <button type="submit" class="btn btn-primary">Execute</button>
                           </form>
@@ -407,7 +413,7 @@
                           <form onsubmit="executeDealYAML()">
                               <div class="form-group">
                                   <label for="dealYAML">Input:</label>
-                                  <textarea class="form-control" id="dealYAML" rows="20" placeholder="YAML"></textarea>
+                                  <textarea class="form-control" id="dealYAML" rows="20" placeholder="YAML" required></textarea>
                               </div>
                               <button id="btnDealYAML" type="submit" class="btn btn-primary">Execute</button>
                           </form>
@@ -438,20 +444,37 @@
       /**
        * @return {string}
        */
-      async function AsyncFetch (uri, body, method = "GET") {
+      async function AsyncFetch (url, body, method = "GET", headers = {}, format = "payload") {
           // await response of fetch call
-          let response = await fetch("http://localhost:40977/" + uri, {
+          let response = await fetch(url, {
               method: method,
+              headers: headers,
               body: body,
               mode: "cors",
               cache: "no-store"
           });
           // only proceed once promise is resolved
-          let data = await response.json();
-          let payload = window.atob(data['payload']);
-          let html = '<html lang="ru"><body><pre>' + payload + '</pre></body></html>';
           // only proceed once second promise is resolved
-          return payload;
+
+          let data = await response.json();
+          let result = data['result'];
+          let payload = window.atob(data['payload']);
+          let json = '<html lang="ru"><body><pre><code>' + JSON.stringify(data, undefined, 4) + '</code></pre></body></html>';
+          let html = '<html lang="ru"><body><pre><code>' + payload + '</code></pre></body></html>';
+
+          switch (format) {
+              case "data":
+                  return data;
+              case "result":
+                  return result;
+              case "json":
+                  return json;
+              case "html":
+                  return html;
+              case "payload":
+              default:
+                  return payload;
+          }
       }
 
       function empty(e) {
@@ -501,6 +524,11 @@
           return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
       }
 
+      $('.nav-tabs a[href="#tab-deal-form"]').click(function(){
+          actionDeal();
+          $(this).tab('show');
+      });
+
       // Select tabs Help
       $('.nav-tabs a[href="#tab-account-help"]').click(function(){
           actionHelp();
@@ -547,9 +575,12 @@
       });
 
       function actionHelp() {
+          const api = $("input[id='apiURL']").val();
           const server = $("input[id='server']").val();
+
           let settings = '?server=' + server;
-          AsyncFetch('api/v1/user/help' + settings)
+
+          AsyncFetch(api + '/user/help' + settings)
               .then(payload => $("#action-help").html(payload))
               .catch(reason => console.log(reason.message));
       }
@@ -557,13 +588,15 @@
       function actionStatus() {
           const address = $("input[id='statusUserAddress']").val();
 
+          const api = $("input[id='apiURL']").val();
           const server = $("input[id='server']").val();
+
           let settings = '?server=' + server;
           if (!empty(address)) {
               settings += '&address=' + address;
           }
 
-          AsyncFetch('api/v1/user/status' + settings)
+          AsyncFetch(api + '/user/status' + settings)
                 .then(payload => $("#action-status").html(payload))
                 .catch(reason => console.log(reason.message));
       }
@@ -596,13 +629,16 @@
               formData.append('url', url);
           }
 
+          const api = $("input[id='apiURL']").val();
           const server = $("input[id='server']").val();
+
           let settings = '?server=' + server;
+
           if ($('input[id="pgp"]').prop("checked") === false) {
               settings += '&pgp=off'
           }
 
-          AsyncFetch('api/v1/user/new' + settings, formData, 'POST')
+          AsyncFetch(api + '/user/new' + settings, formData, 'POST')
               .then(payload => $("#action-new").html(payload))
               .catch(reason => console.log(reason.message));
       }
@@ -622,14 +658,17 @@
               formData.append('pgp', pgp);
           }
 
+          const api = $("input[id='apiURL']").val();
           const server = $("input[id='server']").val();
+
           let settings = '?server=' + server;
           settings += '&address=' + address;
+
           if ($('input[id="pgp"]').prop("checked") === false) {
               settings += '&pgp=off'
           }
 
-          AsyncFetch('api/v1/user/add' + settings, formData, 'POST')
+          AsyncFetch(api + '/user/add' + settings, formData, 'POST')
               .then(payload => $("#action-add").html(payload))
               .catch(reason => console.log(reason.message));
       }
@@ -660,14 +699,17 @@
 
           formData.append('sign', sign);
 
+          const api = $("input[id='apiURL']").val();
           const server = $("input[id='server']").val();
+
           let settings = '?server=' + server;
           settings += '&address=' + address;
+
           if ($('input[id="pgp"]').prop("checked") === false) {
               settings += '&pgp=off'
           }
 
-          AsyncFetch('api/v1/user/update' + settings, formData, 'POST')
+          AsyncFetch(api + '/user/update' + settings, formData, 'POST')
               .then(payload => $("#action-update").html(payload))
               .catch(reason => console.log(reason.message));
       }
@@ -684,19 +726,22 @@
           formData.append('flags', flags);
           formData.append('sign', sign);
 
+          const api = $("input[id='apiURL']").val();
           const server = $("input[id='server']").val();
+
           let settings = '?server=' + server;
           settings += '&address=' + address;
+
           if ($('input[id="pgp"]').prop("checked") === false) {
               settings += '&pgp=off'
           }
 
-          AsyncFetch('api/v1/user/delete' + settings, formData, 'POST')
+          AsyncFetch(api + '/user/delete' + settings, formData, 'POST')
               .then(payload => $("#action-delete").html(payload))
               .catch(reason => console.log(reason.message));
       }
 
-      function OnDeal() {
+      function actionDeal() {
           let parser = document.createElement('a');
           parser.href = window.location;
 
@@ -705,8 +750,6 @@
 
           formAt.val(parser.protocol + '//' + parser.host);
           formDate.val(getFormattedDateTime(new Date()));
-
-          $(this).tab('show');
       }
 
       function OnChangeOrder() {
@@ -818,7 +861,9 @@
               formData.append('feedback_comments', formFeedbackComments.val());
           }
 
+          const api = $("input[id='apiURL']").val();
           const server = $("input[id='server']").val();
+
           let settings = '?server=' + server;
           if ($('input[id="pgp"]').prop("checked") === false) {
               settings += '&pgp=off'
@@ -827,9 +872,17 @@
           let execute = $("button[id='btnDealForm']");
           execute.prop('disabled', true);
 
-          AsyncFetch('api/v1/deal/' + formOrder.val() + settings, formData, 'POST')
-              .then(function(html) {
-                  $("#deal-form").html(html);
+          AsyncFetch(api + '/deal/' + formOrder.val() + settings, formData, "POST", {}, "data")
+              .then(function(data) {
+                  let result = data['result'];
+                  let payload = window.atob(data['payload']);
+                  let html = '<html lang="ru"><body><pre><code>' + payload + '</code></pre></body></html>';
+
+                  if (result['success'])
+                      $("#deal-form").html(html);
+                  else
+                      $("#deal-form").html(payload);
+
                   execute.prop('disabled', false);
               })
               .catch(reason => console.log(reason.message));
@@ -838,34 +891,66 @@
       function executeDealJSON() {
           const dealJSON = $("textarea[id='dealJSON']");
 
+          const api = $("input[id='apiURL']").val();
           const server = $("input[id='server']").val();
+
           let settings = '?server=' + server;
           if ($('input[id="pgp"]').prop("checked") === false) {
               settings += '&pgp=off'
           }
 
-          AsyncFetch('api/v1/deal' + settings, dealJSON.val(), 'POST')
-              .then(payload => $("#deal-json").html(payload))
+          let execute = $("button[id='btnDealJSON']");
+          execute.prop('disabled', true);
+
+          AsyncFetch(api + '/deal' + settings, dealJSON.val(), 'POST', {}, "data")
+              .then(function(data) {
+                  let result = data['result'];
+                  let payload = window.atob(data['payload']);
+                  let html = '<html lang="ru"><body><pre><code>' + payload + '</code></pre></body></html>';
+
+                  if (result['success'])
+                      $("#deal-json").html(html);
+                  else
+                      $("#deal-json").html(payload);
+
+                  execute.prop('disabled', false);
+              })
               .catch(reason => console.log(reason.message));
       }
 
       function executeDealYAML() {
           const dealYAML = $("textarea[id='dealYAML']");
 
+          const api = $("input[id='apiURL']").val();
           const server = $("input[id='server']").val();
+
           let settings = '?server=' + server;
           if ($('input[id="pgp"]').prop("checked") === false) {
               settings += '&pgp=off'
           }
 
-          AsyncFetch('api/v1/deal' + settings, dealYAML.val(), 'POST')
-              .then(payload => $("#deal-yaml").html(payload))
+          let execute = $("button[id='btnDealYAML']");
+          execute.prop('disabled', true);
+
+          AsyncFetch(api + '/deal' + settings, dealYAML.val(), 'POST', {}, "data")
+              .then(function(data) {
+                  let result = data['result'];
+                  let payload = window.atob(data['payload']);
+                  let html = '<html lang="ru"><body><pre><code>' + payload + '</code></pre></body></html>';
+
+                  if (result['success'])
+                      $("#deal-yaml").html(html);
+                  else
+                      $("#deal-yaml").html(payload);
+
+                  execute.prop('disabled', false);
+              })
               .catch(reason => console.log(reason.message));
       }
 
       $(document).ready(function(){
           actionHelp();
-          new OnDeal();
+          actionDeal();
       });
     </script>
 
