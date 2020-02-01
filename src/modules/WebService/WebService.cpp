@@ -51,7 +51,6 @@ namespace Apostol {
         CWebService::CWebService(CModuleManager *AManager): CApostolModule(AManager) {
             m_Version = -1;
             m_ProxyManager = new CHTTPProxyManager();
-            InitMethods();
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -422,7 +421,7 @@ namespace Apostol {
 
             CJSON Json(jvtObject);
 
-            Json.Object().AddPair("id", GetUID(APOSTOL_MODULE_UID_LENGTH));
+            Json.Object().AddPair("id", ApostolUID());
             Json.Object().AddPair("address", LUserAddress.IsEmpty() ? LModuleAddress : LUserAddress);
 
             if (!Payload.IsEmpty())
@@ -500,6 +499,12 @@ namespace Apostol {
                     const auto& formFeedbackStatus = FormData["feedback_status"];
                     const auto& formFeedbackComments = FormData["feedback_comments"];
 
+                    CheckKeyForNull("at", formAt.c_str());
+                    CheckKeyForNull("date", formDate.c_str());
+                    CheckKeyForNull("seller_address", formSellerAddress.c_str());
+                    CheckKeyForNull("customer_address", formCustomerAddress.c_str());
+                    CheckKeyForNull("payment_sum", formPaymentSum.c_str());
+
                     Node["deal"]["order"] = Action.IsEmpty() ? "" : Action.c_str();
                     YAML::Node Deal = Node["deal"];
 
@@ -559,6 +564,12 @@ namespace Apostol {
                     const auto& formFeedbackLeaveBefore = FormData.Data("feedback_leave_before");
                     const auto& formFeedbackStatus = FormData.Data("feedback_status");
                     const auto& formFeedbackComments = FormData.Data("feedback_comments");
+
+                    CheckKeyForNull("at", formAt.c_str());
+                    CheckKeyForNull("date", formDate.c_str());
+                    CheckKeyForNull("seller_address", formSellerAddress.c_str());
+                    CheckKeyForNull("customer_address", formCustomerAddress.c_str());
+                    CheckKeyForNull("payment_sum", formPaymentSum.c_str());
 
                     Node["deal"]["order"] = Action.IsEmpty() ? "" : Action.c_str();
                     YAML::Node Deal = Node["deal"];
@@ -633,6 +644,12 @@ namespace Apostol {
                     const auto& formFeedbackStatus = jsonFeedback["status"].AsSiring();
                     const auto& formFeedbackComments = jsonFeedback["comments"].AsSiring();
 
+                    CheckKeyForNull("at", formAt.c_str());
+                    CheckKeyForNull("date", formDate.c_str());
+                    CheckKeyForNull("seller->address", formSellerAddress.c_str());
+                    CheckKeyForNull("customer->address", formCustomerAddress.c_str());
+                    CheckKeyForNull("payment->sum", formPaymentSum.c_str());
+
                     Node["deal"]["order"] = formOrder.c_str();
                     YAML::Node Deal = Node["deal"];
 
@@ -698,7 +715,7 @@ namespace Apostol {
 
             CJSON Json(jvtObject);
 
-            Json.Object().AddPair("id", GetUID(APOSTOL_MODULE_UID_LENGTH));
+            Json.Object().AddPair("id", ApostolUID());
 
             if (!Payload.IsEmpty())
                 Json.Object().AddPair("payload", base64_encode(Payload));
@@ -789,6 +806,12 @@ namespace Apostol {
                 AConnection->SendStockReply(CReply::bad_request);
                 Log()->Error(APP_LOG_EMERG, 0, E.what());
             }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::CheckKeyForNull(LPCTSTR Key, LPCTSTR Value) {
+            if (Value == nullptr)
+                throw ExceptionFrm("Invalid format: key \"%s\" cannot be empty.", Key);
         }
         //--------------------------------------------------------------------------------------------------------------
 

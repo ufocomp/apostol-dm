@@ -100,6 +100,8 @@ namespace Apostol {
 
         protected:
 
+            static void CheckKeyForNull(LPCTSTR Key, LPCTSTR Value);
+
             void DoOptions(CHTTPServerConnection *AConnection) override;
 
             void DoGet(CHTTPServerConnection *AConnection);

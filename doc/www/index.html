@@ -288,9 +288,9 @@
                                           <select id="formOrder" class="form-control" onchange="OnChangeOrder()">
                                               <option selected>Create</option>
                                               <option>Pay</option>
-                                              <option>Prepare</option>
                                               <option>Complete</option>
                                               <option>Cancel</option>
+                                              <option>Delete</option>
                                           </select>
                                       </div>
                                   </div>
@@ -441,10 +441,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <script>
-      /**
-       * @return {string}
-       */
-      async function AsyncFetch (url, body, method = "GET", headers = {}, format = "payload") {
+      async function AsyncFetch (url, body, method = "GET", headers = {}) {
           // await response of fetch call
           let response = await fetch(url, {
               method: method,
@@ -453,35 +450,14 @@
               mode: "cors",
               cache: "no-store"
           });
-          // only proceed once promise is resolved
-          // only proceed once second promise is resolved
 
-          let data = await response.json();
-          let result = data['result'];
-          let payload = window.atob(data['payload']);
-          let json = '<html lang="ru"><body><pre><code>' + JSON.stringify(data, undefined, 4) + '</code></pre></body></html>';
-          let html = '<html lang="ru"><body><pre><code>' + payload + '</code></pre></body></html>';
-
-          switch (format) {
-              case "data":
-                  return data;
-              case "result":
-                  return result;
-              case "json":
-                  return json;
-              case "html":
-                  return html;
-              case "payload":
-              default:
-                  return payload;
-          }
+          return await response.json();
       }
 
       function empty(e) {
         switch (e) {
           case "":
           case 0:
-          case "0":
           case false:
           case null:
           case undefined:
@@ -522,6 +498,20 @@
           seconds = seconds.length > 1 ? seconds : '0' + seconds;
 
           return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+      }
+
+      /**
+       * @return {string}
+       */
+      function JsonToHTML(json) {
+          return '<html lang="ru"><body><pre><code>' + JSON.stringify(json, undefined, 4) + '</code></pre></body></html>';
+      }
+
+      /**
+       * @return {string}
+       */
+      function JsonToPayload(json) {
+          return window.atob(json['payload']);
       }
 
       $('.nav-tabs a[href="#tab-deal-form"]').click(function(){
@@ -581,7 +571,7 @@
           let settings = '?server=' + server;
 
           AsyncFetch(api + '/user/help' + settings)
-              .then(payload => $("#action-help").html(payload))
+              .then(json => $("#action-help").html(JsonToPayload(json)))
               .catch(reason => console.log(reason.message));
       }
 
@@ -597,7 +587,7 @@
           }
 
           AsyncFetch(api + '/user/status' + settings)
-                .then(payload => $("#action-status").html(payload))
+                .then(json => $("#action-status").html(JsonToPayload(json)))
                 .catch(reason => console.log(reason.message));
       }
 
@@ -639,7 +629,7 @@
           }
 
           AsyncFetch(api + '/user/new' + settings, formData, 'POST')
-              .then(payload => $("#action-new").html(payload))
+              .then(json => $("#action-new").html(JsonToPayload(json)))
               .catch(reason => console.log(reason.message));
       }
 
@@ -669,7 +659,7 @@
           }
 
           AsyncFetch(api + '/user/add' + settings, formData, 'POST')
-              .then(payload => $("#action-add").html(payload))
+              .then(json => $("#action-add").html(JsonToPayload(json)))
               .catch(reason => console.log(reason.message));
       }
 
@@ -710,7 +700,7 @@
           }
 
           AsyncFetch(api + '/user/update' + settings, formData, 'POST')
-              .then(payload => $("#action-update").html(payload))
+              .then(json => $("#action-update").html(JsonToPayload(json)))
               .catch(reason => console.log(reason.message));
       }
 
@@ -737,7 +727,7 @@
           }
 
           AsyncFetch(api + '/user/delete' + settings, formData, 'POST')
-              .then(payload => $("#action-delete").html(payload))
+              .then(json => $("#action-delete").html(JsonToPayload(json)))
               .catch(reason => console.log(reason.message));
       }
 
@@ -872,13 +862,22 @@
           let execute = $("button[id='btnDealForm']");
           execute.prop('disabled', true);
 
-          AsyncFetch(api + '/deal/' + formOrder.val() + settings, formData, "POST", {}, "data")
-              .then(function(data) {
-                  let result = data['result'];
-                  let payload = window.atob(data['payload']);
-                  let html = '<html lang="ru"><body><pre><code>' + payload + '</code></pre></body></html>';
+          AsyncFetch(api + '/deal/' + formOrder.val() + settings, formData, "POST", {})
+              .then(function(json) {
+                  let html;
+                  let payload;
+                  let result = true;
 
-                  if (result['success'])
+                  if (json.hasOwnProperty('error')) {
+                      let error = json['error'];
+                      html = '<html lang="ru"><body><pre>' + error['message'] + '</pre></body></html>';
+                  } else {
+                      result = json['result']['success'];
+                      payload = window.atob(json['payload']);
+                      html = '<html lang="ru"><body><pre><code>' + payload + '</code></pre></body></html>';
+                  }
+
+                  if (result)
                       $("#deal-form").html(html);
                   else
                       $("#deal-form").html(payload);
@@ -902,13 +901,22 @@
           let execute = $("button[id='btnDealJSON']");
           execute.prop('disabled', true);
 
-          AsyncFetch(api + '/deal' + settings, dealJSON.val(), 'POST', {}, "data")
-              .then(function(data) {
-                  let result = data['result'];
-                  let payload = window.atob(data['payload']);
-                  let html = '<html lang="ru"><body><pre><code>' + payload + '</code></pre></body></html>';
+          AsyncFetch(api + '/deal' + settings, dealJSON.val(), 'POST', {'Content-Type': 'application/json'})
+              .then(function(json) {
+                  let html;
+                  let payload;
+                  let result = true;
 
-                  if (result['success'])
+                  if (json.hasOwnProperty('error')) {
+                      let error = json['error'];
+                      html = '<html lang="ru"><body><pre>' + error['message'] + '</pre></body></html>';
+                  } else {
+                      result = json['result']['success'];
+                      payload = window.atob(json['payload']);
+                      html = '<html lang="ru"><body><pre><code>' + payload + '</code></pre></body></html>';
+                  }
+
+                  if (result)
                       $("#deal-json").html(html);
                   else
                       $("#deal-json").html(payload);
@@ -932,13 +940,22 @@
           let execute = $("button[id='btnDealYAML']");
           execute.prop('disabled', true);
 
-          AsyncFetch(api + '/deal' + settings, dealYAML.val(), 'POST', {}, "data")
-              .then(function(data) {
-                  let result = data['result'];
-                  let payload = window.atob(data['payload']);
-                  let html = '<html lang="ru"><body><pre><code>' + payload + '</code></pre></body></html>';
+          AsyncFetch(api + '/deal' + settings, dealYAML.val(), 'POST', {}, "json")
+              .then(function(json) {
+                  let html;
+                  let payload;
+                  let result = true;
 
-                  if (result['success'])
+                  if (json.hasOwnProperty('error')) {
+                      let error = json['error'];
+                      html = '<html lang="ru"><body><pre>' + error['message'] + '</pre></body></html>';
+                  } else {
+                      result = json['result']['success'];
+                      payload = window.atob(json['payload']);
+                      html = '<html lang="ru"><body><pre><code>' + payload + '</code></pre></body></html>';
+                  }
+
+                  if (result)
                       $("#deal-yaml").html(html);
                   else
                       $("#deal-yaml").html(payload);
@@ -949,6 +966,7 @@
       }
 
       $(document).ready(function(){
+          window.location.href = window.location.origin + window.location.pathname + '?#tab-account-help';
           actionHelp();
           actionDeal();
       });
