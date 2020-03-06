@@ -144,9 +144,19 @@ namespace Apostol {
             auto LServerReply = LProxy->Connection()->Reply();
             auto LProxyReply = LConnection->Reply();
 
-            const auto& Format = LServerRequest->Params["format"];
-            if (Format == "html") {
-                LServerReply->ContentType = CReply::html;
+            const auto& Format = LServerRequest->Params["payload"];
+            if (!Format.IsEmpty()) {
+
+                if (Format == "html") {
+                    LServerReply->ContentType = CReply::html;
+                } else if (Format == "json") {
+                    LServerReply->ContentType = CReply::json;
+                } else if (Format == "xml") {
+                    LServerReply->ContentType = CReply::xml;
+                } else {
+                    LServerReply->ContentType = CReply::text;
+                }
+
                 if (LProxyReply->Status == CReply::ok) {
                     if (!LProxyReply->Content.IsEmpty()) {
                         const CJSON json(LProxyReply->Content);
@@ -650,7 +660,7 @@ namespace Apostol {
                     CheckKeyForNull("customer->address", formCustomerAddress.c_str());
                     CheckKeyForNull("payment->sum", formPaymentSum.c_str());
 
-                    Node["deal"]["order"] = formOrder.c_str();
+                    Node["deal"]["order"] = Action.IsEmpty() ? formOrder.c_str() : Action.c_str();
                     YAML::Node Deal = Node["deal"];
 
                     Deal["at"] = formAt.c_str();
