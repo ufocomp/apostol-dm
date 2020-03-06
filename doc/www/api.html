@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<head>
+<title>Welcome to apostol!</title>
+<style>
+    * {
+            box-sizing: border-box;
+    }
+    body {
+            background-color: #fff;
+            color: #24292e;
+            min-width: 1012px;
+            word-wrap: break-word;
+            font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+            font-size: 14px;
+            line-height: 1.5;
+    }
+    code, pre, tt {
+            font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
+            font-size: 12px;
+    }
+    h3, h4 {
+            font-weight: 600;
+    }
+    h1, h2, h3, h4, h5, h6 {
+            margin-bottom: 0;
+            margin-top: 0;
+    }
+    p {
+            display: block;
+            margin-block-start: 1em;
+            margin-block-end: 1em;
+            margin-inline-start: 0px;
+            margin-inline-end: 0px;
+    }
+    .container {
+            margin-left: auto;
+            margin-right: auto;
+            width: 980px;
+    }
+    .Box--condensed {
+            line-height: 1.25;
+    }
+    .Box {
+            background-color: #fff;
+            border: 1px solid #d1d5da;
+            border-radius: 3px;
+    }
+    .Box-header {
+            padding: 8px 16px;
+    }
+    .d-flex {
+            display: flex!important;
+    }
+    .px-2 {
+            padding-right: 8px!important;
+    }
+    .flex-items-center {
+            align-items: center!important;
+    }
+    .flex-justify-between {
+            justify-content: space-between!important;
+    }
+    .Box-header {
+            background-color: #f6f8fa;
+            border: 1px solid #d1d5da;
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+            margin: -1px -1px 0;
+            padding: 16px;
+    }
+    .Box-body:last-of-type {
+            border-bottom-left-radius: 2px;
+            border-bottom-right-radius: 2px;
+            margin-bottom: -1px;
+    }
+    .Box--condensed .Box-body, .Box--condensed .Box-footer, .Box--condensed .Box-header {
+            padding: 8px 16px;
+    }
+    .Box-body {
+            border-bottom: 1px solid #e1e4e8;
+            padding: 16px;
+    }
+    .markdown-body {
+            font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+            font-size: 16px;
+            line-height: 1.5;
+            word-wrap: break-word;
+    }
+    .markdown-body pre {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-size: 85%;
+            line-height: 1.45;
+            overflow: auto;
+            padding: 16px;
+    }
+    .markdown-body pre {
+            word-wrap: normal;
+    }
+    .markdown-body pre code, .markdown-body pre tt {
+            background-color: transparent;
+            border: 0;
+            display: inline;
+            line-height: inherit;
+            margin: 0;
+            max-width: auto;
+            overflow: visible;
+            padding: 0;
+            word-wrap: normal;
+    }
+    .markdown-body pre>code {
+            background: transparent;
+            border: 0;
+            font-size: 100%;
+            margin: 0;
+            padding: 0;
+            white-space: pre;
+            word-break: normal;
+    }
+    .markdown-body code, .markdown-body tt {
+            background-color: rgba(27,31,35,.05);
+            border-radius: 3px;
+            font-size: 85%;
+            margin: 0;
+            padding: .2em .4em;
+    }
+    .p-5 {
+            padding: 32px!important;
+    }
+    .markdown-body>:first-child {
+            margin-top: 0!important;
+    }
+    .markdown-body h1, .markdown-body h2 {
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: .3em;
+    }
+    .markdown-body h1 {
+            font-size: 2em;
+    }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6 {
+            font-weight: 600;
+            line-height: 1.25;
+            margin-bottom: 16px;
+            margin-top: 24px;
+    }
+    .markdown-body h2 {
+            font-size: 1.5em;
+    }
+    .markdown-body h1, .markdown-body h2 {
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: .3em;
+    }
+    .pr-3 {
+            padding-right: 16px!important;
+    }
+    .Box-title {
+            font-size: 14px;
+            font-weight: 600;
+    }
+    .markdown-body h6 {
+            color: #6a737d;
+            font-size: .85em;
+    }
+    .markdown-body blockquote, .markdown-body details, .markdown-body dl, .markdown-body ol, .markdown-body p, .markdown-body pre, .markdown-body table, .markdown-body ul {
+            margin-bottom: 16px;
+            margin-top: 0;
+    }
+    tbody {
+            display: table-row-group;
+            vertical-align: middle;
+            border-color: inherit;
+    }
+    table {
+            border-collapse: collapse;
+            border-spacing: 0;
+    }
+    .markdown-body table tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+    }
+    tr {
+            display: table-row;
+            vertical-align: inherit;
+            border-color: inherit;
+    }
+    .markdown-body table {
+            display: block;
+            overflow: auto;
+            width: 100%;
+    }
+    .markdown-body table tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+    }
+    .markdown-body table th {
+            border: 1px solid #dfe2e5;
+            padding: 6px 13px;
+    }
+    .markdown-body table th {
+            font-weight: 600;
+    }
+    .markdown-body table td, .markdown-body table th {
+            border: 1px solid #dfe2e5;
+            padding: 6px 13px;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div id="readme" class="Box-body readme blob js-code-block-container">
+        <article class="markdown-body entry-content p-3 p-md-6" itemprop="text"><h1><a id="user-content-api-модуля-сделок-системы-учёта-bitcoin-платежей" class="anchor" aria-hidden="true" href="#api-модуля-сделок-системы-учёта-bitcoin-платежей"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>API "Модуля сделок" системы учёта Bitcoin платежей.</h1>
+            <h2><a id="user-content-общая-информация" class="anchor" aria-hidden="true" href="#общая-информация"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Общая информация</h2>
+            <ul>
+                <li>Базовая конечная точка (endpoint): <a href="http://localhost:40977" rel="nofollow">localhost:40977</a></li>
+                <li>Все конечные точки возвращают <code>JSON-объект</code></li>
+                <li>Все поля, относящиеся ко времени и меткам времени, указаны в <strong>миллисекундах</strong>.</li>
+            </ul>
+            <h2><a id="user-content-http-коды-возврата" class="anchor" aria-hidden="true" href="#http-коды-возврата"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>HTTP коды возврата</h2>
+            <ul>
+                <li>HTTP <code>4XX</code> коды возврата применимы для некорректных запросов - проблема на стороне клиента.</li>
+                <li>HTTP <code>5XX</code> коды возврата используются для внутренних ошибок - проблема на стороне сервера. Важно <strong>НЕ</strong> рассматривать это как операцию сбоя. Статус выполнения <strong>НЕИЗВЕСТЕН</strong> и может быть успешным.</li>
+            </ul>
+            <h2><a id="user-content-коды-ошибок" class="anchor" aria-hidden="true" href="#коды-ошибок"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Коды ошибок</h2>
+            <ul>
+                <li>Любая конечная точка может вернуть ошибку.</li>
+            </ul>
+            <p><strong>Пример ответа:</strong></p>
+            <div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>error<span class="pl-pds">"</span></span>: {
+    <span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span>: <span class="pl-c1">404</span>,
+    <span class="pl-s"><span class="pl-pds">"</span>message<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Not Found<span class="pl-pds">"</span></span>
+  }
+}</pre></div>
+            <h2><a id="user-content-общая-информация-о-конечных-точках" class="anchor" aria-hidden="true" href="#общая-информация-о-конечных-точках"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Общая информация о конечных точках</h2>
+            <ul>
+                <li>Для <code>GET</code> конечных точек параметры должны быть отправлены в виде <code>строки запроса (query string)</code> .</li>
+                <li>Для <code>POST</code> конечных точек, некоторые параметры могут быть отправлены в виде <code>строки запроса (query string)</code>, а некоторые в виде <code>тела запроса (request body)</code>:</li>
+                <li>При отправке параметров в виде <code>тела запроса</code> допустимы следующие типы контента:
+                    <ul>
+                        <li><code>application/x-www-form-urlencoded</code> для <code>query string</code>;</li>
+                        <li><code>multipart/form-data</code> для <code>HTML-форм</code>;</li>
+                        <li><code>application/json</code> для <code>JSON</code></li>
+                    </ul>
+                </li>
+                <li>Параметры могут быть отправлены в любом порядке.</li>
+            </ul>
+            <h2><a id="user-content-общие-конечные-точки" class="anchor" aria-hidden="true" href="#общие-конечные-точки"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Общие конечные точки</h2>
+            <h3><a id="user-content-тест-подключения" class="anchor" aria-hidden="true" href="#тест-подключения"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Тест подключения</h3>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">GET</span><span class="pl-c1"> /api/v1/ping</span></pre></div>
+            <p>Проверить подключение к REST API.</p>
+            <p><strong>Параметры:</strong>
+                НЕТ</p>
+            <p><strong>Пример ответа:</strong></p>
+            <div class="highlight highlight-source-json"><pre>{}</pre></div>
+            <h3><a id="user-content-проверить-время-сервера" class="anchor" aria-hidden="true" href="#проверить-время-сервера"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Проверить время сервера</h3>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">GET</span><span class="pl-c1"> /api/v1/time</span></pre></div>
+            <p>Проверить подключение к REST API и получить текущее время сервера.</p>
+            <p><strong>Параметры:</strong>
+                НЕТ</p>
+            <p><strong>Пример ответа:</strong></p>
+            <div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>serverTime<span class="pl-pds">"</span></span>: <span class="pl-c1">1583495795455</span>
+}</pre></div>
+            <h2><a id="user-content-конечные-точки" class="anchor" aria-hidden="true" href="#конечные-точки"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Конечные точки</h2>
+            <p>Конечные точки разделены на две категории: <code>Пользователи (user)</code> и <code>Сделки (deal)</code>.</p>
+            <p>Обработка запросов выполняется на стороне <code>Дополнительного сервера (ДС)</code>.
+                Поэтому <code>Модуль сделок</code> формирует <strong>транспортный пакет</strong> в виде <code>JSON-объекта</code> и отправляет его на <code>ДС</code>.</p>
+            <h5><a id="user-content-важно-сетевой-адрес-дополнительного-сервера-дс-можно-указать-в-параметрах-запроса-в-виде-строки-запроса-по-умолчанию-localhost" class="anchor" aria-hidden="true" href="#важно-сетевой-адрес-дополнительного-сервера-дс-можно-указать-в-параметрах-запроса-в-виде-строки-запроса-по-умолчанию-localhost"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ВАЖНО: Сетевой адрес <code>Дополнительного сервера (ДС)</code> можно указать в параметрах запроса в виде <code>строки запроса</code>. По умолчанию: <code>localhost</code></h5>
+            <h3><a id="user-content-формат-транспортного-пакета" class="anchor" aria-hidden="true" href="#формат-транспортного-пакета"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Формат транспортного пакета:</h3>
+            <p><strong>Запрос:</strong></p>
+            <div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;string&gt;<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>address<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;string&gt;<span class="pl-pds">"</span></span>
+} </pre></div>
+            <p><strong>Ответ:</strong></p>
+            <div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;string&gt;<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>action<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;string&gt;<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>result<span class="pl-pds">"</span></span>: {
+    <span class="pl-s"><span class="pl-pds">"</span>success<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;boolean&gt;<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>message<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;string&gt;<span class="pl-pds">"</span></span>
+  },
+  <span class="pl-s"><span class="pl-pds">"</span>payload<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;base64&gt;<span class="pl-pds">"</span></span>
+} </pre></div>
+            <p><strong>Описание:</strong></p>
+            <table>
+                <thead>
+                <tr>
+                    <th>Ключ</th>
+                    <th>Тип</th>
+                    <th>Значение</th>
+                    <th>Описание</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>id</td>
+                    <td>STRING</td>
+                    <td></td>
+                    <td>Уникальный идентификатор запроса</td>
+                </tr>
+                <tr>
+                    <td>address</td>
+                    <td>STRING</td>
+                    <td></td>
+                    <td>Bitcoin адрес пользователя (учётной записи) <code>ДС</code>. По умолчанию: Адрес модуля</td>
+                </tr>
+                <tr>
+                    <td>action</td>
+                    <td>STRING</td>
+                    <td>help, status, new, add, update, delete</td>
+                    <td>Действие</td>
+                </tr>
+                <tr>
+                    <td>result</td>
+                    <td>JSON</td>
+                    <td></td>
+                    <td>Результат выполнения запроса</td>
+                </tr>
+                <tr>
+                    <td>success</td>
+                    <td>BOOLEAN</td>
+                    <td>true, false</td>
+                    <td>Успешно: Да/Нет</td>
+                </tr>
+                <tr>
+                    <td>message</td>
+                    <td>STRING</td>
+                    <td></td>
+                    <td>Сообщение (информация об ошибке)</td>
+                </tr>
+                <tr>
+                    <td>payload</td>
+                    <td>BASE64</td>
+                    <td></td>
+                    <td>Полезная нагрузка (строка в формате Base64)</td>
+                </tr>
+                </tbody>
+            </table>
+            <h6><a id="user-content-внимание-данные-в-поле-payload-зашифрованы-по-алгоритму-base64" class="anchor" aria-hidden="true" href="#внимание-данные-в-поле-payload-зашифрованы-по-алгоритму-base64"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ВНИМАНИЕ: Данные в поле <code>payload</code> зашифрованы по алгоритму Base64.</h6>
+            <p>После расшифровки <code>полезной нагрузки</code> конечным значением может быть:</p>
+            <ul>
+                <li><code>Текст в произвольном формате</code>;</li>
+                <li><code>HTML-документ</code>;</li>
+                <li><code>JSON-объект</code>.</li>
+            </ul>
+            <h3><a id="user-content-общие-параметры" class="anchor" aria-hidden="true" href="#общие-параметры"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Общие параметры</h3>
+            <h4><a id="user-content-для-последующих-конечных-точек-можно-указать-параметры-в-виде-строки-запроса-query-string" class="anchor" aria-hidden="true" href="#для-последующих-конечных-точек-можно-указать-параметры-в-виде-строки-запроса-query-string"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Для последующих конечных точек можно указать <strong>параметры</strong> в виде <code>строки запроса (query string)</code>:</h4>
+            <table>
+                <thead>
+                <tr>
+                    <th>Имя</th>
+                    <th>Тип</th>
+                    <th>Значение</th>
+                    <th>Описание</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>payload</td>
+                    <td>STRING</td>
+                    <td>text, html, json, xml</td>
+                    <td>Получить ответ в виде содержимого поля <code>payload</code> с указанием формата</td>
+                </tr>
+                <tr>
+                    <td>server</td>
+                    <td>STRING</td>
+                    <td>localhost</td>
+                    <td>IP-адрес или Host имя сервера (ДС). По умолчанию: localhost</td>
+                </tr>
+                <tr>
+                    <td>pgp</td>
+                    <td>BOOLEAN</td>
+                    <td>false, off</td>
+                    <td>Отключить PGP подпись модуля сделок</td>
+                </tr>
+                <tr>
+                    <td>address</td>
+                    <td>STRING</td>
+                    <td></td>
+                    <td>Bitcoin адрес пользователя (учётной записи) <code>ДС</code>. По умолчанию: Адрес модуля</td>
+                </tr>
+                </tbody>
+            </table>
+            <h2><a id="user-content-параметры-пользователя" class="anchor" aria-hidden="true" href="#параметры-пользователя"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Параметры пользователя</h2>
+            <h3><a id="user-content-параметры-в-виде-тела-запроса-request-body" class="anchor" aria-hidden="true" href="#параметры-в-виде-тела-запроса-request-body"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Параметры в виде <code>тела запроса (request body)</code>:</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>Наименование</th>
+                    <th>Тип</th>
+                    <th>Действие</th>
+                    <th>Описание</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>address</td>
+                    <td>STRING</td>
+                    <td>*</td>
+                    <td>Bitcoin адрес</td>
+                </tr>
+                <tr>
+                    <td>bitmessage</td>
+                    <td>STRING</td>
+                    <td>New</td>
+                    <td>Bitmessage адрес</td>
+                </tr>
+                <tr>
+                    <td>key</td>
+                    <td>STRING</td>
+                    <td>New, Add</td>
+                    <td>Bitcoin ключ (публичный)</td>
+                </tr>
+                <tr>
+                    <td>pgp</td>
+                    <td>STRING</td>
+                    <td>New, Add</td>
+                    <td>PGP ключ (публичный)</td>
+                </tr>
+                <tr>
+                    <td>url</td>
+                    <td>STRING</td>
+                    <td>New, Update</td>
+                    <td>Список URL</td>
+                </tr>
+                <tr>
+                    <td>date</td>
+                    <td>STRING</td>
+                    <td>Update, Delete</td>
+                    <td>Дата в формате: YYYY-MM-DD</td>
+                </tr>
+                <tr>
+                    <td>sign</td>
+                    <td>STRING</td>
+                    <td>Update, Delete</td>
+                    <td>Bitcoin подпись</td>
+                </tr>
+                <tr>
+                    <td>flags</td>
+                    <td>STRING</td>
+                    <td>Delete</td>
+                    <td>Флаги</td>
+                </tr>
+                </tbody>
+            </table>
+            <h2><a id="user-content-параметры-сделки" class="anchor" aria-hidden="true" href="#параметры-сделки"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Параметры сделки</h2>
+            <h3><a id="user-content-параметры-в-виде-тела-запроса-request-body-1" class="anchor" aria-hidden="true" href="#параметры-в-виде-тела-запроса-request-body-1"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Параметры в виде <code>тела запроса (request body)</code>:</h3>
+            <h4><a id="user-content-для-типов-контента-applicationx-www-form-urlencoded-и-multipartform-data" class="anchor" aria-hidden="true" href="#для-типов-контента-applicationx-www-form-urlencoded-и-multipartform-data"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Для типов контента <code>application/x-www-form-urlencoded</code> и <code>multipart/form-data</code>:</h4>
+            <table>
+                <thead>
+                <tr>
+                    <th>Наименование</th>
+                    <th>Тип</th>
+                    <th>Действие</th>
+                    <th>Описание</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>at</td>
+                    <td>URL</td>
+                    <td>*</td>
+                    <td>URL сайта</td>
+                </tr>
+                <tr>
+                    <td>date</td>
+                    <td>DATETIME</td>
+                    <td>*</td>
+                    <td>Дата сделки</td>
+                </tr>
+                <tr>
+                    <td>seller_address</td>
+                    <td>STRING</td>
+                    <td>*</td>
+                    <td>Продавец: Bitcoin адрес</td>
+                </tr>
+                <tr>
+                    <td>seller_rating</td>
+                    <td>STRING</td>
+                    <td>Pay, Complete</td>
+                    <td>Продавец: Рейтинг</td>
+                </tr>
+                <tr>
+                    <td>customer_address</td>
+                    <td>STRING</td>
+                    <td>*</td>
+                    <td>Покупатель: Bitcoin адрес</td>
+                </tr>
+                <tr>
+                    <td>customer_rating</td>
+                    <td>STRING</td>
+                    <td>Pay, Complete</td>
+                    <td>Покупатель: Рейтинг</td>
+                </tr>
+                <tr>
+                    <td>payment_address</td>
+                    <td>STRING</td>
+                    <td>Pay, Complete</td>
+                    <td>Оплата: Bitcoin адрес</td>
+                </tr>
+                <tr>
+                    <td>payment_until</td>
+                    <td>DATETIME</td>
+                    <td>Pay, Complete</td>
+                    <td>Оплата: Срок оплаты</td>
+                </tr>
+                <tr>
+                    <td>payment_sum</td>
+                    <td>DOUBLE</td>
+                    <td>*</td>
+                    <td>Оплата: Сумма</td>
+                </tr>
+                <tr>
+                    <td>feedback_leave_before</td>
+                    <td>DATETIME</td>
+                    <td>Pay, Complete</td>
+                    <td>Обратная связь: Срок до...</td>
+                </tr>
+                <tr>
+                    <td>feedback_status</td>
+                    <td>STRING</td>
+                    <td>Complete</td>
+                    <td>Обратная связь: Статус</td>
+                </tr>
+                <tr>
+                    <td>feedback_comments</td>
+                    <td>STRING</td>
+                    <td>Complete</td>
+                    <td>Обратная связь: Комментарий</td>
+                </tr>
+                </tbody>
+            </table>
+            <h4><a id="user-content-для-типа-контента-applicationjson" class="anchor" aria-hidden="true" href="#для-типа-контента-applicationjson"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Для типа контента <code>application/json</code>:</h4>
+            <div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>at<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;url&gt;<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>date<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;datetime&gt;<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>seller<span class="pl-pds">"</span></span>: {
+    <span class="pl-s"><span class="pl-pds">"</span>address<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;string&gt;<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;string&gt;<span class="pl-pds">"</span></span>
+  },
+  <span class="pl-s"><span class="pl-pds">"</span>customer<span class="pl-pds">"</span></span>: {
+    <span class="pl-s"><span class="pl-pds">"</span>address<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;string&gt;<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;string&gt;<span class="pl-pds">"</span></span>
+  },
+  <span class="pl-s"><span class="pl-pds">"</span>payment<span class="pl-pds">"</span></span>: {
+    <span class="pl-s"><span class="pl-pds">"</span>address<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;string&gt;<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>until<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;datetime&gt;<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>sum<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;double&gt;<span class="pl-pds">"</span></span>
+  },
+  <span class="pl-s"><span class="pl-pds">"</span>feedback<span class="pl-pds">"</span></span>: {
+    <span class="pl-s"><span class="pl-pds">"</span>leave-before<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;datetime&gt;<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>status<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;string&gt;<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>comments<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>&lt;string&gt;<span class="pl-pds">"</span></span>
+  }
+} </pre></div>
+            <h4><a id="user-content-для-типа-контента-textplain" class="anchor" aria-hidden="true" href="#для-типа-контента-textplain"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Для типа контента <code>text/plain</code>:</h4>
+            <div class="highlight highlight-source-yaml"><pre><span class="pl-ent">deal</span>:
+  <span class="pl-ent">order</span>: <span class="pl-s">&lt;string&gt;</span>
+  <span class="pl-ent">at</span>: <span class="pl-s">&lt;url&gt;</span>
+  <span class="pl-ent">date</span>: <span class="pl-s">&lt;datetime&gt;</span>
+  <span class="pl-ent">seller</span>:
+    <span class="pl-ent">address</span>: <span class="pl-s">&lt;string&gt;</span>
+    <span class="pl-ent">rating</span>: <span class="pl-s">&lt;string&gt;</span>
+  <span class="pl-ent">customer</span>:
+    <span class="pl-ent">address</span>: <span class="pl-s">&lt;string&gt;</span>
+    <span class="pl-ent">rating</span>: <span class="pl-s">&lt;string&gt;</span>
+  <span class="pl-ent">payment</span>:
+    <span class="pl-ent">sum</span>: <span class="pl-s">&lt;double&gt;</span>
+    <span class="pl-ent">address</span>: <span class="pl-s">&lt;string&gt;</span>
+    <span class="pl-ent">until</span>: <span class="pl-s">&lt;datetime&gt;</span>
+  <span class="pl-ent">feedback</span>:
+    <span class="pl-ent">leave-before</span>: <span class="pl-s">&lt;datetime&gt;</span></pre></div>
+            <h3><a id="user-content-пользователь" class="anchor" aria-hidden="true" href="#пользователь"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Пользователь</h3>
+            <h4><a id="user-content-помощь" class="anchor" aria-hidden="true" href="#помощь"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Помощь</h4>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">GET</span><span class="pl-c1"> /api/v1/user/help</span></pre></div>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">POST</span><span class="pl-c1"> /api/v1/user/help</span></pre></div>
+            <p>Получить справочную информацию по командам регистрации и обновления данных учётной записи.</p>
+            <p><strong>Параметры:</strong>
+                <a href="#%D0%BE%D0%B1%D1%89%D0%B8%D0%B5-%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B">Строка запроса</a></p>
+            <p><strong>Пример:</strong></p>
+            <p>Запрос:</p>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">GET</span><span class="pl-c1"> /api/v1/user/help?payload=html</span></pre></div>
+            <p>Ответ (содержимое <code>payload</code>):</p>
+            <div class="highlight highlight-text-html-basic"><pre><span class="pl-c1">&lt;!DOCTYPE html<span class="pl-kos">&gt;</span></span>
+<span class="pl-kos">&lt;</span><span class="pl-ent">html</span> <span class="pl-c1">lang</span>="<span class="pl-s">en</span>"<span class="pl-kos">&gt;</span>
+<span class="pl-kos">&lt;</span><span class="pl-ent">head</span><span class="pl-kos">&gt;</span>
+    <span class="pl-kos">&lt;</span><span class="pl-ent">meta</span> <span class="pl-c1">charset</span>="<span class="pl-s">UTF-8</span>"<span class="pl-kos">&gt;</span>
+    <span class="pl-kos">&lt;</span><span class="pl-ent">meta</span> <span class="pl-c1">name</span>="<span class="pl-s">author</span>" <span class="pl-c1">content</span>="<span class="pl-s">Bitcoin Payment Service</span>"<span class="pl-kos">&gt;</span>
+<span class="pl-kos">&lt;/</span><span class="pl-ent">head</span><span class="pl-kos">&gt;</span>
+<span class="pl-kos">&lt;</span><span class="pl-ent">body</span><span class="pl-kos">&gt;</span>
+<span class="pl-kos">&lt;</span><span class="pl-ent">pre</span><span class="pl-kos">&gt;</span>
+Bitcoin Payment Service.
+
+Usage: Send a message in accordance with the format.
+
+Available actions:
+
+  <span class="pl-kos">&lt;</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>help<span class="pl-kos">&lt;/</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>         : send this help
+  <span class="pl-kos">&lt;</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>status<span class="pl-kos">&lt;/</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>       : show user account data
+  <span class="pl-kos">&lt;</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>new<span class="pl-kos">&lt;/</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>          : create user account
+  <span class="pl-kos">&lt;</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>add<span class="pl-kos">&lt;/</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>          : adding data to a user account (adding missing data)
+  <span class="pl-kos">&lt;</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>update<span class="pl-kos">&lt;/</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>       : updating user account data
+  <span class="pl-kos">&lt;</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>delete<span class="pl-kos">&lt;/</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>       : delete user account
+
+The system has an AI and can determine the action itself.
+But you can help the AI and indicate the action explicitly in the message subject.
+
+Subject: [help|status|new|add|update|delete] | any text
+Body:
+Action         : Message format
+  <span class="pl-kos">&lt;</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>help<span class="pl-kos">&lt;/</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>         : &amp;lt;ignored&amp;gt;
+  <span class="pl-kos">&lt;</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>status<span class="pl-kos">&lt;/</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>       : &amp;lt;ignored&amp;gt;
+  <span class="pl-kos">&lt;</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>new<span class="pl-kos">&lt;/</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>          : &amp;lt;bitcoin&amp;gt;&amp;lt;LF&amp;gt;
+                 [&amp;lt;key&amp;gt;&amp;lt;LF&amp;gt;] |
+                 [&amp;lt;PGP&amp;gt;&amp;lt;LF&amp;gt;] |
+                 [{account:|trusted:}&amp;lt;LF&amp;gt;]
+                 [&amp;lt;url&amp;gt;&amp;lt;LF&amp;gt;]
+  <span class="pl-kos">&lt;</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>add<span class="pl-kos">&lt;/</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>          : [&amp;lt;key&amp;gt;&amp;lt;LF&amp;gt;] |
+                 [&amp;lt;PGP&amp;gt;&amp;lt;LF&amp;gt;]
+  <span class="pl-kos">&lt;</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>update<span class="pl-kos">&lt;/</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>       : &amp;lt;yyyy-mm-dd&amp;gt;&amp;lt;LF&amp;gt;
+                 [&amp;lt;PGP&amp;gt;&amp;lt;LF&amp;gt;] |
+                 [{account:|trusted:}&amp;lt;LF&amp;gt;]
+                 [&amp;lt;url&amp;gt;&amp;lt;LF&amp;gt;] |
+                 &amp;lt;signature&amp;gt;
+  <span class="pl-kos">&lt;</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>delete<span class="pl-kos">&lt;/</span><span class="pl-ent">b</span><span class="pl-kos">&gt;</span>       : &amp;lt;yyyy-mm-dd&amp;gt;&amp;lt;LF&amp;gt;
+                 -account&amp;lt;LF&amp;gt;
+                 &amp;lt;signature&amp;gt;
+Arguments:
+  account      : account URL list (default if not set "trusted")
+  trusted      : trusted URL list
+  -account     : delete account
+
+Templates:
+  &amp;lt;ignored&amp;gt;    : any text will be ignored
+  &amp;lt;LF&amp;gt;         : line feed; format: 0x0a
+  &amp;lt;string&amp;gt;     : single line text
+  &amp;lt;bitcoin&amp;gt;    : bitcoin address; format: [bitcoin:]&amp;lt;string&amp;gt;
+  &amp;lt;key&amp;gt;        : bitcoin public key
+  &amp;lt;PGP&amp;gt;        : PGP public key
+  &amp;lt;yyyy-mm-dd&amp;gt; : current date
+  [+|-]&amp;lt;url&amp;gt;   : add(+) or delete(-) URL; format: http[s]://&amp;lt;string&amp;gt;
+  &amp;lt;signature&amp;gt;  : bitcoin signature for message text (use private key)<span class="pl-kos">&lt;/</span><span class="pl-ent">pre</span><span class="pl-kos">&gt;</span>
+
+<span class="pl-kos">&lt;/</span><span class="pl-ent">body</span><span class="pl-kos">&gt;</span>
+<span class="pl-kos">&lt;/</span><span class="pl-ent">html</span><span class="pl-kos">&gt;</span></pre></div>
+            <h4><a id="user-content-статус" class="anchor" aria-hidden="true" href="#статус"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Статус</h4>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">GET</span><span class="pl-c1"> /api/v1/user/status</span></pre></div>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">POST</span><span class="pl-c1"> /api/v1/user/status</span></pre></div>
+            <p>Получить статус учётной записи пользователя.</p>
+            <p><strong>Параметры:</strong>
+                <a href="#%D0%BE%D0%B1%D1%89%D0%B8%D0%B5-%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B">Строка запроса</a></p>
+            <p><strong>Пример:</strong></p>
+            <p>Запрос:</p>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">GET</span><span class="pl-c1"> /api/v1/user/status?address=null</span></pre></div>
+            <p>Ответ:</p>
+            <div class="highlight highlight-source-json"><pre>{
+<span class="pl-s"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>A4406-PDF10-OE2BC-SF8AA-T918F-OC9BC-L9EB00<span class="pl-pds">"</span></span>,
+<span class="pl-s"><span class="pl-pds">"</span>action<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Status<span class="pl-pds">"</span></span>,
+<span class="pl-s"><span class="pl-pds">"</span>result<span class="pl-pds">"</span></span>: {
+<span class="pl-s"><span class="pl-pds">"</span>success<span class="pl-pds">"</span></span>: <span class="pl-c1">false</span>,
+<span class="pl-s"><span class="pl-pds">"</span>message<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Invalid Bitcoin address: null<span class="pl-pds">"</span></span>
+},
+<span class="pl-s"><span class="pl-pds">"</span>payload<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJhdXRob3IiIGNvbnRlbnQ9IkJpdGNvaW4gUGF5bWVudCBTZXJ2aWNlIj4KPC9oZWFkPgo8Ym9keT4KPHByZT5IZWxsbyEKClNvcnJ5LCBzb21ldGhpbmcgd2VudCB3cm9uZyBhbmQgbGVkIHRvIGFuIGVycm9yOgoKPGZvbnQgY29sb3I9IiNDMDM5MkIiPjxiPkludmFsaWQgQml0Y29pbiBhZGRyZXNzOiBudWxsPC9iPjwvZm9udD4KCi0tLS0tClRoYW5rIHlvdSwKUGF5bWVudHMubmV0PC9wcmU+CjwvYm9keT4KPC9odG1sPgo=<span class="pl-pds">"</span></span>
+}</pre></div>
+            <h4><a id="user-content-новый" class="anchor" aria-hidden="true" href="#новый"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Новый</h4>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">POST</span><span class="pl-c1"> /api/v1/user/new</span></pre></div>
+            <p>Зарегистрировать нового пользователя.</p>
+            <p><strong>Параметры:</strong>
+                <a href="#%D0%BE%D0%B1%D1%89%D0%B8%D0%B5-%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B">Строка запроса</a>,
+                <a href="#%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B-%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8F">Тело запроса</a></p>
+            <h4><a id="user-content-добавить" class="anchor" aria-hidden="true" href="#добавить"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Добавить</h4>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">POST</span><span class="pl-c1"> /api/v1/user/add</span></pre></div>
+            <p>Добавить данные в учётную запись пользователя.</p>
+            <p><strong>Параметры:</strong>
+                <a href="#%D0%BE%D0%B1%D1%89%D0%B8%D0%B5-%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B">Строка запроса</a>,
+                <a href="#%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B-%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8F">Тело запроса</a></p>
+            <h4><a id="user-content-обновить" class="anchor" aria-hidden="true" href="#обновить"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Обновить</h4>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">POST</span><span class="pl-c1"> /api/v1/user/update</span></pre></div>
+            <p>Обновить данные в учётной записи пользователя.</p>
+            <p><strong>Параметры:</strong>
+                <a href="#%D0%BE%D0%B1%D1%89%D0%B8%D0%B5-%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B">Строка запроса</a>,
+                <a href="#%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B-%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8F">Тело запроса</a></p>
+            <h4><a id="user-content-удалить" class="anchor" aria-hidden="true" href="#удалить"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Удалить</h4>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">POST</span><span class="pl-c1"> /api/v1/user/delete</span></pre></div>
+            <p>Удалить учётную запись пользователя.</p>
+            <p><strong>Параметры:</strong>
+                <a href="#%D0%BE%D0%B1%D1%89%D0%B8%D0%B5-%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B">Строка запроса</a>,
+                <a href="#%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B-%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8F">Тело запроса</a></p>
+            <h3><a id="user-content-сделка" class="anchor" aria-hidden="true" href="#сделка"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Сделка</h3>
+            <h4><a id="user-content-создать" class="anchor" aria-hidden="true" href="#создать"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Создать</h4>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">POST</span><span class="pl-c1"> /api/v1/deal/create</span></pre></div>
+            <p>Создать сделку.</p>
+            <p><strong>Параметры:</strong>
+                <a href="#%D0%BE%D0%B1%D1%89%D0%B8%D0%B5-%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B">Строка запроса</a>,
+                <a href="#%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B-%D1%81%D0%B4%D0%B5%D0%BB%D0%BA%D0%B8">Тело запроса</a></p>
+            <h4><a id="user-content-оплатить" class="anchor" aria-hidden="true" href="#оплатить"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Оплатить</h4>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">POST</span><span class="pl-c1"> /api/v1/deal/pay</span></pre></div>
+            <p>Оплатить сделку.</p>
+            <p><strong>Параметры:</strong>
+                <a href="#%D0%BE%D0%B1%D1%89%D0%B8%D0%B5-%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B">Строка запроса</a>,
+                <a href="#%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B-%D1%81%D0%B4%D0%B5%D0%BB%D0%BA%D0%B8">Тело запроса</a></p>
+            <h4><a id="user-content-завершить" class="anchor" aria-hidden="true" href="#завершить"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Завершить</h4>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">POST</span><span class="pl-c1"> /api/v1/deal/complete</span></pre></div>
+            <p>Завершить сделку.</p>
+            <p><strong>Параметры:</strong>
+                <a href="#%D0%BE%D0%B1%D1%89%D0%B8%D0%B5-%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B">Строка запроса</a>,
+                <a href="#%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B-%D1%81%D0%B4%D0%B5%D0%BB%D0%BA%D0%B8">Тело запроса</a></p>
+            <h2><a id="user-content-примеры" class="anchor" aria-hidden="true" href="#примеры"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Примеры:</h2>
+            <ul>
+                <li><strong>HTTP Request:</strong></li>
+            </ul>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">POST</span><span class="pl-c1"> /api/v1/user/new HTTP/1.1</span>
+<span class="pl-s"><span class="pl-v">Host:</span> localhost:40977</span>
+<span class="pl-s"><span class="pl-v">Content-Type:</span> application/x-www-form-urlencoded</span>
+
+address<span class="pl-c1">=</span><span class="pl-c1">mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8</span><span class="pl-c1">&amp;</span><span class="pl-c1">key</span><span class="pl-c1">=</span><span class="pl-c1">02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61</span></pre></div>
+            <ul>
+                <li><strong>curl command:</strong></li>
+            </ul>
+            <pre lang="curl"><code>curl "http://localhost:40977/api/v1/user/new?payload=html" \
+  -X POST \
+  -d "address=mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8&amp;key=02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61" \
+  -H "Content-Type: application/x-www-form-urlencoded"
+</code></pre>
+            <ul>
+                <li><strong>HTTP Request:</strong></li>
+            </ul>
+            <div class="highlight highlight-source-httpspec"><pre><span class="pl-k">POST</span><span class="pl-c1"> /api/v1/user/new HTTP/1.1</span>
+<span class="pl-s"><span class="pl-v">Host:</span> localhost:40977</span>
+<span class="pl-s"><span class="pl-v">Content-Type:</span> application/json</span>
+
+{<span class="pl-s"><span class="pl-pds">"</span>address<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>key<span class="pl-pds">"</span></span>:  <span class="pl-s"><span class="pl-pds">"</span>02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61<span class="pl-pds">"</span></span>}</pre></div>
+            <ul>
+                <li><strong>curl command:</strong></li>
+            </ul>
+            <pre lang="curl"><code>curl "http://localhost:40977/api/v1/user/new?payload=html" \
+  -X POST \
+  -d '{"address": "mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8", "key":  "02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61"}' \
+  -H "Content-Type: application/json"
+</code></pre>
+            <ul>
+                <li><strong>JavaScript:</strong></li>
+            </ul>
+            <div class="highlight highlight-source-js"><pre><span class="pl-k">let</span> <span class="pl-s1">headers</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-v">Headers</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-s1">headers</span><span class="pl-kos">.</span><span class="pl-en">append</span><span class="pl-kos">(</span><span class="pl-s">'Content-Type'</span><span class="pl-kos">,</span> <span class="pl-s">'multipart/form-data'</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+<span class="pl-k">let</span> <span class="pl-s1">body</span> <span class="pl-c1">=</span> <span class="pl-k">new</span> <span class="pl-v">FormData</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-s1">body</span><span class="pl-kos">.</span><span class="pl-en">append</span><span class="pl-kos">(</span><span class="pl-s">"address"</span><span class="pl-kos">,</span> <span class="pl-s">"mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8"</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-s1">body</span><span class="pl-kos">.</span><span class="pl-en">append</span><span class="pl-kos">(</span><span class="pl-s">"key"</span><span class="pl-kos">,</span> <span class="pl-s">"02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61"</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+
+<span class="pl-k">const</span> <span class="pl-s1">init</span> <span class="pl-c1">=</span> <span class="pl-kos">{</span>
+    <span class="pl-c1">method</span>: <span class="pl-s">'POST'</span><span class="pl-kos">,</span>
+    <span class="pl-c1">headers</span>: <span class="pl-s1">headers</span><span class="pl-kos">,</span>
+    <span class="pl-c1">body</span>: <span class="pl-s1">body</span><span class="pl-kos">,</span>
+    <span class="pl-c1">mode</span>: <span class="pl-s">"cors"</span>
+<span class="pl-kos">}</span><span class="pl-kos">;</span>
+
+<span class="pl-en">fetch</span><span class="pl-kos">(</span><span class="pl-s">'http://localhost:40977/api/v1/user/new'</span><span class="pl-kos">,</span> <span class="pl-s1">init</span><span class="pl-kos">)</span>
+    <span class="pl-kos">.</span><span class="pl-en">then</span><span class="pl-kos">(</span><span class="pl-kos">(</span><span class="pl-s1">response</span><span class="pl-kos">)</span> <span class="pl-c1">=&gt;</span> <span class="pl-kos">{</span>
+        <span class="pl-k">return</span> <span class="pl-s1">response</span><span class="pl-kos">.</span><span class="pl-en">json</span><span class="pl-kos">(</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span><span class="pl-kos">)</span>
+    <span class="pl-kos">.</span><span class="pl-en">then</span><span class="pl-kos">(</span><span class="pl-kos">(</span><span class="pl-s1">json</span><span class="pl-kos">)</span> <span class="pl-c1">=&gt;</span> <span class="pl-kos">{</span>
+        <span class="pl-smi">console</span><span class="pl-kos">.</span><span class="pl-en">log</span><span class="pl-kos">(</span><span class="pl-s1">json</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+        <span class="pl-smi">console</span><span class="pl-kos">.</span><span class="pl-en">log</span><span class="pl-kos">(</span><span class="pl-smi">window</span><span class="pl-kos">.</span><span class="pl-en">atob</span><span class="pl-kos">(</span><span class="pl-s1">json</span><span class="pl-kos">[</span><span class="pl-s">'payload'</span><span class="pl-kos">]</span><span class="pl-kos">)</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+    <span class="pl-kos">}</span><span class="pl-kos">)</span>
+    <span class="pl-kos">.</span><span class="pl-en">catch</span><span class="pl-kos">(</span><span class="pl-kos">(</span><span class="pl-s1">e</span><span class="pl-kos">)</span> <span class="pl-c1">=&gt;</span> <span class="pl-kos">{</span>
+        <span class="pl-smi">console</span><span class="pl-kos">.</span><span class="pl-en">log</span><span class="pl-kos">(</span><span class="pl-s1">e</span><span class="pl-kos">.</span><span class="pl-c1">message</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-kos">}</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
+        </article>
+    </div>
+</div>
+    </body>
+</html>
