@@ -13,7 +13,7 @@
  * Любая конечная точка может вернуть ошибку.
   
 **Пример ответа:**
-```json
+```javascript
 {
   "error": {
     "code": 404,
@@ -43,7 +43,7 @@ GET /api/v1/ping
 НЕТ
  
 **Пример ответа:**
-```json
+```javascript
 {}
 ```
  
@@ -57,7 +57,7 @@ GET /api/v1/time
  НЕТ
   
 **Пример ответа:**
-```json
+```javascript
 {
   "serverTime": 1583495795455
 }
@@ -74,14 +74,14 @@ GET /api/v1/time
 
 ### Формат транспортного пакета:
 **Запрос:**
-```json
+```javascript
 {
   "id": "<string>",
   "address": "<string>"
 } 
 ```
 **Ответ:**
-```json
+```javascript
 {
   "id": "<string>",
   "action": "<string>",
@@ -160,7 +160,7 @@ feedback_comments | STRING | Complete | Обратная связь: Комме�
 
 #### Для типа контента `application/json`:
 
-```json
+```javascript
 {
   "at": "<url>",
   "date": "<datetime>",
@@ -313,7 +313,7 @@ GET /api/v1/user/status?address=null
 ```
 
 Ответ:
-```json
+```javascript
 {
 "id": "A4406-PDF10-OE2BC-SF8AA-T918F-OC9BC-L9EB00",
 "action": "Status",

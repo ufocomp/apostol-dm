@@ -28,7 +28,7 @@
 REST API
 -
 
-[Документация по REST API](./doc/rest-api-ru.md)
+[Документация по REST API](./doc/REST-API-ru.md)
 
 СБОРКА И УСТАНОВКА
 -
