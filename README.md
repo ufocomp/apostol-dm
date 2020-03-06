@@ -1,6 +1,8 @@
-# apostol-dm
+# Bitcoin Payment Service (Deal Module)
 
-**Bitcoin Payment Service (Deal Module)** - Модуль сделок, исходные коды на C++.
+**Модуль сделок** системы учёта Bitcoin платежей, исходные коды на C++.
+
+Построено на базе [Апостол](https://github.com/ufocomp/apostol).
 
 СТРУКТУРА КАТАЛОГОВ
 -
@@ -21,9 +23,11 @@
 ОПИСАНИЕ
 -
 
-**Deal Module** (dm) - Модуль сделок сервиса обработки и учёта платежей Bitcoin. Построен на базе [Апостол](https://github.com/ufocomp/apostol).
+**Модуля сделок** (dm) предоставляет интерфейсы для создания и изменения учётных записей пользователей и сделок системы учёта Bitcoin платежей.
 
 REST API
+-
+
 [Документация по REST API](./doc/rest-api-ru.md)
 
 СБОРКА И УСТАНОВКА
