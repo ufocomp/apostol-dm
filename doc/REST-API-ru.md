@@ -28,7 +28,8 @@
  * При отправке параметров в виде `тела запроса` допустимы следующие типы контента:
     * `application/x-www-form-urlencoded` для `query string`;
     * `multipart/form-data` для `HTML-форм`;
-    * `application/json` для `JSON`
+    * `application/json` для `JSON`;
+    * `text/plain` для `YAML` или `текста в произвольном формате`.
  * Параметры могут быть отправлены в любом порядке.
  
 ## Общие конечные точки
@@ -70,7 +71,7 @@ GET /api/v1/time
 Обработка запросов выполняется на стороне `Дополнительного сервера (ДС)`. 
 Поэтому `Модуль сделок` формирует **транспортный пакет** в виде `JSON-объекта` и отправляет его на `ДС`.
 
-##### ВАЖНО: Сетевой адрес `Дополнительного сервера (ДС)` можно указать в параметрах запроса в виде `строки запроса`. По умолчанию: `localhost`
+###### ВАЖНО: Сетевой адрес `Дополнительного сервера (ДС)` можно указать в параметрах запроса в виде `строки запроса`. По умолчанию: `localhost`
 
 ### Формат транспортного пакета:
 **Запрос:**
@@ -84,6 +85,7 @@ GET /api/v1/time
 ```json
 {
   "id": "<string>",
+  "address": "<string>",
   "action": "<string>",
   "result": {
     "success": "<boolean>",
@@ -105,12 +107,10 @@ success | BOOLEAN | true, false | Успешно: Да/Нет
 message | STRING | | Сообщение (информация об ошибке) 
 payload | BASE64 | | Полезная нагрузка (строка в формате Base64) 
 
-###### ВНИМАНИЕ: Данные в поле `payload` зашифрованы по алгоритму Base64. 
-
-После расшифровки `полезной нагрузки` конечным значением может быть: 
- * `Текст в произвольном формате`; 
- * `HTML-документ`; 
- * `JSON-объект`.  
+`Полезная нагрузка` может содержать данные в виде: 
+ * `HTML-документа`; 
+ * `JSON-объекта`;  
+ * `Текста в произвольном формате`. 
 
 ### Общие параметры
 
@@ -292,6 +292,9 @@ Templates:
 </body>
 </html>
 ```
+
+###### Этот HTML-документ содержит инструкцию к составлению данных в виде `текста в произвольном формате`.
+
 #### Статус
 ```http request
 GET /api/v1/user/status
@@ -317,8 +320,8 @@ GET /api/v1/user/status?address=null
 "id": "A4406-PDF10-OE2BC-SF8AA-T918F-OC9BC-L9EB00",
 "action": "Status",
 "result": {
-"success": false,
-"message": "Invalid Bitcoin address: null"
+  "success": false,
+  "message": "Invalid Bitcoin address: null"
 },
 "payload": "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJhdXRob3IiIGNvbnRlbnQ9IkJpdGNvaW4gUGF5bWVudCBTZXJ2aWNlIj4KPC9oZWFkPgo8Ym9keT4KPHByZT5IZWxsbyEKClNvcnJ5LCBzb21ldGhpbmcgd2VudCB3cm9uZyBhbmQgbGVkIHRvIGFuIGVycm9yOgoKPGZvbnQgY29sb3I9IiNDMDM5MkIiPjxiPkludmFsaWQgQml0Y29pbiBhZGRyZXNzOiBudWxsPC9iPjwvZm9udD4KCi0tLS0tClRoYW5rIHlvdSwKUGF5bWVudHMubmV0PC9wcmU+CjwvYm9keT4KPC9odG1sPgo="
 }
@@ -405,15 +408,15 @@ Host: localhost:40977
 Content-Type: application/x-www-form-urlencoded
 
 address=mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8&key=02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61
-```    
+```   
 
 * **curl command:**
-````curl
+```curl
 curl "http://localhost:40977/api/v1/user/new?payload=html" \
   -X POST \
   -d "address=mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8&key=02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61" \
   -H "Content-Type: application/x-www-form-urlencoded"
-````
+```
 
 * **HTTP Request:**
 ```http request
@@ -422,18 +425,36 @@ Host: localhost:40977
 Content-Type: application/json
 
 {"address": "mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8", "key":  "02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61"}
-```    
+```   
 
 * **curl command:**
-````curl
+```curl
 curl "http://localhost:40977/api/v1/user/new?payload=html" \
   -X POST \
   -d '{"address": "mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8", "key":  "02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61"}' \
   -H "Content-Type: application/json"
-````
+```
+
+* **HTTP Request:**
+```http request
+POST /api/v1/user/new?payload=html HTTP/1.1
+Host: localhost:40977
+Content-Type: text/plain
+
+mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8
+02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61
+```
+
+* **curl command:**
+```curl
+curl "http://localhost:40977/api/v1/user/new?payload=html" \
+  -X POST \
+  -d "mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8\n02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61" \
+  -H "Content-Type: text/plain"
+```
 
 * **JavaScript:**
-````javascript
+```javascript
 let headers = new Headers();
 headers.append('Content-Type', 'multipart/form-data');
 
@@ -459,4 +480,4 @@ fetch('http://localhost:40977/api/v1/user/new', init)
     .catch((e) => {
         console.log(e.message);
 });
-````
+```
