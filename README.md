@@ -1,4 +1,4 @@
-# Bitcoin Payment Service (Deal Module)
+# BitDeals Payment Service: Deal Module
 
 **Модуль сделок** системы учёта Bitcoin платежей, исходные коды на C++.
 
@@ -13,7 +13,7 @@
     doc/                содержит файлы с документацией
     ├─www/              содержит файлы с документацией в формате html
     src/                содержит файлы с исходным кодом
-    ├─app/              содержит файлы с исходным кодом: Bitcoin Payment Service (Deal Module)
+    ├─app/              содержит файлы с исходным кодом: BitDeals Payment Service (Deal Module)
     ├─core/             содержит файлы с исходным кодом: Apostol Core
     ├─lib/              содержит файлы с исходным кодом библиотек
     | └─delphi/         содержит файлы с исходным кодом библиотеки*: Delphi classes for C++

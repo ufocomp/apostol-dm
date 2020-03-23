@@ -188,6 +188,8 @@ namespace Apostol {
             void PQServerStart();
             void PQServerStop();
 #endif
+            static void KeyFromOpenPGP(const CString &KeyId, const CString &Result);
+
             void OnFilerError(Pointer Sender, int Error, LPCTSTR lpFormat, va_list args);
 
         }; // class CApplicationProcess
@@ -281,25 +283,34 @@ namespace Apostol {
 
         class CProcessSingle: public CApplicationProcess {
             typedef CApplicationProcess inherited;
+        private:
 
-        protected:
+            CEPollTimer *m_Timer;
+
+            int m_HeartbeatInterval;
 
             void BeforeRun() override;
             void AfterRun() override;
 
-            void Reload();
+            void UpdateTimer();
+
+            void SetHeartbeatInterval(int Value);
+
+        protected:
 
             void DoExit();
 
+            void DoHeartbeat(CPollEventHandler *AHandler);
+
         public:
 
-            explicit CProcessSingle(CCustomProcess* AParent, CApplication *AApplication):
-                inherited(AParent, AApplication, ptSingle) {
-            };
+            explicit CProcessSingle(CCustomProcess* AParent, CApplication *AApplication);
 
             ~CProcessSingle() override = default;
 
             void Run() override;
+
+            void Reload();
 
         };
         //--------------------------------------------------------------------------------------------------------------
@@ -374,16 +385,30 @@ namespace Apostol {
 
         private:
 
+            CEPollTimer *m_Timer;
+
+            int m_HeartbeatInterval;
+
             void BeforeRun() override;
             void AfterRun() override;
 
+            void UpdateTimer();
+
+            void SetHeartbeatInterval(int Value);
+
+        protected:
+
             void DoExit();
+
+            void DoHeartbeat(CPollEventHandler *AHandler);
+
+            //void DoClientRequest(CRequest *ARequest);
+
+            //void DoGet(CCommand *ACommand) override;
 
         public:
 
-            explicit CProcessWorker(CCustomProcess* AParent, CApplication *AApplication):
-                inherited(AParent, AApplication, ptWorker) {
-            };
+            explicit CProcessWorker(CCustomProcess* AParent, CApplication *AApplication);;
 
             ~CProcessWorker() override = default;
 

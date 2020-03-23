@@ -32,8 +32,6 @@ Author:
 #include <functional>
 #include <unistd.h>
 #include <fcntl.h>
-//#include <sys/time.h>
-//#include <signal.h>
 #include <execinfo.h>
 #include <wait.h>
 #include <pwd.h>
@@ -85,6 +83,7 @@ public:
 #include "Module.hpp"
 #include "Process.hpp"
 #include "PGP.hpp"
+#include "CURL.hpp"
 #include "Application.hpp"
 //----------------------------------------------------------------------------------------------------------------------
 

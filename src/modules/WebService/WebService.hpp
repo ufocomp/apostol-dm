@@ -100,6 +100,8 @@ namespace Apostol {
 
         protected:
 
+            static int CheckFee(const CString& Fee);
+
             static void CheckKeyForNull(LPCTSTR Key, LPCTSTR Value);
 
             void DoOptions(CHTTPServerConnection *AConnection) override;

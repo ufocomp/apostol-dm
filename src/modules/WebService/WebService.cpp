@@ -255,6 +255,7 @@ namespace Apostol {
             auto LProxyRequest = LProxy->Request();
 
             const auto& LModuleAddress = Config()->ModuleAddress();
+
             const auto& LOrigin = LServerRequest->Headers.Values("origin");
             const auto& LUserAddress = LServerRequest->Params["address"];
 
@@ -473,6 +474,13 @@ namespace Apostol {
             auto LProxyRequest = LProxy->Request();
 
             const auto& LModuleAddress = Config()->ModuleAddress();
+            const auto& LModuleFee = Config()->ModuleFee();
+
+            const auto checkFee = CheckFee(LModuleFee);
+
+            if (checkFee == -1)
+                throw ExceptionFrm("Invalid module fee value: %s", LModuleFee.c_str());
+
             const auto& LOrigin = LServerRequest->Headers.Values("origin");
             const auto& LUserAddress = LServerRequest->Params["address"];
 
@@ -720,8 +728,8 @@ namespace Apostol {
                 }
             }
 
-            DebugMessage("[RouteDeal] Server request:\n%s\n", LServerRequest->Content.c_str());
-            DebugMessage("[RouteDeal] Payload:\n%s\n", Payload.c_str());
+            //DebugMessage("[RouteDeal] Server request:\n%s\n", LServerRequest->Content.c_str());
+            //DebugMessage("[RouteDeal] Payload:\n%s\n", Payload.c_str());
 
             CJSON Json(jvtObject);
 
@@ -752,6 +760,9 @@ namespace Apostol {
 
             if (!LModuleAddress.IsEmpty())
                 LProxyRequest->AddHeader("Module-Address", LModuleAddress);
+
+            if (!LModuleFee.IsEmpty())
+                LProxyRequest->AddHeader("Module-Fee", LModuleFee);
 
             if (!LOrigin.IsEmpty())
                 LProxyRequest->AddHeader("Origin", LOrigin);
@@ -822,6 +833,40 @@ namespace Apostol {
         void CWebService::CheckKeyForNull(LPCTSTR Key, LPCTSTR Value) {
             if (Value == nullptr)
                 throw ExceptionFrm("Invalid format: key \"%s\" cannot be empty.", Key);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        int CWebService::CheckFee(const CString &Fee) {
+            if (!Fee.IsEmpty()) {
+
+                if (Fee.Length() >= 10)
+                    return -1;
+
+                size_t Numbers = 0;
+                size_t Delimiter = 0;
+                size_t Percent = 0;
+
+                size_t Pos = 0;
+                TCHAR ch;
+
+                ch = Fee.at(Pos);
+                while (ch != 0) {
+                    if (IsNumeral(ch))
+                        Numbers++;
+                    if (ch == '.')
+                        Delimiter++;
+                    if (ch == '%')
+                        Percent++;
+                    ch = Fee.at(++Pos);
+                }
+
+                if (Numbers == 0 || Delimiter > 1 || Percent > 1 || ((Numbers + Percent + Delimiter) != Fee.Length()))
+                    return -1;
+
+                return 1;
+            }
+
+            return 0;
         }
         //--------------------------------------------------------------------------------------------------------------
 

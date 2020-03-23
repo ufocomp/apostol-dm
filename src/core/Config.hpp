@@ -37,7 +37,7 @@ namespace Apostol {
         extern CConfig *GConfig;
         //--------------------------------------------------------------------------------------------------------------
 
-        enum CCommandType { ctInteger, ctDouble, ctBoolean, ctString, ctDateTime };
+        enum CCommandType { ctInteger, ctUInteger, ctDouble, ctBoolean, ctString, ctDateTime };
         //--------------------------------------------------------------------------------------------------------------
 
         typedef std::function<void (LPCTSTR lpValue)> COnConfigSetEvent;
@@ -80,6 +80,10 @@ namespace Apostol {
                         *((int *) m_pPtr) = m_Value.vasInteger;
                         break;
 
+                    case vtUnsigned:
+                        *((uint32_t *) m_pPtr) = m_Value.vasUnsigned;
+                        break;
+
                     case vtDouble:
                         *((double *) m_pPtr) = m_Value.vasDouble;
                         break;
@@ -115,6 +119,15 @@ namespace Apostol {
 
             CConfigCommand(LPCTSTR Section, LPCTSTR Ident, int *Value): CObject() {
                 m_Type = ctInteger;
+                m_lpszSection = Section;
+                m_lpszIdent = Ident;
+                m_Default = *Value;
+                m_Value = *Value;
+                m_pPtr = (Pointer) Value;
+            };
+
+            CConfigCommand(LPCTSTR Section, LPCTSTR Ident, uint32_t *Value): CObject() {
+                m_Type = ctUInteger;
                 m_lpszSection = Section;
                 m_lpszIdent = Ident;
                 m_Default = *Value;
@@ -279,7 +292,9 @@ namespace Apostol {
             CString m_sAccessLog;
 
             CString m_sModuleAddress;
+            CString m_sModuleFee;
 
+            CString m_sPGPKeyId;
             CString m_sPGPPrivate;
             CString m_sPGPPublic;
             CString m_sPGPPassphrase;
@@ -313,7 +328,9 @@ namespace Apostol {
             void SetAccessLog(LPCTSTR AValue);
 
             void SetModuleAddress(LPCTSTR AValue);
+            void SetModuleFee(LPCTSTR AValue);
 
+            void SetPGPKeyId(LPCTSTR AValue);
             void SetPGPPrivate(LPCTSTR AValue);
             void SetPGPPublic(LPCTSTR AValue);
             void SetPGPPassphrase(LPCTSTR AValue);
@@ -421,6 +438,14 @@ namespace Apostol {
             const CString& ModuleAddress() const { return m_sModuleAddress; };
             void ModuleAddress(const CString& AValue) { SetModuleAddress(AValue.c_str()); };
             void ModuleAddress(LPCTSTR AValue) { SetModuleAddress(AValue); };
+
+            const CString& ModuleFee() const { return m_sModuleFee; };
+            void ModuleFee(const CString& AValue) { SetModuleFee(AValue.c_str()); };
+            void ModuleFee(LPCTSTR AValue) { SetModuleFee(AValue); };
+
+            const CString& PGPKeyId() const { return m_sPGPKeyId; };
+            void PGPKeyId(const CString& AValue) { SetPGPKeyId(AValue.c_str()); };
+            void PGPKeyId(LPCTSTR AValue) { SetPGPKeyId(AValue); };
 
             const CString& PGPPrivate() const { return m_sPGPPrivate; };
             void PGPPrivate(const CString& AValue) { SetPGPPrivate(AValue.c_str()); };

@@ -569,7 +569,7 @@ namespace Apostol {
 
             SetServer(LServer);
 
-            InitializeServerHandlers();
+            InitializeHandlers(LServer->CommandHandlers());
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -909,6 +909,16 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 #endif
+        void CApplicationProcess::KeyFromOpenPGP(const CString &KeyId, const CString &Result) {
+            CCurlApi PGPService;
+
+            CString URL("https://keys.openpgp.org/vks/v1/by-keyid/");
+            URL << KeyId;
+
+            PGPService.Send(URL, Result);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CApplicationProcess::OnFilerError(Pointer Sender, int Error, LPCTSTR lpFormat, va_list args) {
             Log()->Error(APP_LOG_ALERT, Error, lpFormat, args);
         }
@@ -919,31 +929,51 @@ namespace Apostol {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        void CProcessSingle::BeforeRun() {
-            Application()->Header(Application()->Name() + ": single process " + Application()->CmdLine());
-
-            Log()->Debug(0, MSG_PROCESS_START, GetProcessName(), Application()->Header().c_str());
-
-            InitSignals();
-
-            ServerStart();
-#ifdef WITH_POSTGRESQL
-            PQServerStart();
-#endif
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessSingle::AfterRun() {
-#ifdef WITH_POSTGRESQL
-            PQServerStop();
-#endif
-            ServerStop();
-            CApplicationProcess::AfterRun();
+        CProcessSingle::CProcessSingle(CCustomProcess *AParent, CApplication *AApplication) :
+                inherited(AParent, AApplication, ptSingle) {
+            m_Timer = nullptr;
+            m_HeartbeatInterval = 0;
         }
         //--------------------------------------------------------------------------------------------------------------
 
         void CProcessSingle::DoExit() {
 
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CProcessSingle::UpdateTimer() {
+            if (Server() != nullptr) {
+                if (m_Timer == nullptr) {
+                    m_Timer = Server()->CreateTimer(CLOCK_MONOTONIC, 1000, m_HeartbeatInterval, TFD_NONBLOCK);
+                } else {
+                    CEPoll::SetTimer(m_Timer, 1000, m_HeartbeatInterval);
+                }
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CProcessSingle::SetHeartbeatInterval(int Value) {
+            if (m_HeartbeatInterval != Value) {
+                m_HeartbeatInterval = Value;
+                UpdateTimer();
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CProcessSingle::DoHeartbeat(CPollEventHandler *AHandler) {
+            uint64_t exp;
+            auto LTimer = dynamic_cast<CEPollTimer *> (AHandler->Binding());
+            LTimer->Read(&exp, sizeof(uint64_t));
+
+            if (Config()->PGPKeyId().IsEmpty()) {
+                Log()->Message(_T("PGP KEY-ID not set in configuration file. Application will be stopped."));
+                sig_quit = 1;
+            } else {
+                CString Buffer;
+                KeyFromOpenPGP(Config()->PGPKeyId(), Buffer);
+
+                DebugMessage("[cURL] Buffer:\n%s", Buffer.c_str());
+            }
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -959,6 +989,33 @@ namespace Apostol {
 #ifdef WITH_POSTGRESQL
             PQServerStart();
 #endif
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CProcessSingle::BeforeRun() {
+            Application()->Header(Application()->Name() + ": single process " + Application()->CmdLine());
+
+            Log()->Debug(0, MSG_PROCESS_START, GetProcessName(), Application()->Header().c_str());
+
+            InitSignals();
+
+            Server()->OnTimer(std::bind(&CProcessSingle::DoHeartbeat, this, _1));
+
+            ServerStart();
+#ifdef WITH_POSTGRESQL
+            PQServerStart();
+#endif
+            SetHeartbeatInterval(60000);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CProcessSingle::AfterRun() {
+#ifdef WITH_POSTGRESQL
+            PQServerStop();
+#endif
+            ServerStop();
+
+            CApplicationProcess::AfterRun();
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1380,6 +1437,79 @@ namespace Apostol {
 
         //--------------------------------------------------------------------------------------------------------------
 
+        CProcessWorker::CProcessWorker(CCustomProcess *AParent, CApplication *AApplication) :
+                inherited(AParent, AApplication, ptWorker) {
+            m_Timer = nullptr;
+            m_HeartbeatInterval = 0;
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CProcessWorker::DoExit() {
+
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CProcessWorker::UpdateTimer() {
+            if (Server() != nullptr) {
+                if (m_Timer == nullptr) {
+                    m_Timer = Server()->CreateTimer(CLOCK_MONOTONIC, 1000, m_HeartbeatInterval, TFD_NONBLOCK);
+                } else {
+                    CEPoll::SetTimer(m_Timer, 1000, m_HeartbeatInterval);
+                }
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CProcessWorker::SetHeartbeatInterval(int Value) {
+            if (m_HeartbeatInterval != Value) {
+                m_HeartbeatInterval = Value;
+                UpdateTimer();
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CProcessWorker::DoHeartbeat(CPollEventHandler *AHandler) {
+            uint64_t exp;
+            auto LTimer = dynamic_cast<CEPollTimer *> (AHandler->Binding());
+            LTimer->Read(&exp, sizeof(uint64_t));
+
+            if (Config()->PGPKeyId().IsEmpty()) {
+                Log()->Message(_T("PGP KEY-ID not set in configuration file. Application will be stopped."));
+                sig_quit = 1;
+            } else {
+/*
+                if (m_PGPService == nullptr) {
+                    m_PGPService = GetClient("keys.openpgp.org", 80);
+                    m_PGPService->OnRequest(std::bind(&CProcessWorker::DoClientRequest, this, _1));
+
+                    InitializeHandlers(m_PGPService->CommandHandlers(), true);
+                }
+                m_PGPService->Active(true);
+*/
+                CString Buffer;
+                KeyFromOpenPGP(Config()->PGPKeyId(), Buffer);
+
+                DebugMessage("[cURL] Buffer:\n%s", Buffer.c_str());
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+/*
+        void CProcessWorker::DoClientRequest(CRequest *ARequest) {
+            ARequest->Clear();
+
+            CString URI("/vks/v1/by-keyid/");
+            URI << Config()->PGPKeyId();
+
+            CRequest::Prepare(ARequest, "GET", URI.c_str());
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CProcessWorker::DoGet(CCommand *ACommand) {
+            auto LConnection = dynamic_cast<CHTTPClientConnection *> (ACommand->Connection());
+            auto LReply = LConnection->Reply();
+        }
+        //--------------------------------------------------------------------------------------------------------------
+*/
         void CProcessWorker::BeforeRun() {
             sigset_t set;
 
@@ -1393,11 +1523,15 @@ namespace Apostol {
 
             SetUser(Config()->User().c_str(), Config()->Group().c_str());
 
+            Server()->OnTimer(std::bind(&CProcessWorker::DoHeartbeat, this, _1));
+
             ServerStart();
 #ifdef WITH_POSTGRESQL
             PQServerStart();
 #endif
             SigProcMask(SIG_UNBLOCK, SigAddSet(&set));
+
+            SetHeartbeatInterval(60000);
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1407,11 +1541,6 @@ namespace Apostol {
 #endif
             ServerStop();
             CApplicationProcess::AfterRun();
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessWorker::DoExit() {
-
         }
         //--------------------------------------------------------------------------------------------------------------
 
