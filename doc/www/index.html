@@ -466,33 +466,33 @@
       }
 
       function getFormattedDate(date) {
-          const year = date.getFullYear();
+          const year = date.getUTCFullYear();
 
-          let month = (1 + date.getMonth()).toString();
+          let month = (1 + date.getUTCMonth()).toString();
           month = month.length > 1 ? month : '0' + month;
 
-          let day = date.getDate().toString();
+          let day = date.getUTCDate().toString();
           day = day.length > 1 ? day : '0' + day;
 
           return year + '-' + month + '-' + day;
       }
 
       function getFormattedDateTime(date) {
-          const year = date.getFullYear();
+          const year = date.getUTCFullYear();
 
-          let month = (1 + date.getMonth()).toString();
+          let month = (1 + date.getUTCMonth()).toString();
           month = month.length > 1 ? month : '0' + month;
 
-          let day = date.getDate().toString();
+          let day = date.getUTCDate().toString();
           day = day.length > 1 ? day : '0' + day;
 
-          let hours = date.getHours().toString();
+          let hours = date.getUTCHours().toString();
           hours = hours.length > 1 ? hours : '0' + hours;
 
-          let minutes = date.getMinutes().toString();
+          let minutes = date.getUTCMinutes().toString();
           minutes = minutes.length > 1 ? minutes : '0' + minutes;
 
-          let seconds = date.getSeconds().toString();
+          let seconds = date.getUTCSeconds().toString();
           seconds = seconds.length > 1 ? seconds : '0' + seconds;
 
           return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
@@ -568,9 +568,11 @@
 
           let settings = '?server=' + server;
 
+          const RequestForm = $("#action-help");
+
           AsyncFetch(api + '/user/help' + settings)
-              .then(json => $("#action-help").html(JsonToPayload(json)))
-              .catch(reason => console.log(reason.message));
+              .then(json => RequestForm.html(JsonToPayload(json)))
+              .catch(reason => RequestForm.html(reason.message));
       }
 
       function actionStatus() {
@@ -584,9 +586,11 @@
               settings += '&address=' + address;
           }
 
+          const RequestForm = $("#action-status");
+
           AsyncFetch(api + '/user/status' + settings)
-                .then(json => $("#action-status").html(JsonToPayload(json)))
-                .catch(reason => console.log(reason.message));
+              .then(json => RequestForm.html(JsonToPayload(json)))
+              .catch(reason => RequestForm.html(reason.message));
       }
 
       function actionNew() {
@@ -626,9 +630,11 @@
               settings += '&pgp=off'
           }
 
+          const RequestForm = $("#action-new");
+
           AsyncFetch(api + '/user/new' + settings, formData, 'POST')
-              .then(json => $("#action-new").html(JsonToPayload(json)))
-              .catch(reason => console.log(reason.message));
+              .then(json => RequestForm.html(JsonToPayload(json)))
+              .catch(reason => RequestForm.html(reason.message));
       }
 
       function actionAdd() {
@@ -656,9 +662,11 @@
               settings += '&pgp=off'
           }
 
+          const RequestForm = $("#action-add");
+
           AsyncFetch(api + '/user/add' + settings, formData, 'POST')
-              .then(json => $("#action-add").html(JsonToPayload(json)))
-              .catch(reason => console.log(reason.message));
+              .then(json => RequestForm.html(JsonToPayload(json)))
+              .catch(reason => RequestForm.html(reason.message));
       }
 
       function actionUpdate() {
@@ -697,9 +705,11 @@
               settings += '&pgp=off'
           }
 
+          const RequestForm = $("#action-update");
+
           AsyncFetch(api + '/user/update' + settings, formData, 'POST')
-              .then(json => $("#action-update").html(JsonToPayload(json)))
-              .catch(reason => console.log(reason.message));
+              .then(json => RequestForm.html(JsonToPayload(json)))
+              .catch(reason => RequestForm.html(reason.message));
       }
 
       function actionDelete() {
@@ -724,9 +734,11 @@
               settings += '&pgp=off'
           }
 
+          const RequestForm = $("#action-delete");
+
           AsyncFetch(api + '/user/delete' + settings, formData, 'POST')
-              .then(json => $("#action-delete").html(JsonToPayload(json)))
-              .catch(reason => console.log(reason.message));
+              .then(json => RequestForm.html(JsonToPayload(json)))
+              .catch(reason => RequestForm.html(reason.message));
       }
 
       function actionDeal() {
@@ -857,6 +869,8 @@
               settings += '&pgp=off'
           }
 
+          const RequestForm = $("#deal-form");
+
           let execute = $("button[id='btnDealForm']");
           execute.prop('disabled', true);
 
@@ -876,13 +890,16 @@
                   }
 
                   if (result)
-                      $("#deal-form").html(html);
+                      RequestForm.html(html);
                   else
-                      $("#deal-form").html(payload);
+                      RequestForm.html(payload);
 
                   execute.prop('disabled', false);
               })
-              .catch(reason => console.log(reason.message));
+              .catch((e) => {
+                  RequestForm.html(e.message);
+                  execute.prop('disabled', false);
+              });
       }
 
       function executeDealJSON() {
@@ -895,6 +912,8 @@
           if ($('input[id="pgp"]').prop("checked") === false) {
               settings += '&pgp=off'
           }
+
+          const RequestForm = $("#deal-json");
 
           let execute = $("button[id='btnDealJSON']");
           execute.prop('disabled', true);
@@ -915,13 +934,16 @@
                   }
 
                   if (result)
-                      $("#deal-json").html(html);
+                      RequestForm.html(html);
                   else
-                      $("#deal-json").html(payload);
+                      RequestForm.html(payload);
 
                   execute.prop('disabled', false);
               })
-              .catch(reason => console.log(reason.message));
+              .catch((e) => {
+                  RequestForm.html(e.message);
+                  execute.prop('disabled', false);
+              });
       }
 
       function executeDealYAML() {
@@ -934,6 +956,8 @@
           if ($('input[id="pgp"]').prop("checked") === false) {
               settings += '&pgp=off'
           }
+
+          const RequestForm = $("#deal-yaml");
 
           let execute = $("button[id='btnDealYAML']");
           execute.prop('disabled', true);
@@ -954,13 +978,16 @@
                   }
 
                   if (result)
-                      $("#deal-yaml").html(html);
+                      RequestForm.html(html);
                   else
-                      $("#deal-yaml").html(payload);
+                      RequestForm.html(payload);
 
                   execute.prop('disabled', false);
               })
-              .catch(reason => console.log(reason.message));
+              .catch((e) => {
+                  RequestForm.html(e.message);
+                  execute.prop('disabled', false);
+              });
       }
 
       $(document).ready(function(){

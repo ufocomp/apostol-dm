@@ -36,7 +36,25 @@ namespace Apostol {
 
     namespace URL {
 
-        class CCurlApi: public CObject, public CGlobalComponent {
+        //--------------------------------------------------------------------------------------------------------------
+
+        //-- CCurlComponent --------------------------------------------------------------------------------------------
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        class CCurlComponent {
+        public:
+            CCurlComponent();
+            ~CCurlComponent();
+        };
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        //-- CCurlApi --------------------------------------------------------------------------------------------------
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        class CCurlApi: public CCurlComponent, public CGlobalComponent {
         private:
 
             CURL *m_curl;
@@ -52,7 +70,7 @@ namespace Apostol {
 
             CCurlApi();
 
-            ~CCurlApi() override;
+            ~CCurlApi();
 
             void Send(const CString &url, const CString &Result);
             void Send(const CString &url, const CString &Result,

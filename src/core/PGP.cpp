@@ -27,6 +27,7 @@ Author:
 
 #include <sstream>
 #include <fstream>
+#include <iomanip>
 //----------------------------------------------------------------------------------------------------------------------
 
 extern "C++" {
@@ -34,6 +35,207 @@ extern "C++" {
 namespace Apostol {
 
     namespace PGP {
+
+        const std::map <uint8_t, std::string> Public_Key_Type = {
+                std::make_pair(Packet::SECRET_KEY,    "sec"),
+                std::make_pair(Packet::PUBLIC_KEY,    "pub"),
+                std::make_pair(Packet::SECRET_SUBKEY, "ssb"),
+                std::make_pair(Packet::PUBLIC_SUBKEY, "sub"),
+        };
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        //-- Key::Key --------------------------------------------------------------------------------------------------
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        Key::Key(): OpenPGP::Key() {
+
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        Key::Key(const OpenPGP::PGP &copy): OpenPGP::Key(copy) {
+
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        Key::Key(const Key &copy): OpenPGP::Key(copy) {
+
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        Key::Key(const std::string &data): OpenPGP::Key(data) {
+
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        Key::Key(std::istream &stream): OpenPGP::Key(stream) {
+
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        std::string Key::ListKeys(std::size_t indents, std::size_t indent_size) const {
+            if (!meaningful()) {
+                return "Key data not meaningful.";
+            }
+
+            const std::string indent(indents * indent_size, ' ');
+
+            // print Key and User packets
+            std::stringstream out;
+            for (Packet::Tag::Ptr const & p : packets) {
+                // primary key/subkey
+                if (Packet::is_key_packet(p -> get_tag())) {
+                    const Packet::Key::Ptr key = std::static_pointer_cast <Packet::Key> (p);
+
+                    if (Packet::is_subkey(p -> get_tag())) {
+                        out << "\n";
+                    }
+
+                    out << indent << Apostol::PGP::Public_Key_Type.at(p -> get_tag()) << "  " << std::setfill(' ') << std::setw(4) << std::to_string(bitsize(key -> get_mpi()[0]))
+                        << indent << PKA::SHORT.at(key -> get_pka()) << "/"
+                        << indent << hexlify(key -> get_keyid()) << " "
+                        << indent << show_date(key -> get_time());
+                }
+                    // User ID
+                else if (p -> get_tag() == Packet::USER_ID) {
+                    out << "\n"
+                        << indent << "uid " << std::static_pointer_cast <Packet::Tag13> (p) -> get_contents();
+                }
+                    // User Attribute
+                else if (p -> get_tag() == Packet::USER_ATTRIBUTE) {
+                    for(Subpacket::Tag17::Sub::Ptr const & s : std::static_pointer_cast <Packet::Tag17> (p) -> get_attributes()) {
+                        // since only subpacket type 1 is defined
+                        out << "\n"
+                            << indent << "att  att  [jpeg image of size " << std::static_pointer_cast <Subpacket::Tag17::Sub1> (s) -> get_image().size() << "]";
+                    }
+                }
+                    // Signature
+                else if (p -> get_tag() == Packet::SIGNATURE) {
+                    out << indent << "sig ";
+
+                    const Packet::Tag2::Ptr sig = std::static_pointer_cast <Packet::Tag2> (p);
+                    if (Signature_Type::is_revocation(sig -> get_type())) {
+                        out << "revok";
+                    }
+                    else if (sig -> get_type() == Signature_Type::SUBKEY_BINDING_SIGNATURE) {
+                        out << "sbind";
+                    }
+                    else{
+                        out << " sig ";
+                    }
+
+                    const std::array <uint32_t, 3> times = sig -> get_times();  // {signature creation time, signature expiration time, key expiration time}
+                    out << "  " << hexlify(sig -> get_keyid());
+
+                    // signature creation time (should always exist)
+                    if (times[0]) {
+                        out << " " << show_date(times[0]);
+                    }
+                    // else{
+                    // out << " " << std::setfill(' ') << std::setw(10);
+                    // }
+
+                    // if the signature expires
+                    if (times[1]) {
+                        out << " " << show_date(times[1]);
+                    }
+                    else{
+                        out << " " << std::setfill(' ') << std::setw(10);
+                    }
+
+                    // if the key expires
+                    if (times[2]) {
+                        out << " " << show_date(times[2]);
+                    }
+                    else{
+                        out << " " << std::setfill(' ') << std::setw(10);
+                    }
+                }
+                else{}
+
+                out << "\n";
+            }
+
+            return out.str();
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void Key::ExportUID(CPGPUserIdList &List) const {
+            if (!meaningful()) {
+                return;
+            }
+
+            for (Packet::Tag::Ptr const & p : packets) {
+                if (p->get_tag() == Packet::USER_ID) {
+                    const auto& uid = std::static_pointer_cast <Packet::Tag13> (p)->get_contents();
+
+                    List.Add(CPGPUserId());
+                    auto& UserId = List.Last();
+
+                    int Index = 0;
+                    bool Append;
+                    for (char ch : uid) {
+                        Append = false;
+                        switch (ch) {
+                            case '<':
+                                Index = 1;
+                                break;
+                            case '>':
+                                Index = 0;
+                                break;
+                            case '(':
+                                Index = 2;
+                                break;
+                            case ')':
+                                Index = 0;
+                                break;
+                            default:
+                                Append = true;
+                                break;
+                        }
+
+                        if (Append) {
+                            if (Index == 0) {
+                                UserId.Name.Append(ch);
+                            } else if (Index == 1) {
+                                UserId.Mail.Append(ch);
+                            } else {
+                                UserId.Desc.Append(ch);
+                            }
+                        }
+                    }
+
+                    UserId.Name = UserId.Name.TrimRight();
+                }
+            }
+        }
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        void KeyFromOpenPGPByFingerPrint(const CString &FingerPrint, const CString &Result) {
+            CCurlApi PGPService;
+
+            CString URL("https://keys.openpgp.org/vks/v1/by-fingerprint/");
+            URL << FingerPrint;
+
+            PGPService.Send(URL, Result);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void KeyFromOpenPGPByKeyId(const CString &KeyId, const CString &Result) {
+            CCurlApi PGPService;
+
+            CString URL("https://keys.openpgp.org/vks/v1/by-keyid/");
+            URL << KeyId;
+
+            PGPService.Send(URL, Result);
+        }
+        //--------------------------------------------------------------------------------------------------------------
 
         bool CleartextSignature(const CString &Key, const CString &Pass, const CString &Hash, const CString &ClearText,
                                 CString &SignText) {

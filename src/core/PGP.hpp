@@ -38,6 +38,33 @@ namespace Apostol {
 
     namespace PGP {
 
+        typedef struct CPGPUserId {
+            CString Name;
+            CString Mail;
+            CString Desc;
+        } CPGPUserId, *PPGPUserId;
+
+        typedef TList<CPGPUserId> CPGPUserIdList;
+
+        class Key: public OpenPGP::Key {
+        public:
+
+            Key();
+            Key(const PGP & copy);
+            Key(const Key & copy);
+            Key(const std::string & data);
+            Key(std::istream & stream);
+            ~Key() override = default;
+
+            // output style inspired by gpg and SKS Keyserver/pgp.mit.edu
+            std::string ListKeys(std::size_t indents = 0, std::size_t indent_size = 4) const;
+
+            void ExportUID(CPGPUserIdList &List) const;
+        };
+
+        void KeyFromOpenPGPByFingerPrint(const CString &FingerPrint, const CString &Result);
+        void KeyFromOpenPGPByKeyId(const CString &KeyId, const CString &Result);
+
         bool CleartextSignature(const CString& Key, const CString &Pass, const CString &Hash, const CString& ClearText,
                 CString& SignText);
 

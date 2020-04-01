@@ -40,7 +40,7 @@ namespace Apostol {
 
         inline void AddLog() {
             if (GLogCount == 0) {
-                GLog = GLog->CreateLog();
+                GLog = CLog::CreateLog();
             }
 
             GLogCount++;
@@ -51,8 +51,7 @@ namespace Apostol {
             GLogCount--;
 
             if (GLogCount == 0) {
-                GLog->DestroyLog();
-                GLog = nullptr;
+                CLog::DestroyLog();
             }
         };
 

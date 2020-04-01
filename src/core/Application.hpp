@@ -188,8 +188,6 @@ namespace Apostol {
             void PQServerStart();
             void PQServerStop();
 #endif
-            static void KeyFromOpenPGP(const CString &KeyId, const CString &Result);
-
             void OnFilerError(Pointer Sender, int Error, LPCTSTR lpFormat, va_list args);
 
         }; // class CApplicationProcess
@@ -296,6 +294,8 @@ namespace Apostol {
 
             void SetHeartbeatInterval(int Value);
 
+            void LoadPGP();
+
         protected:
 
             void DoExit();
@@ -311,6 +311,8 @@ namespace Apostol {
             void Run() override;
 
             void Reload();
+
+            void ParsePGPKey(const CString& Key);
 
         };
         //--------------------------------------------------------------------------------------------------------------
@@ -396,15 +398,13 @@ namespace Apostol {
 
             void SetHeartbeatInterval(int Value);
 
+            void LoadPGP();
+
         protected:
 
             void DoExit();
 
             void DoHeartbeat(CPollEventHandler *AHandler);
-
-            //void DoClientRequest(CRequest *ARequest);
-
-            //void DoGet(CCommand *ACommand) override;
 
         public:
 
@@ -413,6 +413,9 @@ namespace Apostol {
             ~CProcessWorker() override = default;
 
             void Run() override;
+
+            void ParsePGPKey(const CString& Key);
+
         };
         //--------------------------------------------------------------------------------------------------------------
 

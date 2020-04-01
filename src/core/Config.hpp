@@ -294,6 +294,7 @@ namespace Apostol {
             CString m_sModuleAddress;
             CString m_sModuleFee;
 
+            CString m_sPGPFingerPrint;
             CString m_sPGPKeyId;
             CString m_sPGPPrivate;
             CString m_sPGPPublic;
@@ -330,6 +331,7 @@ namespace Apostol {
             void SetModuleAddress(LPCTSTR AValue);
             void SetModuleFee(LPCTSTR AValue);
 
+            void SetPGPFingerPrint(LPCTSTR AValue);
             void SetPGPKeyId(LPCTSTR AValue);
             void SetPGPPrivate(LPCTSTR AValue);
             void SetPGPPublic(LPCTSTR AValue);
@@ -442,6 +444,10 @@ namespace Apostol {
             const CString& ModuleFee() const { return m_sModuleFee; };
             void ModuleFee(const CString& AValue) { SetModuleFee(AValue.c_str()); };
             void ModuleFee(LPCTSTR AValue) { SetModuleFee(AValue); };
+
+            const CString& PGPFingerPrint() const { return m_sPGPFingerPrint; };
+            void PGPFingerPrint(const CString& AValue) { SetPGPFingerPrint(AValue.c_str()); };
+            void PGPFingerPrint(LPCTSTR AValue) { SetPGPFingerPrint(AValue); };
 
             const CString& PGPKeyId() const { return m_sPGPKeyId; };
             void PGPKeyId(const CString& AValue) { SetPGPKeyId(AValue.c_str()); };

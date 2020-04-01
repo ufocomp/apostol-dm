@@ -372,6 +372,13 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        void CConfig::SetPGPFingerPrint(LPCTSTR AValue) {
+            if (m_sPGPFingerPrint != AValue) {
+                m_sPGPFingerPrint = AValue;
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CConfig::SetPGPKeyId(LPCTSTR AValue) {
             if (m_sPGPKeyId != AValue) {
                 m_sPGPKeyId = AValue;
@@ -460,6 +467,7 @@ namespace Apostol {
             Add(new CConfigCommand(_T("module"), _T("address"), m_sModuleAddress.c_str(), std::bind(&CConfig::SetModuleAddress, this, _1)));
             Add(new CConfigCommand(_T("module"), _T("fee"), m_sModuleFee.c_str(), std::bind(&CConfig::SetModuleFee, this, _1)));
 
+            Add(new CConfigCommand(_T("pgp"), _T("fingerprint"), m_sPGPFingerPrint.c_str(), std::bind(&CConfig::SetPGPFingerPrint, this, _1)));
             Add(new CConfigCommand(_T("pgp"), _T("keyid"), m_sPGPKeyId.c_str(), std::bind(&CConfig::SetPGPKeyId, this, _1)));
             Add(new CConfigCommand(_T("pgp"), _T("private"), m_sPGPPrivate.c_str(), std::bind(&CConfig::SetPGPPrivate, this, _1)));
             Add(new CConfigCommand(_T("pgp"), _T("public"), m_sPGPPublic.c_str(), std::bind(&CConfig::SetPGPPublic, this, _1)));

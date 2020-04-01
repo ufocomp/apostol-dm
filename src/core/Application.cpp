@@ -568,8 +568,6 @@ namespace Apostol {
             LServer->ActiveLevel(alBinding);
 
             SetServer(LServer);
-
-            InitializeHandlers(LServer->CommandHandlers());
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -909,16 +907,6 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 #endif
-        void CApplicationProcess::KeyFromOpenPGP(const CString &KeyId, const CString &Result) {
-            CCurlApi PGPService;
-
-            CString URL("https://keys.openpgp.org/vks/v1/by-keyid/");
-            URL << KeyId;
-
-            PGPService.Send(URL, Result);
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
         void CApplicationProcess::OnFilerError(Pointer Sender, int Error, LPCTSTR lpFormat, va_list args) {
             Log()->Error(APP_LOG_ALERT, Error, lpFormat, args);
         }
@@ -960,20 +948,43 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        void CProcessSingle::LoadPGP() {
+            const auto& FingerPrint = Config()->PGPFingerPrint();
+            const auto& KeyId = Config()->PGPKeyId();
+
+            if (FingerPrint.IsEmpty() && KeyId.IsEmpty()) {
+                Log()->Message(_T("PGP Fingerprint or KEY-ID not set in configuration file. Application will be stopped."));
+                sig_quit = 1;
+            } else {
+                CString Key;
+
+                if (!FingerPrint.IsEmpty()) {
+                    KeyFromOpenPGPByFingerPrint(FingerPrint, Key);
+                } else {
+                    KeyFromOpenPGPByKeyId(KeyId, Key);
+                }
+
+                DebugMessage("%s\n", Key.c_str());
+                ParsePGPKey(Key);
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CProcessSingle::DoHeartbeat(CPollEventHandler *AHandler) {
             uint64_t exp;
             auto LTimer = dynamic_cast<CEPollTimer *> (AHandler->Binding());
             LTimer->Read(&exp, sizeof(uint64_t));
 
-            if (Config()->PGPKeyId().IsEmpty()) {
-                Log()->Message(_T("PGP KEY-ID not set in configuration file. Application will be stopped."));
-                sig_quit = 1;
-            } else {
-                CString Buffer;
-                KeyFromOpenPGP(Config()->PGPKeyId(), Buffer);
+            //LoadPGP();
+        }
+        //--------------------------------------------------------------------------------------------------------------
 
-                DebugMessage("[cURL] Buffer:\n%s", Buffer.c_str());
-            }
+        void CProcessSingle::ParsePGPKey(const CString &Key) {
+            CPGPUserIdList List;
+            const Apostol::PGP::Key key(Key.c_str());
+            key.ExportUID(List);
+            for (int i = 0; i < List.Count(); i++)
+                DebugMessage("Name: %s\nMail: %s\nDesc: %s", List[i].Name.c_str(), List[i].Mail.c_str(), List[i].Desc.c_str());
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1468,48 +1479,46 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        void CProcessWorker::LoadPGP() {
+            const auto& FingerPrint = Config()->PGPFingerPrint();
+            const auto& KeyId = Config()->PGPKeyId();
+
+            if (FingerPrint.IsEmpty() && KeyId.IsEmpty()) {
+                Log()->Message(_T("PGP Fingerprint or KEY-ID not set in configuration file. Application will be stopped."));
+                sig_quit = 1;
+            } else {
+                CString Key;
+
+                if (!FingerPrint.IsEmpty()) {
+                    KeyFromOpenPGPByFingerPrint(FingerPrint, Key);
+                } else {
+                    KeyFromOpenPGPByKeyId(KeyId, Key);
+                }
+
+                DebugMessage("%s\n", Key.c_str());
+                ParsePGPKey(Key);
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CProcessWorker::DoHeartbeat(CPollEventHandler *AHandler) {
             uint64_t exp;
             auto LTimer = dynamic_cast<CEPollTimer *> (AHandler->Binding());
             LTimer->Read(&exp, sizeof(uint64_t));
 
-            if (Config()->PGPKeyId().IsEmpty()) {
-                Log()->Message(_T("PGP KEY-ID not set in configuration file. Application will be stopped."));
-                sig_quit = 1;
-            } else {
-/*
-                if (m_PGPService == nullptr) {
-                    m_PGPService = GetClient("keys.openpgp.org", 80);
-                    m_PGPService->OnRequest(std::bind(&CProcessWorker::DoClientRequest, this, _1));
-
-                    InitializeHandlers(m_PGPService->CommandHandlers(), true);
-                }
-                m_PGPService->Active(true);
-*/
-                CString Buffer;
-                KeyFromOpenPGP(Config()->PGPKeyId(), Buffer);
-
-                DebugMessage("[cURL] Buffer:\n%s", Buffer.c_str());
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-/*
-        void CProcessWorker::DoClientRequest(CRequest *ARequest) {
-            ARequest->Clear();
-
-            CString URI("/vks/v1/by-keyid/");
-            URI << Config()->PGPKeyId();
-
-            CRequest::Prepare(ARequest, "GET", URI.c_str());
+            //LoadPGP();
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CProcessWorker::DoGet(CCommand *ACommand) {
-            auto LConnection = dynamic_cast<CHTTPClientConnection *> (ACommand->Connection());
-            auto LReply = LConnection->Reply();
+        void CProcessWorker::ParsePGPKey(const CString &Key) {
+            CPGPUserIdList List;
+            const Apostol::PGP::Key key(Key.c_str());
+            key.ExportUID(List);
+            for (int i = 0; i < List.Count(); i++)
+                DebugMessage("Name: %s\nMail: %s\nDesc: %s", List[i].Name.c_str(), List[i].Mail.c_str(), List[i].Desc.c_str());
         }
         //--------------------------------------------------------------------------------------------------------------
-*/
+
         void CProcessWorker::BeforeRun() {
             sigset_t set;
 

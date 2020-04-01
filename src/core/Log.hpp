@@ -261,7 +261,10 @@ namespace Apostol {
 
             inline static class CLog *CreateLog() { return GLog = new CLog(); };
 
-            inline static void DestroyLog() { delete GLog; };
+            inline static void DestroyLog() {
+                delete GLog;
+                GLog = nullptr;
+            };
 
             ~CLog() override = default;
 
