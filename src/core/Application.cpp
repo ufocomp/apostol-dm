@@ -33,9 +33,6 @@ Author:
 
 #define PGP_BEGIN_PUBLIC_KEY "BEGIN PGP PUBLIC KEY"
 #define PGP_END_PUBLIC_KEY "END PGP PUBLIC KEY"
-#define BM_PREFIX "BM-"
-#define HTTP_PREFIX "http"
-#define HTTP_PREFIX_SIZE 4
 
 #define ARS_DELETE_BTC_KEY  0x010u
 #define ARS_DELETE_PGP_KEY  0x020u
@@ -227,6 +224,11 @@ namespace Apostol {
 
             LogFile = Log()->AddLogFile(Config()->AccessLog().c_str(), 0);
             LogFile->LogType(ltAccess);
+
+#ifdef WITH_POSTGRESQL
+            LogFile = Log()->AddLogFile(Config()->PostgresLog().c_str(), 0);
+            LogFile->LogType(ltPostgres);
+#endif
 
 #ifdef _DEBUG
             const CString &Debug = Config()->LogFiles().Values(_T("debug"));
@@ -614,9 +616,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CApplicationProcess::CreateHTTPServer() {
-            CHTTPServer *LServer = nullptr;
-
-            LServer = new CHTTPServer((ushort) Config()->Port(), Config()->DocRoot().c_str());
+            auto LServer = new CHTTPServer((ushort) Config()->Port(), Config()->DocRoot().c_str());
 
             LServer->ServerName() = m_pApplication->Title();
 
@@ -649,11 +649,11 @@ namespace Apostol {
 
 #ifdef WITH_POSTGRESQL
         void CApplicationProcess::CreatePQServer() {
-            LPQServer = new CPQServer(Config()->PostgresPollMin(), Config()->PostgresPollMax());
+            auto LPQServer = new CPQServer(Config()->PostgresPollMin(), Config()->PostgresPollMax());
 
             LPQServer->ConnInfo().ApplicationName() = "'" + m_pApplication->Title() + "'"; //application_name;
 
-            LServer->PollStack(m_PollStack);
+            LPQServer->PollStack(m_PollStack);
 
             if (Config()->PostgresNotice()) {
                 //LPQServer->OnReceiver(std::bind(&CApplicationProcess::DoPQReceiver, this, _1, _2));
@@ -672,7 +672,6 @@ namespace Apostol {
             LPQServer->OnDisconnected(std::bind(&CApplicationProcess::DoPQDisconnect, this, _1));
 
             SetPQServer(LPQServer);
-            CPQServer *LPQServer = nullptr;
         }
         //--------------------------------------------------------------------------------------------------------------
 #endif
@@ -945,12 +944,6 @@ namespace Apostol {
 
         //-- CProcessSingle --------------------------------------------------------------------------------------------
 
-        //--------------------------------------------------------------------------------------------------------------
-
-        CProcessSingle::CProcessSingle(CCustomProcess *AParent, CApplication *AApplication) :
-                inherited(AParent, AApplication, ptSingle) {
-
-        }
         //--------------------------------------------------------------------------------------------------------------
 
         void CProcessSingle::DoExit() {
@@ -1414,12 +1407,6 @@ namespace Apostol {
 
         //-- CProcessWorker --------------------------------------------------------------------------------------------
 
-        //--------------------------------------------------------------------------------------------------------------
-
-        CProcessWorker::CProcessWorker(CCustomProcess *AParent, CApplication *AApplication) :
-                inherited(AParent, AApplication, ptWorker) {
-
-        }
         //--------------------------------------------------------------------------------------------------------------
 
         void CProcessWorker::DoExit() {
