@@ -84,8 +84,9 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         size_t CCurlApi::CallBack(void *content, size_t size, size_t nmemb, CString *Buffer) {
-            Buffer->Append((char *) content, size * nmemb);
-            return Buffer->Size();
+            size_t buffer_size = size * nmemb;
+            Buffer->Append((LPCTSTR) content, buffer_size);
+            return buffer_size;
         }
         //--------------------------------------------------------------------------------------------------------------
 
