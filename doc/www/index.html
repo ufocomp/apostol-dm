@@ -19,6 +19,7 @@
           <nav class="nav nav-pills nav-fill">
               <a class="text-sm-center nav-link active" data-toggle="tab" href="#tab-account">Account</a>
               <a class="text-sm-center nav-link" data-toggle="tab" href="#tab-deal">Deal</a>
+              <a class="text-sm-center nav-link" data-toggle="tab" href="#tab-signature">Signature</a>
           </nav>
 
           <div class="tab-content">
@@ -420,6 +421,20 @@
                               <small class="form-text text-muted">Press "Execute" button...</small>
                           </div>
                       </div>
+                  </div>
+              </div>
+
+              <div id="tab-signature" class="container tab-pane fade">
+                  <form onsubmit="checkSignature()">
+                      <div class="form-group">
+                          <label for="pgp-clear-text">Input:</label>
+                          <textarea class="form-control" id="pgp-clear-text" rows="20" placeholder="PGP ClearText" required></textarea>
+                      </div>
+                      <button type="submit" class="btn btn-primary">Check</button>
+                  </form>
+                  <hr>
+                  <div id="signature-json" class="mt-3">
+                      <small id="btnCheckSignature" class="form-text text-muted">Press "Check" button...</small>
                   </div>
               </div>
           </div>
@@ -1003,6 +1018,45 @@
                       RequestForm.html(html);
                   else
                       RequestForm.html(payload);
+
+                  execute.prop('disabled', false);
+              })
+              .catch((e) => {
+                  RequestForm.html(e.message);
+                  execute.prop('disabled', false);
+              });
+      }
+
+      function checkSignature() {
+          const cleartext = $("textarea[id='pgp-clear-text']").val();
+          const api = $("input[id='apiURL']").val();
+
+          let json = {
+              message: cleartext
+          };
+
+          const RequestForm = $("#signature-json");
+
+          let execute = $("button[id='btnCheckSignature']");
+          execute.prop('disabled', true);
+
+          AsyncFetch(api + '/signature', JSON.stringify(json), 'POST', {'Content-Type': 'application/json'})
+              .then(function(json) {
+                  let html;
+
+                  if (json.hasOwnProperty('error')) {
+                      let error = json['error'];
+                      html = '<html lang="ru"><body><pre>' + error['message'] + '</pre></body></html>';
+                  } else {
+                      const verified = json['verified'];
+                      if (verified) {
+                          html = '<html lang="ru"><body><pre>' + json['message'] + '</pre></body></html>';
+                      } else {
+                          html = JsonToHTML(json);
+                      }
+                  }
+
+                  RequestForm.html(html);
 
                   execute.prop('disabled', false);
               })
