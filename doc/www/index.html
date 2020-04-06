@@ -227,12 +227,12 @@
                                       <div class="form-group col-md-4">
                                           <label for="apiURL">API</label>
                                           <input type="text" class="form-control" id="apiURL" aria-describedby="apiURLHelp" placeholder="Default: http://localhost:40977/api/v1" value="http://localhost:40977/api/v1" required>
-                                          <small id="apiURLHelp" class="form-text text-muted">API URL.</small>
+                                          <small id="apiURLHelp" class="form-text text-muted">Deal Module API URL.</small>
                                       </div>
                                       <div class="form-group col-md-4">
-                                          <label for="server">Server</label>
-                                          <input type="text" class="form-control" id="server" aria-describedby="serverHelp" placeholder="Default: localhost" value="localhost" required>
-                                          <small id="serverHelp" class="form-text text-muted">Server host or IP-address.</small>
+                                          <label for="serverURL">Server</label>
+                                          <input type="text" class="form-control" id="serverURL" aria-describedby="serverHelp">
+                                          <small id="serverHelp" class="form-text text-muted">BPS server URL.</small>
                                       </div>
                                       <div class="form-group col-md-4">
                                           <label for="userAddress">User Bitcoin address</label>
@@ -429,7 +429,7 @@
     <div id="footer">
       <div class="container">
         <hr>
-        <p class="text-center small" >Bitcoin Payment Service</p>
+        <p class="text-center small" >BitDeals Payment Service</p>
       </div>
     </div>
 
@@ -564,9 +564,11 @@
 
       function actionHelp() {
           const api = $("input[id='apiURL']").val();
-          const server = $("input[id='server']").val();
+          const server = $("input[id='serverURL']").val();
 
-          let settings = '?server=' + server;
+          let settings = "";
+          if (!empty(server))
+              settings = '?server=' + server;
 
           const RequestForm = $("#action-help");
 
@@ -579,11 +581,14 @@
           const address = $("input[id='statusUserAddress']").val();
 
           const api = $("input[id='apiURL']").val();
-          const server = $("input[id='server']").val();
+          const server = $("input[id='serverURL']").val();
 
-          let settings = '?server=' + server;
+          let settings = "";
+          if (!empty(server))
+              settings = '?server=' + server;
           if (!empty(address)) {
-              settings += '&address=' + address;
+              settings += empty(settings) ? '?' : '&';
+              settings += 'address=' + address;
           }
 
           const RequestForm = $("#action-status");
@@ -622,12 +627,14 @@
           }
 
           const api = $("input[id='apiURL']").val();
-          const server = $("input[id='server']").val();
+          const server = $("input[id='serverURL']").val();
 
-          let settings = '?server=' + server;
-
+          let settings = "";
+          if (!empty(server))
+              settings = '?server=' + server;
           if ($('input[id="pgp"]').prop("checked") === false) {
-              settings += '&pgp=off'
+              settings += empty(settings) ? '?' : '&';
+              settings += 'pgp=off'
           }
 
           const RequestForm = $("#action-new");
@@ -653,10 +660,11 @@
           }
 
           const api = $("input[id='apiURL']").val();
-          const server = $("input[id='server']").val();
+          const server = $("input[id='serverURL']").val();
 
-          let settings = '?server=' + server;
-          settings += '&address=' + address;
+          let settings = '?address=' + address;
+          if (!empty(server))
+              settings += '&server=' + server;
 
           if ($('input[id="pgp"]').prop("checked") === false) {
               settings += '&pgp=off'
@@ -696,10 +704,11 @@
           formData.append('sign', sign);
 
           const api = $("input[id='apiURL']").val();
-          const server = $("input[id='server']").val();
+          const server = $("input[id='serverURL']").val();
 
-          let settings = '?server=' + server;
-          settings += '&address=' + address;
+          let settings = '?address=' + address;
+          if (!empty(server))
+              settings += '&server=' + server;
 
           if ($('input[id="pgp"]').prop("checked") === false) {
               settings += '&pgp=off'
@@ -725,10 +734,11 @@
           formData.append('sign', sign);
 
           const api = $("input[id='apiURL']").val();
-          const server = $("input[id='server']").val();
+          const server = $("input[id='serverURL']").val();
 
-          let settings = '?server=' + server;
-          settings += '&address=' + address;
+          let settings = '?address=' + address;
+          if (!empty(server))
+              settings += '&server=' + server;
 
           if ($('input[id="pgp"]').prop("checked") === false) {
               settings += '&pgp=off'
@@ -862,11 +872,15 @@
           }
 
           const api = $("input[id='apiURL']").val();
-          const server = $("input[id='server']").val();
+          const server = $("input[id='serverURL']").val();
 
-          let settings = '?server=' + server;
+          let settings = "";
+          if (!empty(server))
+              settings = '?server=' + server;
+
           if ($('input[id="pgp"]').prop("checked") === false) {
-              settings += '&pgp=off'
+              settings += empty(settings) ? '?' : '&';
+              settings += 'pgp=off'
           }
 
           const RequestForm = $("#deal-form");
@@ -906,11 +920,15 @@
           const dealJSON = $("textarea[id='dealJSON']");
 
           const api = $("input[id='apiURL']").val();
-          const server = $("input[id='server']").val();
+          const server = $("input[id='serverURL']").val();
 
-          let settings = '?server=' + server;
+          let settings = "";
+          if (!empty(server))
+              settings = '?server=' + server;
+
           if ($('input[id="pgp"]').prop("checked") === false) {
-              settings += '&pgp=off'
+              settings += empty(settings) ? '?' : '&';
+              settings += 'pgp=off'
           }
 
           const RequestForm = $("#deal-json");
@@ -950,11 +968,15 @@
           const dealYAML = $("textarea[id='dealYAML']");
 
           const api = $("input[id='apiURL']").val();
-          const server = $("input[id='server']").val();
+          const server = $("input[id='serverURL']").val();
 
-          let settings = '?server=' + server;
+          let settings = "";
+          if (!empty(server))
+              settings = '?server=' + server;
+
           if ($('input[id="pgp"]').prop("checked") === false) {
-              settings += '&pgp=off'
+              settings += empty(settings) ? '?' : '&';
+              settings += 'pgp=off'
           }
 
           const RequestForm = $("#deal-yaml");

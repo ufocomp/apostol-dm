@@ -132,6 +132,10 @@ namespace Apostol {
 
             CApplication *m_pApplication;
 
+            CEPollTimer *m_Timer;
+
+            int m_TimerInterval;
+
             typedef struct pwd_t {
                 const char *username;
                 const char *groupname;
@@ -142,6 +146,8 @@ namespace Apostol {
             CPasswd m_pwd;
 
             void SetPwd();
+
+            void UpdateTimer();
 
         protected:
 
@@ -158,6 +164,8 @@ namespace Apostol {
             pid_t ExecProcess(CExecuteContext *AContext);
 
             void ChildProcessGetStatus() override;
+
+            void SetTimerInterval(int Value);
 
         public:
 
@@ -180,6 +188,10 @@ namespace Apostol {
             void DeletePidFile();
 
             void SetUser(const char *AUserName, const char *AGroupName);
+            void SetUser(const CString& UserName, const CString& GroupName);
+
+            int TimerInterval() { return m_TimerInterval; }
+            void TimerInterval(int Value) { SetTimerInterval(Value); }
 
             void ServerStart();
             void ServerStop();
@@ -283,24 +295,12 @@ namespace Apostol {
             typedef CApplicationProcess inherited;
         private:
 
-            CEPollTimer *m_Timer;
-
-            int m_HeartbeatInterval;
-
             void BeforeRun() override;
             void AfterRun() override;
-
-            void UpdateTimer();
-
-            void SetHeartbeatInterval(int Value);
-
-            void LoadPGP();
 
         protected:
 
             void DoExit();
-
-            void DoHeartbeat(CPollEventHandler *AHandler);
 
         public:
 
@@ -311,8 +311,6 @@ namespace Apostol {
             void Run() override;
 
             void Reload();
-
-            void ParsePGPKey(const CString& Key);
 
         };
         //--------------------------------------------------------------------------------------------------------------
@@ -387,24 +385,12 @@ namespace Apostol {
 
         private:
 
-            CEPollTimer *m_Timer;
-
-            int m_HeartbeatInterval;
-
             void BeforeRun() override;
             void AfterRun() override;
-
-            void UpdateTimer();
-
-            void SetHeartbeatInterval(int Value);
-
-            void LoadPGP();
 
         protected:
 
             void DoExit();
-
-            void DoHeartbeat(CPollEventHandler *AHandler);
 
         public:
 
@@ -413,8 +399,6 @@ namespace Apostol {
             ~CProcessWorker() override = default;
 
             void Run() override;
-
-            void ParsePGPKey(const CString& Key);
 
         };
         //--------------------------------------------------------------------------------------------------------------

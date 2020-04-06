@@ -50,7 +50,7 @@ namespace Apostol {
         public:
 
             CDealModule(int argc, char *const *argv): CApplication(argc, argv) {
-                CreateModule(this);
+                CreateModules(this);
             };
 
             ~CDealModule() override = default;

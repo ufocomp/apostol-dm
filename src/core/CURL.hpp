@@ -54,10 +54,12 @@ namespace Apostol {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        class CCurlApi: public CCurlComponent, public CGlobalComponent {
+        class CCurlApi: public CCurlComponent {
         private:
 
             CURL *m_curl;
+
+            CURLcode m_Code;
 
             void Init();
             void Cleanup();
@@ -71,6 +73,12 @@ namespace Apostol {
             CCurlApi();
 
             ~CCurlApi();
+
+            CURLcode Code() const { return m_Code; };
+
+            CString GetErrorMessage() const;
+
+            void Reset();
 
             void Send(const CString &url, const CString &Result);
             void Send(const CString &url, const CString &Result,

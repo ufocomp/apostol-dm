@@ -481,11 +481,16 @@ namespace Apostol {
                 CProcessType AType): CModuleProcess(AType, AParent), CCollectionItem((CProcessManager *) AApplication),
                 m_pApplication(AApplication) {
 
+            m_Timer = nullptr;
+            m_TimerInterval = 0;
+
             m_pwd.uid = -1;
             m_pwd.gid = -1;
 
             m_pwd.username = nullptr;
             m_pwd.groupname = nullptr;
+
+            m_PollStack = nullptr;
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -528,6 +533,76 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        void CApplicationProcess::SetPwd() {
+            if (geteuid() == 0) {
+                if (setgid(m_pwd.gid) == -1) {
+                    throw Delphi::Exception::ExceptionFrm("setgid(%d) failed.", m_pwd.gid);
+                }
+
+                if (initgroups(m_pwd.username, m_pwd.gid) == -1) {
+                    throw Delphi::Exception::ExceptionFrm("initgroups(%s, %d) failed.", m_pwd.username, m_pwd.gid);
+                }
+
+                if (setuid(m_pwd.uid) == -1) {
+                    throw Delphi::Exception::ExceptionFrm("setuid(%d) failed.", m_pwd.username, m_pwd.gid);
+                }
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CApplicationProcess::SetUser(const char *AUserName, const char *AGroupName) {
+            if (m_pwd.uid == (uid_t) -1 && geteuid() == 0) {
+
+                struct group   *grp;
+                struct passwd  *pwd;
+
+                errno = 0;
+                pwd = getpwnam(AUserName);
+                if (pwd == nullptr) {
+                    throw Delphi::Exception::ExceptionFrm("getpwnam(\"%s\") failed.", AUserName);
+                }
+
+                errno = 0;
+                grp = getgrnam(AGroupName);
+                if (grp == nullptr) {
+                    throw Delphi::Exception::ExceptionFrm("getgrnam(\"%s\") failed.", AGroupName);
+                }
+
+                m_pwd.username = AUserName;
+                m_pwd.uid = pwd->pw_uid;
+
+                m_pwd.groupname = AGroupName;
+                m_pwd.gid = grp->gr_gid;
+
+                SetPwd();
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CApplicationProcess::SetUser(const CString &UserName, const CString &GroupName) {
+            SetUser(UserName.c_str(), GroupName.c_str());
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CApplicationProcess::SetTimerInterval(int Value) {
+            if (m_TimerInterval != Value) {
+                m_TimerInterval = Value;
+                UpdateTimer();
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CApplicationProcess::UpdateTimer() {
+            if (Server() != nullptr) {
+                if (m_Timer == nullptr) {
+                    m_Timer = Server()->CreateTimer(CLOCK_MONOTONIC, 1000, m_TimerInterval, TFD_NONBLOCK);
+                } else {
+                    CEPoll::SetTimer(m_Timer, 1000, m_TimerInterval);
+                }
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CApplicationProcess::BeforeRun() {
             Log()->Debug(0, MSG_PROCESS_START, GetProcessName(), Application()->CmdLine().c_str());
         }
@@ -550,6 +625,7 @@ namespace Apostol {
 
             LServer->PollStack(m_PollStack);
 
+            LServer->OnTimer(std::bind(&CApplicationProcess::DoTimer, this, _1));
             LServer->OnExecute(std::bind(&CApplicationProcess::DoExecute, this, _1));
 
             LServer->OnVerbose(std::bind(&CApplicationProcess::DoVerbose, this, _1, _2, _3, _4));
@@ -832,52 +908,6 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CApplicationProcess::SetPwd() {
-            if (geteuid() == 0) {
-                if (setgid(m_pwd.gid) == -1) {
-                    throw Delphi::Exception::ExceptionFrm("setgid(%d) failed.", m_pwd.gid);
-                }
-
-                if (initgroups(m_pwd.username, m_pwd.gid) == -1) {
-                    throw Delphi::Exception::ExceptionFrm("initgroups(%s, %d) failed.", m_pwd.username, m_pwd.gid);
-                }
-
-                if (setuid(m_pwd.uid) == -1) {
-                    throw Delphi::Exception::ExceptionFrm("setuid(%d) failed.", m_pwd.username, m_pwd.gid);
-                }
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CApplicationProcess::SetUser(const char *AUserName, const char *AGroupName) {
-            if (m_pwd.uid == (uid_t) -1 && geteuid() == 0) {
-
-                struct group   *grp;
-                struct passwd  *pwd;
-
-                errno = 0;
-                pwd = getpwnam(AUserName);
-                if (pwd == nullptr) {
-                    throw Delphi::Exception::ExceptionFrm("getpwnam(\"%s\") failed.", AUserName);
-                }
-
-                errno = 0;
-                grp = getgrnam(AGroupName);
-                if (grp == nullptr) {
-                    throw Delphi::Exception::ExceptionFrm("getgrnam(\"%s\") failed.", AGroupName);
-                }
-
-                m_pwd.username = AUserName;
-                m_pwd.uid = pwd->pw_uid;
-
-                m_pwd.groupname = AGroupName;
-                m_pwd.gid = grp->gr_gid;
-
-                SetPwd();
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
         void CApplicationProcess::ServerStart() {
             Server()->DocRoot() = Config()->DocRoot();
             Server()->ActiveLevel(alActive);
@@ -919,72 +949,12 @@ namespace Apostol {
 
         CProcessSingle::CProcessSingle(CCustomProcess *AParent, CApplication *AApplication) :
                 inherited(AParent, AApplication, ptSingle) {
-            m_Timer = nullptr;
-            m_HeartbeatInterval = 0;
+
         }
         //--------------------------------------------------------------------------------------------------------------
 
         void CProcessSingle::DoExit() {
 
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessSingle::UpdateTimer() {
-            if (Server() != nullptr) {
-                if (m_Timer == nullptr) {
-                    m_Timer = Server()->CreateTimer(CLOCK_MONOTONIC, 1000, m_HeartbeatInterval, TFD_NONBLOCK);
-                } else {
-                    CEPoll::SetTimer(m_Timer, 1000, m_HeartbeatInterval);
-                }
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessSingle::SetHeartbeatInterval(int Value) {
-            if (m_HeartbeatInterval != Value) {
-                m_HeartbeatInterval = Value;
-                UpdateTimer();
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessSingle::LoadPGP() {
-            const auto& FingerPrint = Config()->PGPFingerPrint();
-            const auto& KeyId = Config()->PGPKeyId();
-
-            if (FingerPrint.IsEmpty() && KeyId.IsEmpty()) {
-                Log()->Message(_T("PGP Fingerprint or KEY-ID not set in configuration file. Application will be stopped."));
-                sig_quit = 1;
-            } else {
-                CString Key;
-
-                if (!FingerPrint.IsEmpty()) {
-                    KeyFromOpenPGPByFingerPrint(FingerPrint, Key);
-                } else {
-                    KeyFromOpenPGPByKeyId(KeyId, Key);
-                }
-
-                DebugMessage("%s\n", Key.c_str());
-                ParsePGPKey(Key);
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessSingle::DoHeartbeat(CPollEventHandler *AHandler) {
-            uint64_t exp;
-            auto LTimer = dynamic_cast<CEPollTimer *> (AHandler->Binding());
-            LTimer->Read(&exp, sizeof(uint64_t));
-
-            //LoadPGP();
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessSingle::ParsePGPKey(const CString &Key) {
-            CPGPUserIdList List;
-            const Apostol::PGP::Key key(Key.c_str());
-            key.ExportUID(List);
-            for (int i = 0; i < List.Count(); i++)
-                DebugMessage("Name: %s\nMail: %s\nDesc: %s", List[i].Name.c_str(), List[i].Mail.c_str(), List[i].Desc.c_str());
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1010,13 +980,11 @@ namespace Apostol {
 
             InitSignals();
 
-            Server()->OnTimer(std::bind(&CProcessSingle::DoHeartbeat, this, _1));
-
             ServerStart();
 #ifdef WITH_POSTGRESQL
             PQServerStart();
 #endif
-            SetHeartbeatInterval(60000);
+            SetTimerInterval(1000);
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1450,72 +1418,12 @@ namespace Apostol {
 
         CProcessWorker::CProcessWorker(CCustomProcess *AParent, CApplication *AApplication) :
                 inherited(AParent, AApplication, ptWorker) {
-            m_Timer = nullptr;
-            m_HeartbeatInterval = 0;
+
         }
         //--------------------------------------------------------------------------------------------------------------
 
         void CProcessWorker::DoExit() {
 
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessWorker::UpdateTimer() {
-            if (Server() != nullptr) {
-                if (m_Timer == nullptr) {
-                    m_Timer = Server()->CreateTimer(CLOCK_MONOTONIC, 1000, m_HeartbeatInterval, TFD_NONBLOCK);
-                } else {
-                    CEPoll::SetTimer(m_Timer, 1000, m_HeartbeatInterval);
-                }
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessWorker::SetHeartbeatInterval(int Value) {
-            if (m_HeartbeatInterval != Value) {
-                m_HeartbeatInterval = Value;
-                UpdateTimer();
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessWorker::LoadPGP() {
-            const auto& FingerPrint = Config()->PGPFingerPrint();
-            const auto& KeyId = Config()->PGPKeyId();
-
-            if (FingerPrint.IsEmpty() && KeyId.IsEmpty()) {
-                Log()->Message(_T("PGP Fingerprint or KEY-ID not set in configuration file. Application will be stopped."));
-                sig_quit = 1;
-            } else {
-                CString Key;
-
-                if (!FingerPrint.IsEmpty()) {
-                    KeyFromOpenPGPByFingerPrint(FingerPrint, Key);
-                } else {
-                    KeyFromOpenPGPByKeyId(KeyId, Key);
-                }
-
-                DebugMessage("%s\n", Key.c_str());
-                ParsePGPKey(Key);
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessWorker::DoHeartbeat(CPollEventHandler *AHandler) {
-            uint64_t exp;
-            auto LTimer = dynamic_cast<CEPollTimer *> (AHandler->Binding());
-            LTimer->Read(&exp, sizeof(uint64_t));
-
-            //LoadPGP();
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessWorker::ParsePGPKey(const CString &Key) {
-            CPGPUserIdList List;
-            const Apostol::PGP::Key key(Key.c_str());
-            key.ExportUID(List);
-            for (int i = 0; i < List.Count(); i++)
-                DebugMessage("Name: %s\nMail: %s\nDesc: %s", List[i].Name.c_str(), List[i].Mail.c_str(), List[i].Desc.c_str());
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1532,15 +1440,13 @@ namespace Apostol {
 
             SetUser(Config()->User().c_str(), Config()->Group().c_str());
 
-            Server()->OnTimer(std::bind(&CProcessWorker::DoHeartbeat, this, _1));
-
             ServerStart();
 #ifdef WITH_POSTGRESQL
             PQServerStart();
 #endif
             SigProcMask(SIG_UNBLOCK, SigAddSet(&set));
 
-            SetHeartbeatInterval(60000);
+            SetTimerInterval(1000);
         }
         //--------------------------------------------------------------------------------------------------------------
 

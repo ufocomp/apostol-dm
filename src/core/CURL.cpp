@@ -62,6 +62,7 @@ namespace Apostol {
 
         CCurlApi::CCurlApi() {
             m_curl = nullptr;
+            m_Code = CURLE_OK;
             Init();
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -88,6 +89,16 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        CString CCurlApi::GetErrorMessage() const {
+            return curl_easy_strerror(m_Code);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CCurlApi::Reset() {
+            curl_easy_reset(m_curl);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CCurlApi::Send(const CString &url, const CString &Result) {
             Send(url, Result, CStringList(), CString(), "GET");
         }
@@ -95,8 +106,6 @@ namespace Apostol {
 
         void CCurlApi::Send(const CString &url, const CString &Result, const CStringList &Headers,
                 const CString &PostData, const CString &Action) {
-
-            CURLcode Code;
 
             if ( m_curl ) {
                 curl_easy_reset(m_curl);
@@ -134,16 +143,7 @@ namespace Apostol {
                     }
                 }
 
-                clock_t start = clock();
-
-                Code = curl_easy_perform(m_curl);
-
-                Log()->Debug(0, "[cURL] Send runtime: %.2f ms.", (double) ((clock() - start) / (double) CLOCKS_PER_SEC * 1000));
-
-                /* Check for errors */
-                if ( Code != CURLE_OK ) {
-                    Log()->Error(APP_LOG_EMERG, 0, "[cURL] curl_easy_perform() failed: %s" , curl_easy_strerror(Code) );
-                }
+                m_Code = curl_easy_perform(m_curl);
             }
         }
         //--------------------------------------------------------------------------------------------------------------

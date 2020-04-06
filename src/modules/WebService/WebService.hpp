@@ -25,6 +25,11 @@ Author:
 #define APOSTOL_WEBSERVICE_HPP
 //----------------------------------------------------------------------------------------------------------------------
 
+#define BPS_SERVER_PORT 4977
+#define BPS_SERVER_URL "http://185.141.62.25:4977"
+#define BPS_BM_SERVER_ADDRESS "BM-2cX8y9u9yEi3fdqQfndx9F6NdR5Hv79add"
+//----------------------------------------------------------------------------------------------------------------------
+
 extern "C++" {
 
 namespace Apostol {
@@ -85,6 +90,18 @@ namespace Apostol {
 
             int m_Version;
 
+            CCurlApi m_Curl;
+            CString m_LocalHost;
+
+            int m_ServerIndex;
+
+            CDateTime m_FixedDate;
+            CDateTime m_RandomDate;
+
+            CStringPairs m_ServerList;
+
+            CString m_PGP;
+
             CHTTPProxyManager *m_ProxyManager;
 
             CHTTPProxy *GetProxy(CHTTPServerConnection *AConnection);
@@ -93,12 +110,23 @@ namespace Apostol {
             static void DebugReply(CReply *AReply);
             static void DebugConnection(CHTTPServerConnection *AConnection);
 
-            static void ExceptionToJson(int ErrorCode, const std::exception &AException, CString& Json);
-
             void RouteUser(CHTTPServerConnection *AConnection, const CString &Method, const CString &Uri);
             void RouteDeal(CHTTPServerConnection *AConnection, const CString &Method, const CString &Uri, const CString &Action);
 
+            void RouteSignature(CHTTPServerConnection *AConnection);
+
         protected:
+
+            int NextServerIndex();
+
+            const CString &CurrentServer() const;
+            bool ServerPing(const CString &URL);
+            void NextServer();
+
+            static void LoadFromOpenPGP(CString &Key);
+            void LoadFromBPS(CString &Key);
+
+            void ParsePGPKey(const CString& Key);
 
             static int CheckFee(const CString& Fee);
 
@@ -134,9 +162,20 @@ namespace Apostol {
             void BeforeExecute(Pointer Data) override;
             void AfterExecute(Pointer Data) override;
 
+            void Heartbeat() override;
             void Execute(CHTTPServerConnection *AConnection) override;
 
             bool CheckUserAgent(const CString &Value) override;
+
+            void LoadPGPKey();
+
+            static bool CheckVerifyPGPSignature(int VerifyPGPSignature, CString &Message);
+            static int VerifyPGPSignature(const CString &ClearText, const CString &Key, CString &Message);
+
+            static bool FindURLInLine(const CString &Line, CStringList &List);
+            static void ExceptionToJson(int ErrorCode, const std::exception &AException, CString& Json);
+
+            static CDateTime GetRandomDate(int a, int b, CDateTime Date = Now());
 
         };
 
