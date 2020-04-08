@@ -30,12 +30,14 @@ Author:
 #include <climits>
 #include <ctime>
 #include <functional>
+#include <csignal>
 #include <unistd.h>
 #include <fcntl.h>
 #include <execinfo.h>
 #include <wait.h>
 #include <pwd.h>
 #include <grp.h>
+#include <sys/resource.h>
 //----------------------------------------------------------------------------------------------------------------------
 
 //using namespace std;

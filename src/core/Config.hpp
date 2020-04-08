@@ -263,13 +263,15 @@ namespace Apostol {
 
             CLog *m_pLog;
 
-            unsigned int m_uErrorCount;
+            uint32_t m_uErrorCount;
 
-            int m_nWorkers;
-            int m_nPort;
+            uint32_t m_nWorkers;
+            uint32_t m_nPort;
 
-            int m_nTimeOut;
-            int m_nConnectTimeOut;
+            uint32_t m_nTimeOut;
+            uint32_t m_nConnectTimeOut;
+
+            uint32_t m_nLimitNoFile;
 
             bool m_fMaster;
             bool m_fDaemon;
@@ -360,19 +362,21 @@ namespace Apostol {
 
             config_flag_t &Flags() { return m_Flags; };
 
-            unsigned int ErrorCount() { return m_uErrorCount; };
+            uint32_t ErrorCount() { return m_uErrorCount; };
 
-            int Workers() { return m_nWorkers; };
+            uint32_t Workers() { return m_nWorkers; };
 
             bool Master() { return m_fMaster; };
 
             bool Daemon() { return m_fDaemon; };
 
-            int Port() { return m_nPort; };
+            uint32_t Port() { return m_nPort; };
 
-            int TimeOut() { return m_nTimeOut; };
+            uint32_t TimeOut() { return m_nTimeOut; };
 
-            int ConnectTimeOut() { return m_nConnectTimeOut; };
+            uint32_t ConnectTimeOut() { return m_nConnectTimeOut; };
+
+            uint32_t LimitNoFile() { return m_nLimitNoFile; };
 
             const CString& User() const { return m_sUser; };
             void User(const CString& AValue) { SetUser(AValue.c_str()); };
