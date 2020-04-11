@@ -30,9 +30,6 @@ Author:
 #include <random>
 //----------------------------------------------------------------------------------------------------------------------
 
-#include "yaml-cpp/yaml.h"
-//----------------------------------------------------------------------------------------------------------------------
-
 #define BM_PREFIX "BM-"
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -831,6 +828,8 @@ namespace Apostol {
                     Node = YAML::Load(LServerRequest->Content.c_str());
                 }
 
+                CDeal Deal(Node);
+
                 ClearText = YAML::Dump(Node);
 
                 if (pgpValue == "off" || pgpValue == "false") {
@@ -1203,19 +1202,24 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CWebService::NextServer() {
+#ifdef WITH_CURL
             while (NextServerIndex() != -1 && !ServerPing(CurrentServer() + "/api/v1/ping")) {
 
             }
+#endif
         }
         //--------------------------------------------------------------------------------------------------------------
 
         bool CWebService::ServerPing(const CString &URL) {
+#ifdef WITH_CURL
             CString Result;
 
             m_Curl.Reset();
             m_Curl.Send(URL, Result);
 
             return m_Curl.Code() == CURLE_OK;
+#endif
+            return true;
         }
 
         const CString &CWebService::CurrentServer() const {
@@ -1302,13 +1306,13 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CWebService::LoadFromBPS(CString &Key) {
-
             CJSON Json;
             CString jsonString;
             CString URL(CurrentServer() + "/api/v1/pgp");
 
             Log()->Debug(0, "[PGP] Trying to download a key from: %s", URL.c_str());
 
+#ifdef WITH_CURL
             m_Curl.Reset();
             m_Curl.Send(URL, jsonString);
 
@@ -1336,11 +1340,16 @@ namespace Apostol {
             } else {
                 Log()->Error(APP_LOG_EMERG, 0, "[PGP] Failed: %s (%s)." , m_Curl.GetErrorMessage().c_str(), URL.c_str());
             }
+#else
+
+#endif
         }
         //--------------------------------------------------------------------------------------------------------------
 
         void CWebService::LoadPGPKey() {
+#ifdef WITH_CURL
             CString Key;
+
             while (Key.IsEmpty() && NextServerIndex() != -1) {
                 LoadFromBPS(Key);
             };
@@ -1349,6 +1358,10 @@ namespace Apostol {
                 DebugMessage("%s\n", Key.c_str());
                 ParsePGPKey(Key);
             }
+#else
+
+#endif
+
         }
         //--------------------------------------------------------------------------------------------------------------
 

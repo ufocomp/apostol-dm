@@ -82,10 +82,15 @@ public:
 };
 //----------------------------------------------------------------------------------------------------------------------
 
+#ifdef WITH_CURL
 #include "CURL.hpp"
+#endif
+
+#include "PGP.hpp"
+#include "Bitcoin.hpp"
+#include "Deal.hpp"
 #include "Module.hpp"
 #include "Process.hpp"
-#include "PGP.hpp"
 #include "Application.hpp"
 //----------------------------------------------------------------------------------------------------------------------
 

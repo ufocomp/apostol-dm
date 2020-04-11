@@ -218,22 +218,26 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void KeyFromOpenPGPByFingerPrint(const CString &FingerPrint, const CString &Result) {
+#ifdef WITH_CURL
             CCurlApi PGPService;
 
             CString URL("https://keys.openpgp.org/vks/v1/by-fingerprint/");
             URL << FingerPrint;
 
             PGPService.Send(URL, Result);
+#endif
         }
         //--------------------------------------------------------------------------------------------------------------
 
         void KeyFromOpenPGPByKeyId(const CString &KeyId, const CString &Result) {
+#ifdef WITH_CURL
             CCurlApi PGPService;
 
             CString URL("https://keys.openpgp.org/vks/v1/by-keyid/");
             URL << KeyId;
 
             PGPService.Send(URL, Result);
+#endif
         }
         //--------------------------------------------------------------------------------------------------------------
 

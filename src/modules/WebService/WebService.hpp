@@ -90,7 +90,9 @@ namespace Apostol {
 
             int m_Version;
 
+#ifdef WITH_CURL
             CCurlApi m_Curl;
+#endif
             CString m_LocalHost;
 
             int m_ServerIndex;

@@ -15,6 +15,7 @@ message(STATUS "Project description: ${PROJECT_DESCRIPTION}")
 set(INSTALL_AS_ROOT  ON  CACHE BOOL "Install as root")
 set(WITH_POSTGRESQL  OFF CACHE BOOL "Build with PostgreSQL")
 set(WITH_SQLITE3     OFF CACHE BOOL "Build with Sqlite3")
+set(WITH_CURL        OFF CACHE BOOL "Build with cURL")
 # ----------------------------------------------------------------------------------------------------------------------
 
 if (INSTALL_AS_ROOT)
@@ -31,6 +32,10 @@ add_compile_options("$<$<CONFIG:DEBUG>:-D_DEBUG>")
 
 set(CORE_LIB_NAME apostol-core)
 set(MODULES_LIB_NAME apostol-modules)
+
+set(BITCOIN_LIB_NAME bitcoin-system)
+# set(BITCOIN_VERSION "4.0.0")
+set(BITCOIN_VERSION "3.6.0")
 
 add_custom_target(
         auto_increment_version
@@ -54,6 +59,11 @@ if (WITH_SQLITE3)
     add_compile_options("-DWITH_SQLITE3")
 endif()
 
+if (WITH_CURL)
+    set(CURL_LIB_NAME "curl")
+    add_compile_options("-DWITH_CURL")
+endif()
+
 set(DELPHI_LIB_DIR "src/lib/delphi")
 
 add_subdirectory(${DELPHI_LIB_DIR})
@@ -73,6 +83,15 @@ set( includedir "\${exec_prefix}/include" )
 
 set( pkgconfigdir "${libdir}/pkgconfig" CACHE PATH "Path to pkgconfig directory." )
 
+# Find boost
+#------------------------------------------------------------------------------
+find_package(Boost 1.62.0 REQUIRED COMPONENTS)
+
+set( Boost_LIBRARY_DIR "${Boost_LIBRARY_DIR_RELEASE}" )
+
+set( boost_CPPFLAGS "-I${Boost_INCLUDE_DIR}" )
+set( boost_LDFLAGS "-L${Boost_LIBRARY_DIR}" )
+
 # Find OpenPGP
 #------------------------------------------------------------------------------
 find_package(OpenPGP REQUIRED)
@@ -82,6 +101,30 @@ message(STATUS "OpenPGP directory: ${openpgp_LIBRARY_DIRS}")
 message(STATUS "OpenPGP libraries: ${openpgp_LIBRARIES}")
 
 add_definitions( -DOPENSSL_RNG )
+add_definitions( -DGPG_COMPATIBLE )
+
+# Find Bitcoin
+#------------------------------------------------------------------------------
+
+#add_definitions( -DWITH_ICU )
+
+if ( ${BITCOIN_VERSION} VERSION_LESS "4.0.0" )
+
+    find_package(Bitcoin ${BITCOIN_VERSION} REQUIRED)
+
+    message(STATUS "Bitcoin headers: ${bitcoin_INCLUDE_DIRS}")
+    message(STATUS "Bitcoin directory: ${bitcoin_LIBRARY_DIRS}")
+    message(STATUS "Bitcoin libraries: ${bitcoin_LIBRARIES}")
+
+else()
+
+    find_package(Bitcoin-System ${BITCOIN_VERSION} REQUIRED)
+
+    message(STATUS "Bitcoin-System headers: ${bitcoin_system_INCLUDE_DIRS}")
+    message(STATUS "Bitcoin-System directory: ${bitcoin_system_LIBRARY_DIRS}")
+    message(STATUS "Bitcoin-System libraries: ${bitcoin_system_LIBRARIES}")
+
+endif()
 
 # Find dl
 #------------------------------------------------------------------------------
@@ -95,6 +138,8 @@ endif()
 # Define project common includes directories
 #------------------------------------------------------------------------------
 include_directories( SYSTEM
+        ${bitcoin_INCLUDE_DIRS}
+        ${bitcoin_system_INCLUDE_DIRS}
         ${openpgp_INCLUDE_DIRS}
         ${dl_INCLUDE_DIRS}
         )
@@ -102,6 +147,8 @@ include_directories( SYSTEM
 # Define project common library directories
 #------------------------------------------------------------------------------
 link_directories(
+        ${bitcoin_LIBRARY_DIRS}
+        ${bitcoin_system_LIBRARY_DIRS}
         ${openpgp_LIBRARY_DIRS}
         ${dl_LIBRARY_DIRS}
 )
@@ -111,6 +158,8 @@ link_directories(
 link_libraries(
         "-fstack-protector"
         "-fstack-protector-all"
+        ${bitcoin_LIBRARIES}
+        ${bitcoin_system_LIBRARIES}
         ${openpgp_LIBRARIES}
         ${dl_LIBRARIES}
 )
@@ -151,14 +200,14 @@ target_compile_definitions(${CORE_LIB_NAME} PUBLIC
         APP_DOC_ROOT="www/"
         )
 
-target_link_libraries(${CORE_LIB_NAME} pthread ${PQ_LIB_NAME} ${SQLITE3_LIB_NAME} curl yaml-cpp)
+target_link_libraries(${CORE_LIB_NAME} pthread ${PQ_LIB_NAME} ${SQLITE3_LIB_NAME} ${CURL_LIB_NAME} yaml-cpp)
 
 # Apostol modules
 # ----------------------------------------------------------------------------------------------------------------------
 add_library(${MODULES_LIB_NAME} STATIC ${modules_files})
 target_link_libraries(${MODULES_LIB_NAME} ${CORE_LIB_NAME})
 
-# Apostol Bitcoin Module
+# BitDeals Payment Service (Deal Module)
 # ----------------------------------------------------------------------------------------------------------------------
 add_executable(${PROJECT_NAME} ${app_files})
 target_link_libraries(${PROJECT_NAME} ${MODULES_LIB_NAME})
