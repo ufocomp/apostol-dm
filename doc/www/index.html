@@ -16,11 +16,23 @@
       <div class="container shadow-sm p-3 mb-5 bg-white rounded">
         <h2>Deal Module</h2>
         <br>
-          <nav class="nav nav-pills nav-fill">
-              <a class="text-sm-center nav-link active" data-toggle="tab" href="#tab-account">Account</a>
-              <a class="text-sm-center nav-link" data-toggle="tab" href="#tab-deal">Deal</a>
-              <a class="text-sm-center nav-link" data-toggle="tab" href="#tab-signature">Signature</a>
-          </nav>
+          <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+              <li class="nav-item">
+                  <a class="nav-link active" data-toggle="pill" role="tab" href="#tab-account" aria-controls="tab-account" aria-selected="true">Account</a>
+              </li>
+              <li class="nav-item">
+                  <a class="text-sm-center nav-link" data-toggle="pill" role="tab" href="#tab-deal" aria-controls="tab-deal" aria-selected="false">Deal</a>
+              </li>
+              <li class="nav-item">
+                  <a class="text-sm-center nav-link" data-toggle="pill" role="tab" href="#tab-signature" aria-controls="tab-deal" aria-selected="false">Signature</a>
+              </li>
+              <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="btnSettings" data-toggle="dropdown" role="tab" aria-haspopup="true" aria-expanded="false">Other</a>
+                  <div class="dropdown-menu" aria-labelledby="other">
+                      <a class="dropdown-item" data-toggle="tab" href="#tab-config">Settings</a>
+                  </div>
+              </li>
+          </ul>
 
           <div class="tab-content">
               <div id="tab-account" class="tab-pane active">
@@ -48,12 +60,6 @@
                               </li>
                               <li class="nav-item">
                                   <a class="nav-link" href="#tab-account-delete">Delete</a>
-                              </li>
-                              <li class="nav-item dropdown">
-                                  <a class="nav-link dropdown-toggle" href="#" id="btnSettings" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Other</a>
-                                  <div class="dropdown-menu" aria-labelledby="other">
-                                      <a class="dropdown-item" data-toggle="tab" href="#tab-config">Settings</a>
-                                  </div>
                               </li>
                           </ul>
                           <span class="navbar-text">
@@ -162,7 +168,7 @@
                                       <div class="form-group col-md-6">
                                           <label for="updateDate">Now</label>
                                           <input type="text" class="form-control" id="updateDate" aria-describedby="updateDateHelp" placeholder="Now">
-                                          <small id="updateDateHelp" class="form-text text-muted">Format: YYYY-MM-DD</small>
+                                          <small id="updateDateHelp" class="form-text text-muted">Format: YYYY-MM-DD [HH24:MM:SS]</small>
                                       </div>
                                   </div>
                                   <div class="form-group">
@@ -199,7 +205,7 @@
                                       <div class="form-group col-md-6">
                                           <label for="deleteDate">Now</label>
                                           <input type="text" class="form-control" id="deleteDate" aria-describedby="deleteDateHelp" placeholder="Now">
-                                          <small id="deleteDateHelp" class="form-text text-muted">Format: YYYY-MM-DD</small>
+                                          <small id="deleteDateHelp" class="form-text text-muted">Format: YYYY-MM-DD [HH24:MM:SS]</small>
                                       </div>
                                   </div>
                                   <div class="form-group">
@@ -220,37 +226,8 @@
                               </div>
                           </div>
                       </div>
-                      <div id="tab-config" class="container tab-pane fade">
-                          <h3>Settings</h3>
-                          <div class="mt-3">
-                              <form>
-                                  <div class="form-row">
-                                      <div class="form-group col-md-4">
-                                          <label for="apiURL">API</label>
-                                          <input type="text" class="form-control" id="apiURL" aria-describedby="apiURLHelp" placeholder="Default: http://localhost:40977/api/v1" value="http://localhost:40977/api/v1" required>
-                                          <small id="apiURLHelp" class="form-text text-muted">Deal Module API URL.</small>
-                                      </div>
-                                      <div class="form-group col-md-4">
-                                          <label for="serverURL">Server</label>
-                                          <input type="text" class="form-control" id="serverURL" aria-describedby="serverHelp">
-                                          <small id="serverHelp" class="form-text text-muted">BPS server URL.</small>
-                                      </div>
-                                      <div class="form-group col-md-4">
-                                          <label for="userAddress">User Bitcoin address</label>
-                                          <input type="text" class="form-control" id="userAddress">
-                                          <small id="userAddressHelp" class="form-text text-muted">User Bitcoin address.</small>
-                                      </div>
-                                  </div>
-                                  <div class="custom-control custom-switch">
-                                      <input type="checkbox" checked class="custom-control-input" id="pgp">
-                                      <label class="custom-control-label" for="pgp">PGP</label>
-                                  </div>
-                              </form>
-                          </div>
-                      </div>
                   </div>
               </div>
-
               <div id="tab-deal" class="tab-pane fade">
                   <nav class="navbar navbar-expand-lg navbar-light bg-light">
                       <a class="navbar-brand" href="#">Format</a>
@@ -303,7 +280,7 @@
                                   <div class="form-group row ml-1">
                                       <label for="formDate" class="col-sm-2 col-form-label">date:</label>
                                       <div class="col-sm-10 ml-n1">
-                                          <input type="text" class="form-control" id="formDate" placeholder="YYYY-MM-DD HH24:MM:SS" required>
+                                          <input type="text" class="form-control" id="formDate" placeholder="YYYY-MM-DD HH24:MM:SS UTC" required>
                                       </div>
                                   </div>
 
@@ -351,7 +328,7 @@
                                   <div class="form-group row ml-3">
                                       <label for="formPaymentUntil" class="col-sm-2 col-form-label">until:</label>
                                       <div class="col-sm-10 ml-n3">
-                                          <input type="text" class="form-control" id="formPaymentUntil" placeholder="YYYY-MM-DD HH24:MM:SS" disabled>
+                                          <input type="text" class="form-control" id="formPaymentUntil" placeholder="YYYY-MM-DD HH24:MM:SS UTC" disabled>
                                       </div>
                                   </div>
                                   <div class="form-group row ml-3">
@@ -367,7 +344,7 @@
                                   <div class="form-group row ml-3">
                                       <label for="formFeedbackLeaveBefore" class="col-sm-2 col-form-label">leave-before:</label>
                                       <div class="col-sm-10 ml-n3">
-                                          <input type="text" class="form-control" id="formFeedbackLeaveBefore" placeholder="YYYY-MM-DD HH24:MM:SS" disabled>
+                                          <input type="text" class="form-control" id="formFeedbackLeaveBefore" placeholder="YYYY-MM-DD HH24:MM:SS UTC" disabled>
                                       </div>
                                   </div>
                                   <div class="form-group row ml-3">
@@ -423,7 +400,6 @@
                       </div>
                   </div>
               </div>
-
               <div id="tab-signature" class="container tab-pane fade">
                   <form onsubmit="checkSignature()">
                       <div class="form-group">
@@ -435,6 +411,34 @@
                   <hr>
                   <div id="signature-json" class="mt-3">
                       <small id="btnCheckSignature" class="form-text text-muted">Press "Check" button...</small>
+                  </div>
+              </div>
+              <div id="tab-config" class="container tab-pane fade">
+                  <h3>Settings</h3>
+                  <div class="mt-3">
+                      <form>
+                          <div class="form-row">
+                              <div class="form-group col-md-4">
+                                  <label for="apiURL">API</label>
+                                  <input type="text" class="form-control" id="apiURL" aria-describedby="apiURLHelp" placeholder="Default: http://localhost:40977/api/v1" value="http://localhost:40977/api/v1" required>
+                                  <small id="apiURLHelp" class="form-text text-muted">Deal Module API URL.</small>
+                              </div>
+                              <div class="form-group col-md-4">
+                                  <label for="serverURL">Server</label>
+                                  <input type="text" class="form-control" id="serverURL" aria-describedby="serverHelp">
+                                  <small id="serverHelp" class="form-text text-muted">BPS server URL.</small>
+                              </div>
+                              <div class="form-group col-md-4">
+                                  <label for="userAddress">User Bitcoin address</label>
+                                  <input type="text" class="form-control" id="userAddress">
+                                  <small id="userAddressHelp" class="form-text text-muted">User Bitcoin address.</small>
+                              </div>
+                          </div>
+                          <div class="custom-control custom-switch">
+                              <input type="checkbox" checked class="custom-control-input" id="pgp">
+                              <label class="custom-control-label" for="pgp">PGP</label>
+                          </div>
+                      </form>
                   </div>
               </div>
           </div>
@@ -774,7 +778,7 @@
           let formDate = $("input[id='formDate']");
 
           formAt.val(parser.protocol + '//' + parser.host);
-          formDate.val(getFormattedDateTime(new Date()));
+          formDate.val(getFormattedDateTime(new Date()) + ' UTC');
       }
 
       function OnChangeOrder() {
@@ -999,7 +1003,7 @@
           let execute = $("button[id='btnDealYAML']");
           execute.prop('disabled', true);
 
-          AsyncFetch(api + '/deal' + settings, dealYAML.val(), 'POST', {}, "json")
+          AsyncFetch(api + '/deal' + settings, dealYAML.val(), 'POST', {'Content-Type': 'text/plain'})
               .then(function(json) {
                   let html;
                   let payload;

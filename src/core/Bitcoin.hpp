@@ -225,7 +225,7 @@ namespace Apostol {
         std::string script_to_address(const chain::script &script, uint8_t version = payment_address::mainnet_p2sh);
         std::string script_to_address(const std::string &script, uint8_t version = payment_address::mainnet_p2sh);
         //--------------------------------------------------------------------------------------------------------------
-
+#ifdef WITH_BITCOIN_CLIENT
         uint64_t fetch_balance(const wallet::payment_address &address);
         //--------------------------------------------------------------------------------------------------------------
 
@@ -290,6 +290,7 @@ namespace Apostol {
             }
 
         };
+#endif
 
         //--------------------------------------------------------------------------------------------------------------
 

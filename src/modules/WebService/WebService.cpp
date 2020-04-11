@@ -80,50 +80,6 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::DebugRequest(CRequest *ARequest) {
-            DebugMessage("[%p] Request:\n%s %s HTTP/%d.%d\n", ARequest, ARequest->Method.c_str(), ARequest->Uri.c_str(), ARequest->VMajor, ARequest->VMinor);
-
-            for (int i = 0; i < ARequest->Headers.Count(); i++)
-                DebugMessage("%s: %s\n", ARequest->Headers[i].Name.c_str(), ARequest->Headers[i].Value.c_str());
-
-            if (!ARequest->Content.IsEmpty())
-                DebugMessage("\n%s\n", ARequest->Content.c_str());
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CWebService::DebugReply(CReply *AReply) {
-            DebugMessage("[%p] Reply:\nHTTP/%d.%d %d %s\n", AReply, AReply->VMajor, AReply->VMinor, AReply->Status, AReply->StatusText.c_str());
-
-            for (int i = 0; i < AReply->Headers.Count(); i++)
-                DebugMessage("%s: %s\n", AReply->Headers[i].Name.c_str(), AReply->Headers[i].Value.c_str());
-
-            if (!AReply->Content.IsEmpty())
-                DebugMessage("\n%s\n", AReply->Content.c_str());
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CWebService::DebugConnection(CHTTPServerConnection *AConnection) {
-            DebugMessage("\n[%p] [%s:%d] [%d] ", AConnection, AConnection->Socket()->Binding()->PeerIP(),
-                         AConnection->Socket()->Binding()->PeerPort(), AConnection->Socket()->Binding()->Handle());
-
-            DebugRequest(AConnection->Request());
-
-            static auto OnReply = [](CObject *Sender) {
-                auto LConnection = dynamic_cast<CHTTPServerConnection *> (Sender);
-                auto LBinding = LConnection->Socket()->Binding();
-
-                if (Assigned(LBinding)) {
-                    DebugMessage("\n[%p] [%s:%d] [%d] ", LConnection, LBinding->PeerIP(),
-                                 LBinding->PeerPort(), LBinding->Handle());
-                }
-
-                DebugReply(LConnection->Reply());
-            };
-
-            AConnection->OnReply(OnReply);
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
         CDateTime CWebService::GetRandomDate(int a, int b, CDateTime Date) {
             std::random_device rd;
             std::mt19937 gen(rd());
@@ -341,9 +297,9 @@ namespace Apostol {
         CHTTPProxy *CWebService::GetProxy(CHTTPServerConnection *AConnection) {
             auto LProxy = m_ProxyManager->Add(AConnection);
 
-            LProxy->OnExecute(std::bind(&CWebService::DoProxyExecute, this, _1));
-
             LProxy->OnVerbose(std::bind(&CWebService::DoVerbose, this, _1, _2, _3, _4));
+
+            LProxy->OnExecute(std::bind(&CWebService::DoProxyExecute, this, _1));
 
             LProxy->OnException(std::bind(&CWebService::DoProxyException, this, _1, _2));
             LProxy->OnEventHandlerException(std::bind(&CWebService::DoEventHandlerException, this, _1, _2));
@@ -579,6 +535,46 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        void CWebService::CheckDeal(const CDeal &Deal) {
+            const auto& Data = Deal.Data();
+
+            const auto DateTime = UTC();
+            const auto Date = StringToDate(Data.Date);
+
+            if (Data.Order == doCreate) {
+                if (DateTime < Date)
+                    throw ExceptionFrm("Invalid deal date.");
+
+                if ((DateTime - Date) > (CDateTime) 180 / 86400)
+                    throw ExceptionFrm("Deal date expired.");
+            }
+
+            if (Data.Order == doComplete) {
+                const CDateTime LeaveBefore = StringToDate(Data.FeedBack.LeaveBefore);
+                if (DateTime > LeaveBefore)
+                    throw ExceptionFrm("Deal feedback expired.");
+            }
+
+            if (Odd(int(Data.Order)) || Data.Order > doComplete)
+                throw ExceptionFrm("Invalid \"order\" value for deal module.");
+
+            if (Data.Order == doCancel) {
+                const CDateTime Until = StringToDate(Data.Payment.Until);
+                if (DateTime > Until)
+                    throw ExceptionFrm("Deal cancellation expired.");
+            }
+
+            if (!valid_address(Data.Seller.Address))
+                throw ExceptionFrm("Invalid Seller address: %s.", Data.Seller.Address.c_str());
+
+            if (!valid_address(Data.Customer.Address))
+                throw ExceptionFrm("Invalid Customer address: %s.", Data.Customer.Address.c_str());
+
+            if (!valid_address(Data.Payment.Address))
+                throw ExceptionFrm("Invalid Payment address: %s.", Data.Payment.Address.c_str());
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CWebService::RouteDeal(CHTTPServerConnection *AConnection, const CString &Method, const CString &Uri, const CString &Action) {
             auto LProxy = GetProxy(AConnection);
             auto LServerRequest = AConnection->Request();
@@ -608,7 +604,6 @@ namespace Apostol {
 
             CString ClearText;
             CString Payload;
-            CStringList Data;
 
             if (!LServerRequest->Content.IsEmpty()) {
 
@@ -828,7 +823,32 @@ namespace Apostol {
                     Node = YAML::Load(LServerRequest->Content.c_str());
                 }
 
+                if (m_PGP.IsEmpty())
+                    throw ExceptionFrm("PGP public key not loaded from server.");
+
+                if (m_BTCKeys.Count() < 2)
+                    throw ExceptionFrm("Bitcoin public keys cannot be empty.");
+
                 CDeal Deal(Node);
+
+                auto &Data = Deal.Data();
+
+                if (Data.Order == doCreate) {
+
+                    Data.Payment.Address = Deal.GetPaymentHD(m_BTCKeys[0], m_BTCKeys[1],
+                                                             Deal.Data().Transaction.Key, BitcoinConfig.VersionHD, BitcoinConfig.VersionScript);
+
+                    Node["deal"]["date"] = Data.Date.c_str();
+
+                    Node["deal"]["payment"]["address"] = Data.Payment.Address.c_str();
+                    Node["deal"]["payment"]["sum"] = Data.Payment.Sum.c_str();
+                    Node["deal"]["payment"]["until"] = Data.Payment.Until.c_str();
+
+                    Node["deal"]["feedback"]["leave-before"] = Data.FeedBack.LeaveBefore.c_str();
+
+                }
+
+                CheckDeal(Deal);
 
                 ClearText = YAML::Dump(Node);
 
@@ -1260,7 +1280,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::ParsePGPKey(const CString &Key) {
+        void CWebService::ParsePGPKey(const CString &Key, CStringPairs& ServerList, CStringList& BTCKeys) {
             if (Key.IsEmpty())
                 return;
 
@@ -1271,24 +1291,37 @@ namespace Apostol {
             CPGPUserIdList List;
             key.ExportUID(List);
 
-            m_ServerList.Clear();
             for (int i = 0; i < List.Count(); i++) {
+
                 const auto& uid = List[i];
+                const auto& name = uid.Name.Lower();
+                const auto& data = uid.Desc.Lower();
+
                 if (uid.Name.Length() >= 35 && uid.Name.SubString(0, 3) == BM_PREFIX) {
                     CStringList urlList;
                     if (FindURLInLine(uid.Desc, urlList)) {
                         for (int l = 0; l < urlList.Count(); l++) {
-                            m_ServerList.AddPair(uid.Name, urlList[l]);
+                            ServerList.AddPair(uid.Name, urlList[l]);
                         }
                     }
+
+                } else if (name == "bitcoin_key1") {
+
+                    const auto& Key1 = wallet::ec_public(data.c_str());
+                    if (verify(Key1))
+                        BTCKeys.Add(Key1.encoded());
+
+                } else if (name == "bitcoin_key2") {
+
+                    const auto &Key2 = wallet::ec_public(data.c_str());
+                    if (verify(Key2))
+                        BTCKeys.Add(Key2.encoded());
                 }
             }
-
-            m_PGP = Key;
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::LoadFromOpenPGP(CString &Key) {
+        void CWebService::LoadFromOpenPGP() {
             const auto& FingerPrint = Config()->PGPFingerPrint();
             const auto& KeyId = Config()->PGPKeyId();
 
@@ -1297,43 +1330,64 @@ namespace Apostol {
                 //sig_quit = 1;
             } else {
                 if (!FingerPrint.IsEmpty()) {
-                    KeyFromOpenPGPByFingerPrint(FingerPrint, Key);
+                    KeyFromOpenPGPByFingerPrint(FingerPrint, m_PGP);
                 } else {
-                    KeyFromOpenPGPByKeyId(KeyId, Key);
+                    KeyFromOpenPGPByKeyId(KeyId, m_PGP);
                 }
             }
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::LoadFromBPS(CString &Key) {
+        void CWebService::JsonStringToPGP(const CString &jsonString, CString& Key) {
             CJSON Json;
-            CString jsonString;
-            CString URL(CurrentServer() + "/api/v1/pgp");
+            Json << jsonString;
 
+            const auto& Error = Json["error"];
+            if (Error.ValueType() == jvtObject)
+                throw Delphi::Exception::Exception(Error["message"].AsString().c_str());
+
+            const auto Result = Json["result"].AsBoolean();
+            const auto& Message = Json["message"].AsString();
+
+            if (!Result)
+                throw Delphi::Exception::Exception(Message.c_str());
+
+            const auto& PGP = Json["key"];
+            if (PGP.ValueType() == jvtString) {
+                Key = PGP.AsString();
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::LoadFromBPS() {
+
+            CString URL(CurrentServer() + "/api/v1/pgp");
             Log()->Debug(0, "[PGP] Trying to download a key from: %s", URL.c_str());
 
 #ifdef WITH_CURL
+            CString jsonString;
+
             m_Curl.Reset();
             m_Curl.Send(URL, jsonString);
 
             /* Check for errors */
             if ( m_Curl.Code() == CURLE_OK ) {
                 try {
-                    Json << jsonString;
+                    JsonStringToPGP(jsonString, m_PGP);
 
-                    const auto& Error = Json["error"];
-                    if (Error.ValueType() == jvtObject)
-                        throw Delphi::Exception::Exception(Error["message"].AsString().c_str());
+                    if (!m_PGP.IsEmpty()) {
+                        DebugMessage("%s\n", m_PGP.c_str());
 
-                    const auto Result = Json["result"].AsBoolean();
-                    const auto& Message = Json["message"].AsString();
+                        CStringPairs ServerList;
+                        CStringList BTCKeys;
 
-                    if (!Result)
-                        throw Delphi::Exception::Exception(Message.c_str());
+                        ParsePGPKey(m_PGP, ServerList, BTCKeys);
 
-                    const auto& PGP = Json["key"];
-                    if (PGP.ValueType() == jvtString)
-                        Key = PGP.AsString();
+                        if (ServerList.Count() != 0)
+                            m_ServerList = ServerList;
+
+                        m_BTCKeys = BTCKeys;
+                    }
                 } catch (Delphi::Exception::Exception &e) {
                     Log()->Error(APP_LOG_ERR, 0, "[PGP] Error: %s", e.what());
                 }
@@ -1341,27 +1395,72 @@ namespace Apostol {
                 Log()->Error(APP_LOG_EMERG, 0, "[PGP] Failed: %s (%s)." , m_Curl.GetErrorMessage().c_str(), URL.c_str());
             }
 #else
+            auto OnRequest = [](CRequest *ARequest) {
+                CRequest::Prepare(ARequest, "GET", "/api/v1/pgp");
+            };
 
+            auto OnExecute = [this](CTCPConnection *AConnection) {
+                auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
+                auto LReply = LConnection->Reply();
+
+                try {
+                    JsonStringToPGP(LReply->Content, m_PGP);
+
+                    if (!m_PGP.IsEmpty()) {
+                        DebugMessage("%s\n", m_PGP.c_str());
+
+                        CStringPairs ServerList;
+                        CStringList BTCKeys;
+
+                        ParsePGPKey(m_PGP, ServerList, BTCKeys);
+
+                        if (ServerList.Count() != 0)
+                            m_ServerList = ServerList;
+
+                        m_BTCKeys = BTCKeys;
+                    }
+                } catch (Delphi::Exception::Exception &e) {
+                    Log()->Error(APP_LOG_ERR, 0, "[PGP] Error: %s", e.what());
+                    LoadPGPKey();
+                }
+
+                LConnection->CloseConnection(true);
+
+                return true;
+            };
+
+            auto OnException = [this](CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
+                auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
+                auto LClient = dynamic_cast<CHTTPClient *> (LConnection->Client());
+
+                Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LClient->Host().c_str(), LClient->Port(), AException->what());
+
+                LoadPGPKey();
+            };
+            //--------------------------------------------------------------------------------------------------------------
+
+            CLocation Location(URL);
+
+            auto LClient = GetClient(Location.hostname, Location.port == 0 ? BPS_SERVER_PORT : Location.port);
+
+            LClient->OnRequest(OnRequest);
+            LClient->OnExecute(OnExecute);
+            LClient->OnException(OnException);
+
+            LClient->Active(true);
 #endif
         }
         //--------------------------------------------------------------------------------------------------------------
 
         void CWebService::LoadPGPKey() {
 #ifdef WITH_CURL
-            CString Key;
-
-            while (Key.IsEmpty() && NextServerIndex() != -1) {
-                LoadFromBPS(Key);
+            while (m_PGP.IsEmpty() && NextServerIndex() != -1) {
+                LoadFromBPS();
             };
-
-            if (!Key.IsEmpty()) {
-                DebugMessage("%s\n", Key.c_str());
-                ParsePGPKey(Key);
-            }
 #else
-
+            if (NextServerIndex() != -1 )
+                LoadFromBPS();
 #endif
-
         }
         //--------------------------------------------------------------------------------------------------------------
 

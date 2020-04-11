@@ -6,7 +6,6 @@
 
 СТРУКТУРА КАТАЛОГОВ
 -
-
     auto/               содержит файлы со скриптами
     cmake-modules/      содержит файлы с модулями CMake
     conf/               содержит файлы с настройками
@@ -36,36 +35,78 @@ REST API
 
 1. Компилятор C++;
 1. [CMake](https://cmake.org) или интегрированная среда разработки (IDE) с поддержкой [CMake](https://cmake.org);
-1. Библиотека [libdelphi](https://github.com/ufocomp/libdelphi/) (Delphi classes for C++);
+1. Библиотека [libdelphi](https://github.com/ufocomp/libdelphi) (Delphi classes for C++);
+1. Библиотека [libbitcoin-explorer](https://github.com/libbitcoin/libbitcoin-explorer/tree/version3) (Bitcoin Cross-Platform C++ Development Toolkit);
+1. Библиотека [OpenPGP](https://github.com/calccrypto/OpenPGP) (OpenPGP in C++)
+1. Библиотека [yaml-cpp](https://github.com/jbeder/yaml-cpp) (YAML parser and emitter in C++)
 
-###### **ВНИМАНИЕ**: Устанавливать `libdelphi` не нужно, достаточно скачать и разместить в каталоге `src/lib` проекта.
+### Linux (Debian/Ubuntu)
 
 Для того чтобы установить компилятор C++ и необходимые библиотеки на Ubuntu выполните:
 ~~~
-sudo apt-get install build-essential libssl-dev libcurl4-openssl-dev make cmake gcc g++
+$ sudo apt-get install build-essential libssl-dev libcurl4-openssl-dev make cmake gcc g++
 ~~~
 
 ###### Подробное описание установки C++, CMake, IDE и иных компонентов необходимых для сборки проекта не входит в данное руководство. 
 
-Для установки **Модуля сделок** (без Git) необходимо:
+### libbitcoin
 
-1. Скачать **Модуль сделок** по [ссылке](https://github.com/ufocomp/dm/archive/master.zip);
+Для того чтобы установить libbitcoin выполните:
+~~~
+$ sudo apt-get install autoconf automake libtool pkg-config git
+~~~
+~~~
+$ wget https://raw.githubusercontent.com/libbitcoin/libbitcoin-explorer/version3/install.sh
+$ chmod +x install.sh
+~~~
+~~~
+$ ./install.sh --build-boost --build-zmq --disable-shared
+~~~
+
+#### OpenPGP
+
+Для сборки **OpenPGP** обратитесь к документации на сайте [OpenPGP](https://github.com/calccrypto/OpenPGP).
+
+##### CMake Configuration
+~~~
+GPG_COMPATIBLE=ON
+USE_OPENSSL=ON
+~~~
+
+###### Обратите внимание на зависимости OpenPGP от других библиотек (GMP, bzip2, zlib, OpenSSL).
+
+#### yaml-cpp
+
+Для сборки **yaml-cpp** обратитесь к документации на сайте [yaml-cpp](https://github.com/jbeder/yaml-cpp).
+
+#### BitDeals Payment Service (Deal Module)
+
+Для того чтобы установить **Модуля сделок** с помощью Git выполните:
+~~~
+$ git clone git@github.com:ufocomp/apostol-dm.git dm
+~~~
+Далее:
+1. Настроить `CMakeLists.txt` (по необходимости);
+1. Собрать и скомпилировать (см. ниже).
+
+Для того чтобы установить **Модуля сделок** (без Git) необходимо:
+
+1. Скачать **BPS (DM)** по [ссылке](https://github.com/ufocomp/apostol-dm/archive/master.zip);
 1. Распаковать;
 1. Скачать **libdelphi** по [ссылке](https://github.com/ufocomp/libdelphi/archive/master.zip);
 1. Распаковать в `src/lib/delphi`;
 1. Настроить `CMakeLists.txt` (по необходимости);
 1. Собрать и скомпилировать (см. ниже).
 
-Для установки **Модуля сделок** с помощью Git выполните:
-~~~
-git clone https://github.com/ufocomp/dm.git
-~~~
+### libdelphi
 
-Чтобы добавить **libdelphi** в проект с помощью Git выполните:
+###### Библиотеку `libdelphi` можно не устанавливать, достаточно скачать и разместить в каталоге `src/lib` проекта.
+
+Для того чтобы добавить **libdelphi** в проект с помощью Git выполните:
 ~~~
-cd dm/src/lib
-git clone https://github.com/ufocomp/libdelphi.git delphi
-cd ../../../
+$ cd dm/src/lib
+$ git clone https://github.com/ufocomp/libdelphi.git delphi
+$ cd ../../../
 ~~~
 
 ###### Сборка:

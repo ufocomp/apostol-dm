@@ -103,14 +103,11 @@ namespace Apostol {
             CStringPairs m_ServerList;
 
             CString m_PGP;
+            CStringList m_BTCKeys;
 
             CHTTPProxyManager *m_ProxyManager;
 
             CHTTPProxy *GetProxy(CHTTPServerConnection *AConnection);
-
-            static void DebugRequest(CRequest *ARequest);
-            static void DebugReply(CReply *AReply);
-            static void DebugConnection(CHTTPServerConnection *AConnection);
 
             void RouteUser(CHTTPServerConnection *AConnection, const CString &Method, const CString &Uri);
             void RouteDeal(CHTTPServerConnection *AConnection, const CString &Method, const CString &Uri, const CString &Action);
@@ -125,10 +122,8 @@ namespace Apostol {
             bool ServerPing(const CString &URL);
             void NextServer();
 
-            static void LoadFromOpenPGP(CString &Key);
-            void LoadFromBPS(CString &Key);
-
-            void ParsePGPKey(const CString& Key);
+            void LoadFromOpenPGP();
+            void LoadFromBPS();
 
             static int CheckFee(const CString& Fee);
 
@@ -170,6 +165,11 @@ namespace Apostol {
             bool CheckUserAgent(const CString &Value) override;
 
             void LoadPGPKey();
+
+            static void JsonStringToPGP(const CString& jsonString, CString& Key);
+            static void ParsePGPKey(const CString& Key, CStringPairs& ServerList, CStringList& BTCKeys);
+
+            static void CheckDeal(const CDeal& Deal);
 
             static bool CheckVerifyPGPSignature(int VerifyPGPSignature, CString &Message);
             static int VerifyPGPSignature(const CString &ClearText, const CString &Key, CString &Message);

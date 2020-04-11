@@ -470,6 +470,15 @@ namespace Apostol {
 #endif
             Log()->Message("Config file: %s", Config()->ConfFile().c_str());
 
+            if (Config()->TestNet()) {
+                BitcoinConfig.VersionHD = hd_private::testnet;
+                BitcoinConfig.VersionEC = ec_private::testnet;
+                BitcoinConfig.VersionKey = payment_address::testnet_p2kh;
+                BitcoinConfig.VersionScript = payment_address::testnet_p2sh;
+                BitcoinConfig.endpoint = "tcp://testnet.libbitcoin.net:19091";
+                BitcoinConfig.Symbol = "tBTC";
+            }
+
             StartProcess();
         }
 

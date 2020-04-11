@@ -276,6 +276,8 @@ namespace Apostol {
             bool m_fMaster;
             bool m_fDaemon;
 
+            bool m_fTestNet;
+
             CString m_sUser;
             CString m_sGroup;
             CString m_sListen;
@@ -369,6 +371,8 @@ namespace Apostol {
             bool Master() { return m_fMaster; };
 
             bool Daemon() { return m_fDaemon; };
+
+            bool TestNet() { return m_fTestNet; };
 
             uint32_t Port() { return m_nPort; };
 

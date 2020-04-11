@@ -661,7 +661,7 @@ namespace Apostol {
             return encode_base16(sha256_hash(address.output_script().to_data(false)));
         }
         //--------------------------------------------------------------------------------------------------------------
-
+#ifdef WITH_BITCOIN_CLIENT
         uint64_t fetch_balance(const wallet::payment_address &address) {
             uint64_t result = 0;
 
@@ -697,7 +697,10 @@ namespace Apostol {
             return result;
         }
         //--------------------------------------------------------------------------------------------------------------
-#else
+#endif // WITH_BITCOIN_CLIENT
+
+#else // BITCOIN_VERSION_4
+
         chain::script get_witness_script(const ec_public &key1, const ec_public &key2, const ec_public &key3) {
             //make key list
             point_list keys {key1.point(), key2.point(), key3.point()};
@@ -730,7 +733,7 @@ namespace Apostol {
             return script_to_address(Bitcoin::script(script), version);
         }
         //--------------------------------------------------------------------------------------------------------------
-
+#ifdef WITH_BITCOIN_CLIENT
         void code_to_json(const code& error, CJSON &Result) {
             CString json;
             if (error.message().empty()) {
@@ -963,8 +966,15 @@ namespace Apostol {
 
             send_tx(tx, Result);
         }
+#endif // WITH_BITCOIN_CLIENT
+#endif // BITCOIN_VERSION_4
 
-#endif
+#ifdef WITH_BITCOIN_CLIENT
+        //--------------------------------------------------------------------------------------------------------------
+
+        //-- CBalance --------------------------------------------------------------------------------------------------
+
+        //--------------------------------------------------------------------------------------------------------------
 
         void CBalance::Clear() {
             m_Transfers = 0;
@@ -1013,6 +1023,7 @@ namespace Apostol {
                 m_TimeStamp = SystemTimeToDateTime(localtime(&timestamp), 0);
             }
         }
+#endif // WITH_BITCOIN_CLIENT
 
         //--------------------------------------------------------------------------------------------------------------
 

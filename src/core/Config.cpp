@@ -178,6 +178,7 @@ namespace Apostol {
 
             m_fMaster = false;
             m_fDaemon = false;
+            m_fTestNet = false;
 
             m_Flags = {false, false, false, false};
         }
@@ -420,6 +421,7 @@ namespace Apostol {
 
             m_fMaster = true;
             m_fDaemon = true;
+            m_fTestNet = false;
 
             SetUser(m_sUser.empty() ? APP_DEFAULT_USER : m_sUser.c_str());
             SetGroup(m_sGroup.empty() ? APP_DEFAULT_GROUP : m_sGroup.c_str());
@@ -467,6 +469,8 @@ namespace Apostol {
 
             Add(new CConfigCommand(_T("log"), _T("error"), m_sErrorLog.c_str(), std::bind(&CConfig::SetErrorLog, this, _1)));
             Add(new CConfigCommand(_T("server"), _T("log"), m_sAccessLog.c_str(), std::bind(&CConfig::SetAccessLog, this, _1)));
+
+            Add(new CConfigCommand(_T("bitcoin"), _T("testnet"), &m_fTestNet));
 
             Add(new CConfigCommand(_T("module"), _T("address"), m_sModuleAddress.c_str(), std::bind(&CConfig::SetModuleAddress, this, _1)));
             Add(new CConfigCommand(_T("module"), _T("fee"), m_sModuleFee.c_str(), std::bind(&CConfig::SetModuleFee, this, _1)));

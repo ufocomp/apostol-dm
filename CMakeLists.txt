@@ -12,10 +12,11 @@ message(STATUS "Project description: ${PROJECT_DESCRIPTION}")
 
 # Settings
 # ----------------------------------------------------------------------------------------------------------------------
-set(INSTALL_AS_ROOT  ON  CACHE BOOL "Install as root")
-set(WITH_POSTGRESQL  OFF CACHE BOOL "Build with PostgreSQL")
-set(WITH_SQLITE3     OFF CACHE BOOL "Build with Sqlite3")
-set(WITH_CURL        OFF CACHE BOOL "Build with cURL")
+set(INSTALL_AS_ROOT         ON  CACHE BOOL "Install as root")
+set(WITH_POSTGRESQL         OFF CACHE BOOL "Build with PostgreSQL")
+set(WITH_SQLITE3            OFF CACHE BOOL "Build with Sqlite3")
+set(WITH_CURL               OFF CACHE BOOL "Build with cURL")
+set(WITH_BITCOIN_CLIENT     OFF CACHE BOOL "Build with libbitcoin-client")
 # ----------------------------------------------------------------------------------------------------------------------
 
 if (INSTALL_AS_ROOT)
@@ -32,10 +33,6 @@ add_compile_options("$<$<CONFIG:DEBUG>:-D_DEBUG>")
 
 set(CORE_LIB_NAME apostol-core)
 set(MODULES_LIB_NAME apostol-modules)
-
-set(BITCOIN_LIB_NAME bitcoin-system)
-# set(BITCOIN_VERSION "4.0.0")
-set(BITCOIN_VERSION "3.6.0")
 
 add_custom_target(
         auto_increment_version
@@ -106,9 +103,14 @@ add_definitions( -DGPG_COMPATIBLE )
 # Find Bitcoin
 #------------------------------------------------------------------------------
 
+# set(BITCOIN_VERSION "4.0.0")
+set(BITCOIN_VERSION "3.6.0")
+
 #add_definitions( -DWITH_ICU )
 
 if ( ${BITCOIN_VERSION} VERSION_LESS "4.0.0" )
+
+    set(BITCOIN_LIB_NAME bitcoin)
 
     find_package(Bitcoin ${BITCOIN_VERSION} REQUIRED)
 
@@ -118,12 +120,26 @@ if ( ${BITCOIN_VERSION} VERSION_LESS "4.0.0" )
 
 else()
 
+    set(BITCOIN_LIB_NAME bitcoin-system)
+
     find_package(Bitcoin-System ${BITCOIN_VERSION} REQUIRED)
 
     message(STATUS "Bitcoin-System headers: ${bitcoin_system_INCLUDE_DIRS}")
     message(STATUS "Bitcoin-System directory: ${bitcoin_system_LIBRARY_DIRS}")
     message(STATUS "Bitcoin-System libraries: ${bitcoin_system_LIBRARIES}")
 
+endif()
+
+# Find Bitcoin-Client
+#------------------------------------------------------------------------------
+if (WITH_BITCOIN_CLIENT)
+    add_compile_options("-DWITH_BITCOIN_CLIENT")
+
+    find_package(Bitcoin-Client ${BITCOIN_VERSION} REQUIRED)
+
+    message(STATUS "Bitcoin-Client headers: ${bitcoin_client_INCLUDE_DIRS}")
+    message(STATUS "Bitcoin-Client directory: ${bitcoin_client_LIBRARY_DIRS}")
+    message(STATUS "Bitcoin-Client libraries: ${bitcoin_client_LIBRARIES}")
 endif()
 
 # Find dl
@@ -140,6 +156,7 @@ endif()
 include_directories( SYSTEM
         ${bitcoin_INCLUDE_DIRS}
         ${bitcoin_system_INCLUDE_DIRS}
+        ${bitcoin_client_INCLUDE_DIRS}
         ${openpgp_INCLUDE_DIRS}
         ${dl_INCLUDE_DIRS}
         )
@@ -149,6 +166,7 @@ include_directories( SYSTEM
 link_directories(
         ${bitcoin_LIBRARY_DIRS}
         ${bitcoin_system_LIBRARY_DIRS}
+        ${bitcoin_client_LIBRARY_DIRS}
         ${openpgp_LIBRARY_DIRS}
         ${dl_LIBRARY_DIRS}
 )
@@ -160,6 +178,7 @@ link_libraries(
         "-fstack-protector-all"
         ${bitcoin_LIBRARIES}
         ${bitcoin_system_LIBRARIES}
+        ${bitcoin_client_LIBRARIES}
         ${openpgp_LIBRARIES}
         ${dl_LIBRARIES}
 )
