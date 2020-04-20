@@ -56,7 +56,7 @@ namespace Apostol {
 
             };
 
-            bool Allow() { return m_Allow; };
+            bool Allow() const { return m_Allow; };
 
             void Handler(CHTTPServerConnection *AConnection) {
                 if (m_Allow && m_Handler)
