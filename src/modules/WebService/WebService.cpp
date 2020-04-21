@@ -1491,7 +1491,7 @@ namespace Apostol {
                 if (m_PGP.IsEmpty()) {
                     m_RandomDate = now + (CDateTime) 30 / 86400; // 30 sec
                 } else {
-                    m_RandomDate = GetRandomDate(5 * 60, 30 * 60, now); // 5..30 min
+                    m_RandomDate = GetRandomDate(10 * 60, 30 * 60, now); // 10..30 min
                 }
             }
 /*
