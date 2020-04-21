@@ -1227,7 +1227,7 @@ namespace Apostol {
 
         int CWebService::NextServerIndex() {
             m_ServerIndex++;
-            if (m_ServerIndex == m_ServerList.Count())
+            if (m_ServerIndex >= m_ServerList.Count())
                 m_ServerIndex = -1;
             return m_ServerIndex;
         }
