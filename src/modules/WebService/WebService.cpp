@@ -1296,12 +1296,13 @@ namespace Apostol {
             if (Key.IsEmpty())
                 return;
 
-            const Apostol::PGP::Key key(Key.c_str());
-            if (!key.meaningful())
+            const Apostol::PGP::Key pgp(Key.c_str());
+            if (!pgp.meaningful())
                 return;
 
             CPGPUserIdList List;
-            key.ExportUID(List);
+            CStringList KeyList;
+            pgp.ExportUID(List);
 
             for (int i = 0; i < List.Count(); i++) {
 
@@ -1316,19 +1317,20 @@ namespace Apostol {
                             ServerList.AddPair(uid.Name, urlList[l]);
                         }
                     }
-
-                } else if (name == "bitcoin_key1") {
-
-                    const auto& Key1 = wallet::ec_public(data.c_str());
-                    if (verify(Key1))
-                        BTCKeys.Add(Key1.encoded());
-
-                } else if (name == "bitcoin_key2") {
-
-                    const auto &Key2 = wallet::ec_public(data.c_str());
-                    if (verify(Key2))
-                        BTCKeys.Add(Key2.encoded());
+                } else if (name.Find("bitcoin_key") != CString::npos) {
+                    const auto& key = wallet::ec_public(data.c_str());
+                    if (verify(key))
+                        KeyList.AddPair(name, key.encoded());
                 }
+            }
+
+            CString Name;
+            for (int i = 1; i <= KeyList.Count(); i++) {
+                Name = "bitcoin_key";
+                Name << i;
+                const auto& key = KeyList[Name];
+                if (!key.IsEmpty())
+                    BTCKeys.Add(key);
             }
         }
         //--------------------------------------------------------------------------------------------------------------
