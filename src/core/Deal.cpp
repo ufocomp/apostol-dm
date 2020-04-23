@@ -435,7 +435,7 @@ namespace Apostol {
                 const CDateTime Date = StringToDate(m_Data.Date);
 
                 if (m_Data.Payment.Until.IsEmpty())
-                    m_Data.Payment.Until = DateToString(Date + 1);
+                    m_Data.Payment.Until = DateToString(Date + (CDateTime) 3600 / 86400); // 60 min
 
                 if (m_Data.FeedBack.LeaveBefore.IsEmpty())
                     m_Data.FeedBack.LeaveBefore = DateToString(Date + 1);
