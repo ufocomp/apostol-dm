@@ -69,7 +69,7 @@ namespace Apostol {
                 this->Positive = Rating.Positive;
             };
 
-            int Compare(const CRating& Rating) {
+            int Compare(const CRating& Rating) const {
                 if (this->Count == Rating.Count)
                     return 0;
                 if (this->Count > Rating.Count)
