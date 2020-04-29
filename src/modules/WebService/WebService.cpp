@@ -329,15 +329,15 @@ namespace Apostol {
             auto LServerRequest = AConnection->Request();
             auto LProxyRequest = LProxy->Request();
 
-            const auto &LModuleAddress = Config()->ModuleAddress();
+            const auto& LModuleAddress = Config()->ModuleAddress();
 
-            const auto &LOrigin = LServerRequest->Headers.Values("origin");
-            const auto &LUserAddress = LServerRequest->Params["address"];
+            const auto& LOrigin = LServerRequest->Headers.Values("origin");
+            const auto& LUserAddress = LServerRequest->Params["address"];
 
-            const auto &pgpValue = LServerRequest->Params["pgp"];
+            const auto& pgpValue = LServerRequest->Params["pgp"];
 
-            const auto &LServerParam = LServerRequest->Params["server"];
-            const auto &LServer = LServerParam.IsEmpty() ? CurrentServer() : LServerParam;
+            const auto& LServerParam = LServerRequest->Params["server"];
+            const auto& LServer = LServerParam.IsEmpty() ? CurrentServer() : LServerParam;
 
             CLocation Location(LServer);
 
@@ -349,20 +349,20 @@ namespace Apostol {
 
             if (!LServerRequest->Content.IsEmpty()) {
 
-                const auto &ContentType = LServerRequest->Headers.Values(_T("content-type"));
+                const auto& ContentType = LServerRequest->Headers.Values(_T("content-type"));
 
                 if (ContentType == "application/x-www-form-urlencoded") {
 
                     const CStringList &FormData = LServerRequest->FormData;
 
-                    const auto &formDate = FormData["date"];
-                    const auto &formAddress = FormData["address"];
-                    const auto &formBitmessage = FormData["bitmessage"];
-                    const auto &formKey = FormData["key"];
-                    const auto &formPGP = FormData["pgp"];
-                    const auto &formURL = FormData["url"];
-                    const auto &formFlags = FormData["flags"];
-                    const auto &formSign = FormData["sign"];
+                    const auto& formDate = FormData["date"];
+                    const auto& formAddress = FormData["address"];
+                    const auto& formBitmessage = FormData["bitmessage"];
+                    const auto& formKey = FormData["key"];
+                    const auto& formPGP = FormData["pgp"];
+                    const auto& formURL = FormData["url"];
+                    const auto& formFlags = FormData["flags"];
+                    const auto& formSign = FormData["sign"];
 
                     if (!formDate.IsEmpty()) {
                         ClearText << formDate << LINEFEED;
@@ -401,14 +401,14 @@ namespace Apostol {
                     CFormData FormData;
                     CRequestParser::ParseFormData(LServerRequest, FormData);
 
-                    const auto &formDate = FormData.Data("date");
-                    const auto &formAddress = FormData.Data("address");
-                    const auto &formBitmessage = FormData.Data("bitmessage");
-                    const auto &formKey = FormData.Data("key");
-                    const auto &formPGP = FormData.Data("pgp");
-                    const auto &formURL = FormData.Data("url");
-                    const auto &formFlags = FormData.Data("flags");
-                    const auto &formSign = FormData.Data("sign");
+                    const auto& formDate = FormData.Data("date");
+                    const auto& formAddress = FormData.Data("address");
+                    const auto& formBitmessage = FormData.Data("bitmessage");
+                    const auto& formKey = FormData.Data("key");
+                    const auto& formPGP = FormData.Data("pgp");
+                    const auto& formURL = FormData.Data("url");
+                    const auto& formFlags = FormData.Data("flags");
+                    const auto& formSign = FormData.Data("sign");
 
                     if (!formDate.IsEmpty()) {
                         ClearText << formDate << LINEFEED;
@@ -446,13 +446,13 @@ namespace Apostol {
 
                     const CJSON contextJson(LServerRequest->Content);
 
-                    const auto &jsonDate = contextJson["date"].AsString();
-                    const auto &jsonAddress = contextJson["address"].AsString();
-                    const auto &jsonBitmessage = contextJson["bitmessage"].AsString();
-                    const auto &jsonKey = contextJson["key"].AsString();
-                    const auto &jsonPGP = contextJson["pgp"].AsString();
-                    const auto &jsonFlags = contextJson["flags"].AsString();
-                    const auto &jsonSign = contextJson["sign"].AsString();
+                    const auto& jsonDate = contextJson["date"].AsString();
+                    const auto& jsonAddress = contextJson["address"].AsString();
+                    const auto& jsonBitmessage = contextJson["bitmessage"].AsString();
+                    const auto& jsonKey = contextJson["key"].AsString();
+                    const auto& jsonPGP = contextJson["pgp"].AsString();
+                    const auto& jsonFlags = contextJson["flags"].AsString();
+                    const auto& jsonSign = contextJson["sign"].AsString();
 
                     if (!jsonDate.IsEmpty()) {
                         ClearText << jsonDate << LINEFEED;
@@ -519,7 +519,7 @@ namespace Apostol {
 
             LProxyRequest->Clear();
 
-            const auto &LHost = LServerRequest->Headers.Values("host");
+            const auto& LHost = LServerRequest->Headers.Values("host");
             if (!LHost.IsEmpty()) {
                 const size_t Pos = LHost.Find(':');
                 if (Pos != CString::npos) {
@@ -592,20 +592,20 @@ namespace Apostol {
             auto LServerRequest = AConnection->Request();
             auto LProxyRequest = LProxy->Request();
 
-            const auto &LModuleAddress = Config()->ModuleAddress();
-            const auto &LModuleFee = Config()->ModuleFee();
+            const auto& LModuleAddress = Config()->ModuleAddress();
+            const auto& LModuleFee = Config()->ModuleFee();
 
             const auto checkFee = CheckFee(LModuleFee);
             if (checkFee == -1)
                 throw ExceptionFrm("Invalid module fee value: %s", LModuleFee.c_str());
 
-            const auto &LOrigin = LServerRequest->Headers.Values("origin");
-            const auto &LUserAddress = LServerRequest->Params["address"];
+            const auto& LOrigin = LServerRequest->Headers.Values("origin");
+            const auto& LUserAddress = LServerRequest->Params["address"];
 
-            const auto &pgpValue = LServerRequest->Params["pgp"];
+            const auto& pgpValue = LServerRequest->Params["pgp"];
 
-            const auto &LServerParam = LServerRequest->Params["server"];
-            const auto &LServer = LServerParam.IsEmpty() ? CurrentServer() : LServerParam;
+            const auto& LServerParam = LServerRequest->Params["server"];
+            const auto& LServer = LServerParam.IsEmpty() ? CurrentServer() : LServerParam;
 
             CLocation Location(LServer);
 
@@ -619,25 +619,27 @@ namespace Apostol {
 
             if (!LServerRequest->Content.IsEmpty()) {
 
-                const auto &ContentType = LServerRequest->Headers.Values(_T("content-type"));
+                const auto& ContentType = LServerRequest->Headers.Values(_T("content-type"));
 
                 if (ContentType == "application/x-www-form-urlencoded") {
 
                     const CStringList &FormData = LServerRequest->FormData;
 
-                    const auto &formAt = FormData["at"];
-                    const auto &formDate = FormData["date"];
-                    const auto &formSellerAddress = FormData["seller_address"];
-                    const auto &formSellerRating = FormData["seller_rating"];
-                    const auto &formCustomerAddress = FormData["customer_address"];
-                    const auto &formCustomerRating = FormData["customer_rating"];
-                    const auto &formPaymentAddress = FormData["payment_address"];
-                    const auto &formPaymentUntil = FormData["payment_until"];
-                    const auto &formPaymentSum = FormData["payment_sum"];
-                    const auto &formFeedbackLeaveBefore = FormData["feedback_leave_before"];
-                    const auto &formFeedbackStatus = FormData["feedback_status"];
-                    const auto &formFeedbackComments = FormData["feedback_comments"];
+                    const auto& formType = FormData["type"];
+                    const auto& formAt = FormData["at"];
+                    const auto& formDate = FormData["date"];
+                    const auto& formSellerAddress = FormData["seller_address"];
+                    const auto& formSellerRating = FormData["seller_rating"];
+                    const auto& formCustomerAddress = FormData["customer_address"];
+                    const auto& formCustomerRating = FormData["customer_rating"];
+                    const auto& formPaymentAddress = FormData["payment_address"];
+                    const auto& formPaymentUntil = FormData["payment_until"];
+                    const auto& formPaymentSum = FormData["payment_sum"];
+                    const auto& formFeedbackLeaveBefore = FormData["feedback_leave_before"];
+                    const auto& formFeedbackStatus = FormData["feedback_status"];
+                    const auto& formFeedbackComments = FormData["feedback_comments"];
 
+                    CheckKeyForNull("type", formType.c_str());
                     CheckKeyForNull("at", formAt.c_str());
                     CheckKeyForNull("date", formDate.c_str());
                     CheckKeyForNull("seller_address", formSellerAddress.c_str());
@@ -691,19 +693,21 @@ namespace Apostol {
                     CFormData FormData;
                     CRequestParser::ParseFormData(LServerRequest, FormData);
 
-                    const auto &formAt = FormData.Data("at");
-                    const auto &formDate = FormData.Data("date");
-                    const auto &formSellerAddress = FormData.Data("seller_address");
-                    const auto &formSellerRating = FormData.Data("seller_rating");
-                    const auto &formCustomerAddress = FormData.Data("customer_address");
-                    const auto &formCustomerRating = FormData.Data("customer_rating");
-                    const auto &formPaymentAddress = FormData.Data("payment_address");
-                    const auto &formPaymentUntil = FormData.Data("payment_until");
-                    const auto &formPaymentSum = FormData.Data("payment_sum");
-                    const auto &formFeedbackLeaveBefore = FormData.Data("feedback_leave_before");
-                    const auto &formFeedbackStatus = FormData.Data("feedback_status");
-                    const auto &formFeedbackComments = FormData.Data("feedback_comments");
+                    const auto& formType = FormData.Data("type");
+                    const auto& formAt = FormData.Data("at");
+                    const auto& formDate = FormData.Data("date");
+                    const auto& formSellerAddress = FormData.Data("seller_address");
+                    const auto& formSellerRating = FormData.Data("seller_rating");
+                    const auto& formCustomerAddress = FormData.Data("customer_address");
+                    const auto& formCustomerRating = FormData.Data("customer_rating");
+                    const auto& formPaymentAddress = FormData.Data("payment_address");
+                    const auto& formPaymentUntil = FormData.Data("payment_until");
+                    const auto& formPaymentSum = FormData.Data("payment_sum");
+                    const auto& formFeedbackLeaveBefore = FormData.Data("feedback_leave_before");
+                    const auto& formFeedbackStatus = FormData.Data("feedback_status");
+                    const auto& formFeedbackComments = FormData.Data("feedback_comments");
 
+                    CheckKeyForNull("type", formType.c_str());
                     CheckKeyForNull("at", formAt.c_str());
                     CheckKeyForNull("date", formDate.c_str());
                     CheckKeyForNull("seller_address", formSellerAddress.c_str());
@@ -756,32 +760,32 @@ namespace Apostol {
 
                     const CJSON jsonData(LServerRequest->Content);
 
-                    const auto &formOrder = jsonData["order"].AsString();
+                    const auto& formOrder = jsonData["order"].AsString();
 
-                    const auto &formAt = jsonData["at"].AsString();
-                    const auto &formDate = jsonData["date"].AsString();
+                    const auto& formAt = jsonData["at"].AsString();
+                    const auto& formDate = jsonData["date"].AsString();
 
                     const CJSONValue &jsonSeller = jsonData["seller"];
 
-                    const auto &formSellerAddress = jsonSeller["address"].AsString();
-                    const auto &formSellerRating = jsonSeller["rating"].AsString();
+                    const auto& formSellerAddress = jsonSeller["address"].AsString();
+                    const auto& formSellerRating = jsonSeller["rating"].AsString();
 
                     const CJSONValue &jsonCustomer = jsonData["customer"];
 
-                    const auto &formCustomerAddress = jsonCustomer["address"].AsString();
-                    const auto &formCustomerRating = jsonCustomer["rating"].AsString();
+                    const auto& formCustomerAddress = jsonCustomer["address"].AsString();
+                    const auto& formCustomerRating = jsonCustomer["rating"].AsString();
 
                     const CJSONValue &jsonPayment = jsonData["payment"];
 
-                    const auto &formPaymentAddress = jsonPayment["address"].AsString();
-                    const auto &formPaymentUntil = jsonPayment["until"].AsString();
-                    const auto &formPaymentSum = jsonPayment["sum"].AsString();
+                    const auto& formPaymentAddress = jsonPayment["address"].AsString();
+                    const auto& formPaymentUntil = jsonPayment["until"].AsString();
+                    const auto& formPaymentSum = jsonPayment["sum"].AsString();
 
                     const CJSONValue &jsonFeedback = jsonData["feedback"];
 
-                    const auto &formFeedbackLeaveBefore = jsonFeedback["leave-before"].AsString();
-                    const auto &formFeedbackStatus = jsonFeedback["status"].AsString();
-                    const auto &formFeedbackComments = jsonFeedback["comments"].AsString();
+                    const auto& formFeedbackLeaveBefore = jsonFeedback["leave-before"].AsString();
+                    const auto& formFeedbackStatus = jsonFeedback["status"].AsString();
+                    const auto& formFeedbackComments = jsonFeedback["comments"].AsString();
 
                     CheckKeyForNull("at", formAt.c_str());
                     CheckKeyForNull("date", formDate.c_str());
@@ -843,7 +847,7 @@ namespace Apostol {
 
                 CDeal Deal(Node);
 
-                auto &Data = Deal.Data();
+                auto& Data = Deal.Data();
 
                 if (Data.Order == doCreate) {
 
@@ -888,7 +892,7 @@ namespace Apostol {
 
             LProxyRequest->Clear();
 
-            const auto &LHost = LServerRequest->Headers.Values("host");
+            const auto& LHost = LServerRequest->Headers.Values("host");
             if (!LHost.IsEmpty()) {
                 const size_t Pos = LHost.Find(':');
                 if (Pos != CString::npos) {
@@ -934,12 +938,12 @@ namespace Apostol {
             CString Message;
             CJSON Json(jvtObject);
 
-            const auto &ContentType = LRequest->Headers.Values(_T("content-type"));
+            const auto& ContentType = LRequest->Headers.Values(_T("content-type"));
 
             if (ContentType == "application/x-www-form-urlencoded") {
                 const CStringList &FormData = LRequest->FormData;
 
-                const auto &ClearText = FormData["message"];
+                const auto& ClearText = FormData["message"];
                 CheckKeyForNull("message", ClearText.c_str());
 
                 const auto Verified = CheckVerifyPGPSignature(VerifyPGPSignature(ClearText, m_PGP, Message), Message);
@@ -948,7 +952,7 @@ namespace Apostol {
                 CFormData FormData;
                 CRequestParser::ParseFormData(LRequest, FormData);
 
-                const auto &ClearText = FormData.Data("message");
+                const auto& ClearText = FormData.Data("message");
                 CheckKeyForNull("message", ClearText.c_str());
 
                 const auto Verified = CheckVerifyPGPSignature(VerifyPGPSignature(ClearText, m_PGP, Message), Message);
@@ -956,13 +960,13 @@ namespace Apostol {
             } else if (ContentType == "application/json") {
                 const CJSON jsonData(LRequest->Content);
 
-                const auto &ClearText = jsonData["message"].AsString();
+                const auto& ClearText = jsonData["message"].AsString();
                 CheckKeyForNull("message", ClearText.c_str());
 
                 const auto Verified = CheckVerifyPGPSignature(VerifyPGPSignature(ClearText, m_PGP, Message), Message);
                 Json.Object().AddPair("verified", Verified);
             } else {
-                const auto &ClearText = LRequest->Content;
+                const auto& ClearText = LRequest->Content;
                 const auto Verified = CheckVerifyPGPSignature(VerifyPGPSignature(ClearText, m_PGP, Message), Message);
                 Json.Object().AddPair("verified", Verified);
             }

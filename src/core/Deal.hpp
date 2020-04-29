@@ -156,16 +156,20 @@ namespace Apostol {
 
         //--------------------------------------------------------------------------------------------------------------
 
+        enum CDealType { dtPrepayment = 0, dtPostpayment };
+        //--------------------------------------------------------------------------------------------------------------
+
         enum CFeedBackStatus { fsNegative = -1, fsNeutral = 0, fsPositive = 1 };
         //--------------------------------------------------------------------------------------------------------------
 
-        enum CDealOrder { doCreate = 0, doCreated, doPostpayment, doPaid, doPrepayment, doPrepaid, doComplete, doCompleted,
-                doCancel, doCanceled, doExecute, doExecuted, doDelete, doDeleted, doFeedback };
+        enum CDealOrder { doCreate = 0, doCreated, doPay, doPaid, doComplete, doCompleted, doCancel, doCanceled,
+                doExecute, doExecuted, doDelete, doDeleted, doFeedback };
         //--------------------------------------------------------------------------------------------------------------
 
         typedef struct DealData {
 
             CDealOrder Order = doCreate;
+            CDealType Type = dtPrepayment;
 
             // Hidden value
             CString Code;
@@ -206,7 +210,7 @@ namespace Apostol {
                 CString Message;
             } Error;
 
-            CString GetStringData();
+            CString GetStringData() const;
 
         } CDealData, *PDealData;
 
@@ -263,6 +267,9 @@ namespace Apostol {
 
             static CDealOrder StringToOrder(const CString &Value);
             static CString OrderToString(CDealOrder Order);
+
+            static CDealType StringToType(const CString &Value);
+            static CString TypeToString(CDealType Type);
 
             static CFeedBackStatus StringToFeedBackStatus(const CString &Value);
             static CString FeedBackStatusToString(CFeedBackStatus Status);

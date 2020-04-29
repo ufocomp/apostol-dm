@@ -77,9 +77,10 @@ namespace Apostol {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        CString DealData::GetStringData() {
+        CString DealData::GetStringData() const {
             CString Data;
 
+            Data.Format("Type: %d;", (int) Type);
             Data.Format("URL: %s;", At.c_str());
             Data.Format("Date: %s;", Date.c_str());
             Data.Format("Seller: %s;", Seller.Address.c_str());
@@ -151,14 +152,10 @@ namespace Apostol {
                 return doCreate;
             } else if (S == "created") {
                 return doCreated;
-            } else if (S == "postpayment") {
-                return doPostpayment;
+            } else if (S == "pay") {
+                return doPay;
             } else if (S == "paid") {
                 return doPaid;
-            } else if (S == "prepayment") {
-                return doPrepayment;
-            } else if (S == "prepaid") {
-                return doPrepaid;
             } else if (S == "complete") {
                 return doComplete;
             } else if (S == "completed") {
@@ -189,14 +186,10 @@ namespace Apostol {
                     return "Create";
                 case doCreated:
                     return "Created";
-                case doPostpayment:
-                    return "Postpayment";
+                case doPay:
+                    return "Pay";
                 case doPaid:
                     return "Paid";
-                case doPrepayment:
-                    return "Prepayment";
-                case doPrepaid:
-                    return "Prepaid";
                 case doComplete:
                     return "Complete";
                 case doCompleted:
@@ -215,6 +208,31 @@ namespace Apostol {
                     return "Deleted";
                 case doFeedback:
                     return "feedback";
+                default:
+                    return "Unknown";
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        CDealType CDeal::StringToType(const CString &Value) {
+            const CString &Status = Value.Lower();
+
+            if (Status == "prepayment") {
+                return dtPrepayment;
+            } else if (Status == "postpayment") {
+                return dtPostpayment;
+            } else {
+                throw ExceptionFrm(R"(Invalid order type value: "%s".)", Status.c_str());
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        CString CDeal::TypeToString(CDealType Type) {
+            switch (Type) {
+                case dtPrepayment:
+                    return "Prepayment";
+                case dtPostpayment:
+                    return "Postpayment";
                 default:
                     return "Unknown";
             }
@@ -281,28 +299,28 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         wallet::ec_public CDeal::to_public_ek(uint8_t version) {
-            const auto &hash = get_hash();
+            const auto& hash = get_hash();
             const std::string seed(hash.substr(0, 48));
             const std::string salt(hash.substr(48, 16));
-            const auto &token = Bitcoin::token_new(hash, base16(salt));
-            const auto &key = Bitcoin::ek_public(token, base16(seed), version);
+            const auto& token = Bitcoin::token_new(hash, base16(salt));
+            const auto& key = Bitcoin::ek_public(token, base16(seed), version);
             return ek_public_to_ec(hash, key);
         }
         //--------------------------------------------------------------------------------------------------------------
 
         wallet::payment_address CDeal::to_address_ek(uint8_t version) {
-            const auto &hash = get_hash();
+            const auto& hash = get_hash();
             const std::string seed(hash.substr(0, 48));
             const std::string salt(hash.substr(48, 16));
-            const auto &token = Bitcoin::token_new(hash, base16(salt));
+            const auto& token = Bitcoin::token_new(hash, base16(salt));
             return Bitcoin::ek_address(token, base16(seed), version);
         }
         //--------------------------------------------------------------------------------------------------------------
 
         wallet::ec_public CDeal::to_public_hd(uint64_t prefixes) {
-            const auto &hash = get_hash();
-            const auto &key = hd_new(base16(hash), prefixes);
-            const auto &public_key = key.to_public();
+            const auto& hash = get_hash();
+            const auto& key = hd_new(base16(hash), prefixes);
+            const auto& public_key = key.to_public();
             return public_key.point();
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -314,35 +332,35 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         std::string CDeal::get_payment_ek(const std::string &key1, const std::string &key2, std::string &key3,
-                                          uint8_t version_key, uint8_t version_script) {
+                uint8_t version_key, uint8_t version_script) {
 
             CWitness Witness(ec_public(key1), ec_public(key2), key3.empty() ? to_public_ek(version_key) : ec_public(key3));
 
             if (key3.empty())
                 key3 = Witness.keys()[2].encoded();
 
-            const auto &address = Witness.to_address(version_script);
+            const auto& address = Witness.to_address(version_script);
 
             return address.encoded();
         }
         //--------------------------------------------------------------------------------------------------------------
 
         std::string CDeal::get_payment_hd(const std::string &key1, const std::string &key2, std::string &key3,
-                                          uint64_t version_key, uint8_t version_script) {
+                uint64_t version_key, uint8_t version_script) {
 
             CWitness Witness(ec_public(key1), ec_public(key2), key3.empty() ? to_public_hd(version_key) : ec_public(key3));
 
             if (key3.empty())
                 key3 = Witness.keys()[2].encoded();
 
-            const auto &address = Witness.to_address(version_script);
+            const auto& address = Witness.to_address(version_script);
 
             return address.encoded();
         }
         //--------------------------------------------------------------------------------------------------------------
 
         CString CDeal::GetPaymentEK(const CString &Key1, const CString &Key2, CString &Key3,
-                                    uint8_t version_key, uint8_t version_script) {
+                uint8_t version_key, uint8_t version_script) {
 
             std::string key3(Key3);
 
@@ -355,7 +373,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         CString CDeal::GetPaymentHD(const CString &Key1, const CString &Key2, CString &Key3, uint64_t version_key,
-                                    uint8_t version_script) {
+                uint8_t version_script) {
 
             std::string key3(Key3);
 
@@ -369,15 +387,16 @@ namespace Apostol {
 
         void CDeal::Parse(const YAML::Node &node) {
 
-            const auto &deal = node["deal"];
+            const auto& deal = node["deal"];
 
             if (deal) {
                 m_Data.Order = StringToOrder(deal["order"].as<std::string>());
+                m_Data.Type = StringToType(deal["type"].as<std::string>());
 
                 m_Data.At = deal["at"].as<std::string>();
                 m_Data.Date = UTCFormat(deal["date"].as<std::string>());
 
-                const auto &seller = deal["seller"];
+                const auto& seller = deal["seller"];
                 m_Data.Seller.Address = seller["address"].as<std::string>();
 
                 if (!valid_address(m_Data.Seller.Address))
@@ -386,7 +405,7 @@ namespace Apostol {
                 if (seller["rating"])
                     m_Data.Seller.Rating = seller["rating"].as<std::string>();
 
-                const auto &customer = deal["customer"];
+                const auto& customer = deal["customer"];
                 m_Data.Customer.Address = customer["address"].as<std::string>();
 
                 if (!valid_address(m_Data.Customer.Address))
@@ -395,7 +414,7 @@ namespace Apostol {
                 if (customer["rating"])
                     m_Data.Customer.Rating = customer["rating"].as<std::string>();
 
-                const auto &payment = deal["payment"];
+                const auto& payment = deal["payment"];
                 if (payment) {
                     if (payment["address"])
                         m_Data.Payment.Address = payment["address"].as<std::string>();
@@ -406,7 +425,7 @@ namespace Apostol {
                     m_Data.Payment.Sum = BTCFormat(payment["sum"].as<std::string>());
                 }
 
-                const auto &feedback = deal["feedback"];
+                const auto& feedback = deal["feedback"];
                 if (feedback) {
                     if (feedback["leave-before"])
                         m_Data.FeedBack.LeaveBefore = UTCFormat(feedback["leave-before"].as<std::string>());
@@ -418,16 +437,16 @@ namespace Apostol {
                         m_Data.FeedBack.Comments = feedback["comments"].as<std::string>();
                 }
 
-                const auto &transaction = deal["transaction"];
+                const auto& transaction = deal["transaction"];
                 if (transaction) {
                     m_Data.Transaction.Hex = transaction["hex"].as<std::string>();
 
-                    const auto &signatures = transaction["signatures"];
+                    const auto& signatures = transaction["signatures"];
                     m_Data.Transaction.Signatures.Add(signatures[0].as<std::string>());
                     m_Data.Transaction.Signatures.Add(signatures[1].as<std::string>());
                 }
 
-                const auto &error = deal["error"];
+                const auto& error = deal["error"];
                 if (error) {
                     m_Data.Error.Message = error["message"].as<std::string>();
                 }
