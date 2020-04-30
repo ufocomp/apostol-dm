@@ -646,8 +646,10 @@ namespace Apostol {
                     CheckKeyForNull("customer_address", formCustomerAddress.c_str());
                     CheckKeyForNull("payment_sum", formPaymentSum.c_str());
 
-                    Node["deal"]["order"] = Action.IsEmpty() ? "" : Action.c_str();
                     YAML::Node Deal = Node["deal"];
+
+                    Deal["order"] = Action.IsEmpty() ? "" : Action.c_str();
+                    Deal["type"] = formType.c_str();
 
                     Deal["at"] = formAt.c_str();
                     Deal["date"] = formDate.c_str();
@@ -714,8 +716,10 @@ namespace Apostol {
                     CheckKeyForNull("customer_address", formCustomerAddress.c_str());
                     CheckKeyForNull("payment_sum", formPaymentSum.c_str());
 
-                    Node["deal"]["order"] = Action.IsEmpty() ? "" : Action.c_str();
                     YAML::Node Deal = Node["deal"];
+
+                    Deal["order"] = Action.IsEmpty() ? "" : Action.c_str();
+                    Deal["type"] = formType.c_str();
 
                     Deal["at"] = formAt.c_str();
                     Deal["date"] = formDate.c_str();
@@ -761,6 +765,7 @@ namespace Apostol {
                     const CJSON jsonData(LServerRequest->Content);
 
                     const auto& formOrder = jsonData["order"].AsString();
+                    const auto& formType = jsonData["type"].AsString();
 
                     const auto& formAt = jsonData["at"].AsString();
                     const auto& formDate = jsonData["date"].AsString();
@@ -787,14 +792,17 @@ namespace Apostol {
                     const auto& formFeedbackStatus = jsonFeedback["status"].AsString();
                     const auto& formFeedbackComments = jsonFeedback["comments"].AsString();
 
+                    CheckKeyForNull("type", formType.c_str());
                     CheckKeyForNull("at", formAt.c_str());
                     CheckKeyForNull("date", formDate.c_str());
                     CheckKeyForNull("seller->address", formSellerAddress.c_str());
                     CheckKeyForNull("customer->address", formCustomerAddress.c_str());
                     CheckKeyForNull("payment->sum", formPaymentSum.c_str());
 
-                    Node["deal"]["order"] = Action.IsEmpty() ? formOrder.c_str() : Action.c_str();
                     YAML::Node Deal = Node["deal"];
+
+                    Deal["order"] = Action.IsEmpty() ? formOrder.c_str() : Action.c_str();
+                    Deal["type"] = formType.c_str();
 
                     Deal["at"] = formAt.c_str();
                     Deal["date"] = formDate.c_str();
@@ -850,9 +858,8 @@ namespace Apostol {
                 auto& Data = Deal.Data();
 
                 if (Data.Order == doCreate) {
-
                     Data.Payment.Address = Deal.GetPaymentHD(m_BTCKeys[0], m_BTCKeys[1],
-                                                             Deal.Data().Transaction.Key, BitcoinConfig.VersionHD, BitcoinConfig.VersionScript);
+                            Deal.Data().Transaction.Key, BitcoinConfig.VersionHD, BitcoinConfig.VersionScript);
 
                     Node["deal"]["date"] = Data.Date.c_str();
 
@@ -861,7 +868,6 @@ namespace Apostol {
                     Node["deal"]["payment"]["until"] = Data.Payment.Until.c_str();
 
                     Node["deal"]["feedback"]["leave-before"] = Data.FeedBack.LeaveBefore.c_str();
-
                 }
 
                 CheckDeal(Deal);
