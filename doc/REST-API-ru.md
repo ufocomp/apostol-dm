@@ -79,6 +79,8 @@ GET /api/v1/time
 {
   "id": "<string>",
   "address": "<string>"
+  "action": "<string>",
+  "payload": "<base64>"
 } 
 ```
 **Ответ:**
@@ -145,6 +147,7 @@ flags | STRING | Delete | Флаги
 
 Наименование | Тип | Действие | Описание
 ------------ | ------------ | ------------ | ------------
+type | STRING | * | Тип
 at | URL | * | URL сайта
 date | DATETIME | * | Дата сделки     
 seller_address | STRING | * | Продавец: Bitcoin адрес     
@@ -162,6 +165,8 @@ feedback_comments | STRING | Complete | Обратная связь: Комме�
 
 ```json
 {
+  "order": "<string>",
+  "type": "<string>",
   "at": "<url>",
   "date": "<datetime>",
   "seller": {
@@ -190,6 +195,7 @@ feedback_comments | STRING | Complete | Обратная связь: Комме�
 ```yaml
 deal:
   order: <string>
+  type: <string>
   at: <url>
   date: <datetime>
   seller:
@@ -204,6 +210,8 @@ deal:
     until: <datetime>
   feedback:
     leave-before: <datetime>
+    status: <string>
+    comments: <string>
 ```
 
 ### Пользователь
