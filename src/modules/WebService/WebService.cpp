@@ -567,7 +567,7 @@ namespace Apostol {
                     throw ExceptionFrm("Deal feedback expired.");
             }
 
-            if (Odd(int(Data.Order)) || Data.Order > doComplete)
+            if (Odd(int(Data.Order)) || Data.Order == doExecute)
                 throw ExceptionFrm("Invalid \"order\" value for deal module.");
 
             if (Data.Order == doCancel) {
