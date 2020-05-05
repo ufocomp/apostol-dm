@@ -864,8 +864,8 @@ namespace Apostol {
                     Node["deal"]["date"] = Data.Date.c_str();
 
                     Node["deal"]["payment"]["address"] = Data.Payment.Address.c_str();
-                    Node["deal"]["payment"]["sum"] = Data.Payment.Sum.c_str();
                     Node["deal"]["payment"]["until"] = Data.Payment.Until.c_str();
+                    Node["deal"]["payment"]["sum"] = Data.Payment.Sum.c_str();
 
                     Node["deal"]["feedback"]["leave-before"] = Data.FeedBack.LeaveBefore.c_str();
                 }
