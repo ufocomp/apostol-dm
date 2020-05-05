@@ -308,7 +308,17 @@ namespace Apostol {
 
         CHTTPProxy *CWebService::GetProxy(CHTTPServerConnection *AConnection) {
             auto LProxy = m_ProxyManager->Add(AConnection);
+#if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE >= 9)
+            LProxy->OnVerbose([this](auto && Sender, auto && AConnection, auto && AFormat, auto && args) { DoVerbose(Sender, AConnection, AFormat, args); });
 
+            LProxy->OnExecute([this](auto && AConnection) { return DoProxyExecute(AConnection); });
+
+            LProxy->OnException([this](auto && AConnection, auto && AException) { DoProxyException(AConnection, AException); });
+            LProxy->OnEventHandlerException([this](auto && AHandler, auto && AException) { DoEventHandlerException(AHandler, AException); });
+
+            LProxy->OnConnected([this](auto && Sender) { DoProxyConnected(Sender); });
+            LProxy->OnDisconnected([this](auto && Sender) { DoProxyDisconnected(Sender); });
+#else
             LProxy->OnVerbose(std::bind(&CWebService::DoVerbose, this, _1, _2, _3, _4));
 
             LProxy->OnExecute(std::bind(&CWebService::DoProxyExecute, this, _1));
@@ -318,8 +328,7 @@ namespace Apostol {
 
             LProxy->OnConnected(std::bind(&CWebService::DoProxyConnected, this, _1));
             LProxy->OnDisconnected(std::bind(&CWebService::DoProxyDisconnected, this, _1));
-
-            //LProxy->OnNoCommandHandler(std::bind(&CWebService::DoNoCommandHandler, this, _1, _2, _3));
+#endif
             return LProxy;
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -344,7 +353,7 @@ namespace Apostol {
             LProxy->Host() = Location.hostname;
             LProxy->Port(Location.port == 0 ? BPS_SERVER_PORT : Location.port);
 
-            CString ClearText;
+            CStringList ClearText;
             CString Payload;
 
             if (!LServerRequest->Content.IsEmpty()) {
@@ -365,31 +374,31 @@ namespace Apostol {
                     const auto& formSign = FormData["sign"];
 
                     if (!formDate.IsEmpty()) {
-                        ClearText << formDate << LINEFEED;
+                        ClearText << formDate;
                     }
 
                     if (!formAddress.IsEmpty()) {
-                        ClearText << formAddress << LINEFEED;
+                        ClearText << formAddress;
                     }
 
                     if (!formFlags.IsEmpty()) {
-                        ClearText << formFlags << LINEFEED;
+                        ClearText << formFlags;
                     }
 
                     if (!formBitmessage.IsEmpty()) {
-                        ClearText << formBitmessage << LINEFEED;
+                        ClearText << formBitmessage;
                     }
 
                     if (!formKey.IsEmpty()) {
-                        ClearText << formKey << LINEFEED;
+                        ClearText << formKey;
                     }
 
                     if (!formPGP.IsEmpty()) {
-                        ClearText << formPGP << LINEFEED;
+                        ClearText << formPGP;
                     }
 
                     if (!formURL.IsEmpty()) {
-                        ClearText << formURL << LINEFEED;
+                        ClearText << formURL;
                     }
 
                     if (!formSign.IsEmpty()) {
@@ -411,31 +420,31 @@ namespace Apostol {
                     const auto& formSign = FormData.Data("sign");
 
                     if (!formDate.IsEmpty()) {
-                        ClearText << formDate << LINEFEED;
+                        ClearText << formDate;
                     }
 
                     if (!formAddress.IsEmpty()) {
-                        ClearText << formAddress << LINEFEED;
+                        ClearText << formAddress;
                     }
 
                     if (!formFlags.IsEmpty()) {
-                        ClearText << formFlags << LINEFEED;
+                        ClearText << formFlags;
                     }
 
                     if (!formBitmessage.IsEmpty()) {
-                        ClearText << formBitmessage << LINEFEED;
+                        ClearText << formBitmessage;
                     }
 
                     if (!formKey.IsEmpty()) {
-                        ClearText << formKey << LINEFEED;
+                        ClearText << formKey;
                     }
 
                     if (!formPGP.IsEmpty()) {
-                        ClearText << formPGP << LINEFEED;
+                        ClearText << formPGP;
                     }
 
                     if (!formURL.IsEmpty()) {
-                        ClearText << formURL << LINEFEED;
+                        ClearText << formURL;
                     }
 
                     if (!formSign.IsEmpty()) {
@@ -455,34 +464,34 @@ namespace Apostol {
                     const auto& jsonSign = contextJson["sign"].AsString();
 
                     if (!jsonDate.IsEmpty()) {
-                        ClearText << jsonDate << LINEFEED;
+                        ClearText << jsonDate;
                     }
 
                     if (!jsonAddress.IsEmpty()) {
-                        ClearText << jsonAddress << LINEFEED;
+                        ClearText << jsonAddress;
                     }
 
                     if (!jsonFlags.IsEmpty()) {
-                        ClearText << jsonFlags << LINEFEED;
+                        ClearText << jsonFlags;
                     }
 
                     if (!jsonBitmessage.IsEmpty()) {
-                        ClearText << jsonBitmessage << LINEFEED;
+                        ClearText << jsonBitmessage;
                     }
 
                     if (!jsonKey.IsEmpty()) {
-                        ClearText << jsonKey << LINEFEED;
+                        ClearText << jsonKey;
                     }
 
                     if (!jsonPGP.IsEmpty()) {
-                        ClearText << jsonPGP << LINEFEED;
+                        ClearText << jsonPGP;
                     }
 
                     const CJSONValue &jsonURL = contextJson["url"];
                     if (jsonURL.IsArray()) {
                         const CJSONArray &arrayURL = jsonURL.Array();
                         for (int i = 0; i < arrayURL.Count(); i++) {
-                            ClearText << arrayURL[i].AsString() << LINEFEED;
+                            ClearText << arrayURL[i].AsString();
                         }
                     }
 
@@ -495,13 +504,13 @@ namespace Apostol {
                 }
 
                 if (pgpValue == "off" || pgpValue == "false") {
-                    Payload = ClearText;
+                    Payload = ClearText.Text();
                 } else {
                     Apostol::PGP::CleartextSignature(
                             Config()->PGPPrivate(),
                             Config()->PGPPassphrase(),
                             "SHA256",
-                            ClearText,
+                            ClearText.Text(),
                             Payload);
                 }
             }
@@ -614,7 +623,6 @@ namespace Apostol {
 
             YAML::Node Node;
 
-            CString ClearText;
             CString Payload;
 
             if (!LServerRequest->Content.IsEmpty()) {
@@ -872,7 +880,7 @@ namespace Apostol {
 
                 CheckDeal(Deal);
 
-                ClearText = YAML::Dump(Node);
+                const CString ClearText(YAML::Dump(Node));
 
                 if (pgpValue == "off" || pgpValue == "false") {
                     Payload = ClearText;
