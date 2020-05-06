@@ -30,6 +30,7 @@ Author:
 #include <random>
 //----------------------------------------------------------------------------------------------------------------------
 
+#define BPS_PGP_HASH "SHA512"
 #define BM_PREFIX "BM-"
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -89,6 +90,32 @@ namespace Apostol {
             m_Methods.AddObject(_T("PATCH"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
             m_Methods.AddObject(_T("CONNECT"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
 #endif
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::InitRoots(const CSites &Sites) {
+            for (int i = 0; i < Sites.Count(); ++i) {
+                const auto& Site = Sites[i];
+                if (Site.Name != "default") {
+                    const auto& Hosts = Site.Config["hosts"];
+                    const auto& Root = Site.Config["root"].AsString();
+                    if (!Hosts.IsNull()) {
+                        for (int l = 0; l < Hosts.Count(); ++l)
+                            m_Roots.AddPair(Hosts[l].AsString(), Root);
+                    } else {
+                        m_Roots.AddPair(Site.Name, Root);
+                    }
+                }
+            }
+            m_Roots.AddPair("*", Sites.Default().Config["root"].AsString());
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        const CString &CWebService::GetRoot(const CString &Host) const {
+            auto Index = m_Roots.IndexOfName(Host);
+            if (Index == -1)
+                return m_Roots["*"].Value;
+            return m_Roots[Index].Value;
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -333,7 +360,58 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::RouteUser(CHTTPServerConnection *AConnection, const CString& Method, const CString& Uri) {
+        void CWebService::Redirect(CHTTPServerConnection *AConnection, const CString& Location, bool SendNow) {
+            auto LReply = AConnection->Reply();
+
+            LReply->AddHeader(_T("Location"), Location);
+            Log()->Message("Redirected to %s.", Location.c_str());
+
+            AConnection->SendStockReply(CReply::moved_temporarily, SendNow);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::SendResource(CHTTPServerConnection *AConnection, const CString &Path, bool SendNow) {
+            auto LRequest = AConnection->Request();
+            auto LReply = AConnection->Reply();
+
+            const CString& LFullPath = GetRoot(LRequest->Location.Host()) + Path;
+            const CString& LResource = LFullPath.back() == '/' ? LFullPath + "index.html" : LFullPath;
+
+            if (!FileExists(LResource.c_str())) {
+                AConnection->SendStockReply(CReply::not_found, SendNow);
+                return;
+            }
+
+            TCHAR szFileExt[PATH_MAX] = {0};
+            auto fileExt = ExtractFileExt(szFileExt, LResource.c_str());
+
+            LReply->Content.LoadFromFile(LResource.c_str());
+            AConnection->SendReply(CReply::ok, Mapping::ExtToType(fileExt), SendNow);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        bool CWebService::CheckAuthorization(CHTTPServerConnection *AConnection, CAuthorization &Authorization) {
+            auto LRequest = AConnection->Request();
+            auto LReply = AConnection->Reply();
+
+            const auto& LAuthorization = LRequest->Headers.Values(_T("Authorization"));
+            if (LAuthorization.IsEmpty())
+                return false;
+
+            try {
+                Authorization << LAuthorization;
+                if (Authorization.Username == "module" && Authorization.Password == Config()->ModuleAddress()) {
+                    return true;
+                }
+            } catch (std::exception &e) {
+                Log()->Error(APP_LOG_EMERG, 0, e.what());
+            }
+
+            return false;
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::RouteUser(CHTTPServerConnection *AConnection, const CString& Method, const CString& URI) {
             auto LProxy = GetProxy(AConnection);
             auto LServerRequest = AConnection->Request();
             auto LProxyRequest = LProxy->Request();
@@ -509,7 +587,7 @@ namespace Apostol {
                     Apostol::PGP::CleartextSignature(
                             Config()->PGPPrivate(),
                             Config()->PGPPassphrase(),
-                            "SHA256",
+                            BPS_PGP_HASH,
                             ClearText.Text(),
                             Payload);
                 }
@@ -528,23 +606,12 @@ namespace Apostol {
 
             LProxyRequest->Clear();
 
-            const auto& LHost = LServerRequest->Headers.Values("host");
-            if (!LHost.IsEmpty()) {
-                const size_t Pos = LHost.Find(':');
-                if (Pos != CString::npos) {
-                    LProxyRequest->Host = LHost.SubString(0, Pos);
-                    LProxyRequest->Port = StrToIntDef(LHost.SubString(Pos + 1).c_str(), 0);
-                } else {
-                    LProxyRequest->Host = LHost;
-                    LProxyRequest->Port = 0;
-                }
-            }
-
+            LProxyRequest->Location = LServerRequest->Location;
             LProxyRequest->CloseConnection = true;
             LProxyRequest->ContentType = CRequest::json;
             LProxyRequest->Content << Json;
 
-            CRequest::Prepare(LProxyRequest, Method.c_str(), Uri.c_str());
+            CRequest::Prepare(LProxyRequest, Method.c_str(), URI.c_str());
 
             if (!LModuleAddress.IsEmpty())
                 LProxyRequest->AddHeader("Module-Address", LModuleAddress);
@@ -596,7 +663,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::RouteDeal(CHTTPServerConnection *AConnection, const CString &Method, const CString &Uri, const CString &Action) {
+        void CWebService::RouteDeal(CHTTPServerConnection *AConnection, const CString &Method, const CString &URI, const CString &Action) {
             auto LProxy = GetProxy(AConnection);
             auto LServerRequest = AConnection->Request();
             auto LProxyRequest = LProxy->Request();
@@ -698,7 +765,7 @@ namespace Apostol {
                             Feedback["comments"] = formFeedbackComments.c_str();
                     }
 
-                } else if (ContentType == "multipart/form-data") {
+                } else if (ContentType.Find("multipart/form-data") != CString::npos) {
 
                     CFormData FormData;
                     CRequestParser::ParseFormData(LServerRequest, FormData);
@@ -888,7 +955,7 @@ namespace Apostol {
                     Apostol::PGP::CleartextSignature(
                             Config()->PGPPrivate(),
                             Config()->PGPPassphrase(),
-                            "SHA256",
+                            BPS_PGP_HASH,
                             ClearText,
                             Payload);
                 }
@@ -906,23 +973,12 @@ namespace Apostol {
 
             LProxyRequest->Clear();
 
-            const auto& LHost = LServerRequest->Headers.Values("host");
-            if (!LHost.IsEmpty()) {
-                const size_t Pos = LHost.Find(':');
-                if (Pos != CString::npos) {
-                    LProxyRequest->Host = LHost.SubString(0, Pos);
-                    LProxyRequest->Port = StrToIntDef(LHost.SubString(Pos + 1).c_str(), 0);
-                } else {
-                    LProxyRequest->Host = LHost;
-                    LProxyRequest->Port = 0;
-                }
-            }
-
+            LProxyRequest->Location = LServerRequest->Location;
             LProxyRequest->CloseConnection = true;
             LProxyRequest->ContentType = CRequest::json;
             LProxyRequest->Content << Json;
 
-            CRequest::Prepare(LProxyRequest, Method.c_str(), Uri.c_str());
+            CRequest::Prepare(LProxyRequest, Method.c_str(), URI.c_str());
 
             if (!LModuleAddress.IsEmpty())
                 LProxyRequest->AddHeader("Module-Address", LModuleAddress);
@@ -994,80 +1050,15 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::DoWWW(CHTTPServerConnection *AConnection) {
-            auto LServer = dynamic_cast<CHTTPServer *> (AConnection->Server());
-            auto LRequest = AConnection->Request();
-            auto LReply = AConnection->Reply();
-
-            TCHAR szExt[PATH_MAX] = {0};
-
-            LReply->ContentType = CReply::html;
-
-            // Decode url to path.
-            CString LRequestPath;
-            if (!LServer->URLDecode(LRequest->Uri, LRequestPath)) {
-                AConnection->SendStockReply(CReply::bad_request);
-                return;
-            }
-
-            // Request path must be absolute and not contain "..".
-            if (LRequestPath.empty() || LRequestPath.front() != '/' || LRequestPath.find("..") != CString::npos) {
-                AConnection->SendStockReply(CReply::bad_request);
-                return;
-            }
-
-            const auto& LAuthorization = LRequest->Headers.Values(_T("authorization"));
-            if (LAuthorization.IsEmpty()) {
-                AConnection->SendStockReply(CReply::unauthorized);
-                return;
-            }
-
-            try {
-                CAuthorization Authorization(LAuthorization);
-
-                if (Authorization.Username != "module" || Authorization.Password != Config()->ModuleAddress()) {
-                    AConnection->SendStockReply(CReply::unauthorized);
-                    return;
-                }
-
-                // If path ends in slash (i.e. is a directory) then add "index.html".
-                if (LRequestPath.back() == '/') {
-                    LRequestPath += "index.html";
-                }
-
-                // Open the file to send back.
-                const CString LFullPath = LServer->DocRoot() + LRequestPath;
-                if (!FileExists(LFullPath.c_str())) {
-                    AConnection->SendStockReply(CReply::not_found);
-                    return;
-                }
-
-                LReply->Content.LoadFromFile(LFullPath.c_str());
-
-                // Fill out the CReply to be sent to the client.
-                AConnection->SendReply(CReply::ok, Mapping::ExtToType(ExtractFileExt(szExt, LRequestPath.c_str())));
-            } catch (Delphi::Exception::Exception &E) {
-                AConnection->SendStockReply(CReply::bad_request);
-                Log()->Error(APP_LOG_EMERG, 0, E.what());
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CWebService::DoOptions(CHTTPServerConnection *AConnection) {
-            CApostolModule::DoOptions(AConnection);
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CWebService::DoGet(CHTTPServerConnection *AConnection) {
-
+        void CWebService::DoAPI(CHTTPServerConnection *AConnection) {
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
 
             CStringList LUri;
-            SplitColumns(LRequest->Uri.c_str(), LRequest->Uri.Size(), &LUri, '/');
+            SplitColumns(LRequest->URI.c_str(), LRequest->URI.Size(), &LUri, '/');
 
             if (LUri.Count() < 3) {
-                DoWWW(AConnection);
+                AConnection->SendStockReply(CReply::not_found);
                 return;
             }
 
@@ -1083,7 +1074,7 @@ namespace Apostol {
             }
 
             if (LService != "api" || (m_Version == -1)) {
-                DoWWW(AConnection);
+                AConnection->SendStockReply(CReply::not_found);
                 return;
             }
 
@@ -1133,13 +1124,56 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        void CWebService::DoOptions(CHTTPServerConnection *AConnection) {
+            CApostolModule::DoOptions(AConnection);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::DoGet(CHTTPServerConnection *AConnection) {
+            auto LServer = dynamic_cast<CHTTPServer *> (AConnection->Server());
+            auto LRequest = AConnection->Request();
+
+            // Decode url to path.
+            CString url;
+            if (!CHTTPServer::URLDecode(LRequest->URI, url)) {
+                AConnection->SendStockReply(CReply::bad_request);
+                return;
+            }
+
+            CLocation Location(url);
+            auto& requestPath = Location.pathname;
+
+            // Request path must be absolute and not contain "..".
+            if (requestPath.empty() || requestPath.front() != '/' || requestPath.find("..") != CString::npos) {
+                AConnection->SendStockReply(CReply::bad_request);
+                return;
+            }
+
+            if (m_Roots.Count() == 0)
+                InitRoots(LServer->Sites());
+
+            CAuthorization Authorization;
+            if (!CheckAuthorization(AConnection, Authorization)) {
+                AConnection->SendStockReply(CReply::unauthorized);
+                return;
+            }
+
+            if (requestPath.SubString(0, 5) == "/api/") {
+                DoAPI(AConnection);
+                return;
+            }
+
+            SendResource(AConnection, requestPath);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CWebService::DoPost(CHTTPServerConnection *AConnection) {
 
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
 
             CStringList LUri;
-            SplitColumns(LRequest->Uri.c_str(), LRequest->Uri.Size(), &LUri, '/');
+            SplitColumns(LRequest->URI.c_str(), LRequest->URI.Size(), &LUri, '/');
 
             if (LUri.Count() < 3) {
                 AConnection->SendStockReply(CReply::not_found);

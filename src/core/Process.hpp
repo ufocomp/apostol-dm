@@ -170,7 +170,7 @@ namespace Apostol {
 
             virtual void Assign(CCustomProcess *AProcess);
 
-            void ExecuteProcess(CExecuteContext *AContext);
+            static void ExecuteProcess(CExecuteContext *AContext);
 
             CProcessType Type() { return m_Type; };
 
@@ -325,7 +325,7 @@ namespace Apostol {
             uint_t          sig_restart;
             uint_t          sig_noaccepting;
 
-            virtual void CreateSignals();
+            void CreateSignals();
 
             virtual void ChildProcessGetStatus() abstract;
 

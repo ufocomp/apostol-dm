@@ -25,18 +25,7 @@ Author:
 #include "Application.hpp"
 //----------------------------------------------------------------------------------------------------------------------
 
-#define ARS_TEMPLATE_MESSAGE "Hello, %s\n\n%s\n\n--\nThank you,\nPayments.net"
-#define ARS_MESSAGE_HELP "Send a message with the subject \"help\" to this address for more information."
-#define ARS_ERROR_SUBJECT "Invalid message subject. " ARS_MESSAGE_HELP
-#define ARS_ERROR_BODY "Message body must not be empty. " ARS_MESSAGE_HELP
-#define ARS_EXCEPTION_MESSAGE "Sorry, something went wrong and led to an error.\n\n%s"
-
-#define PGP_BEGIN_PUBLIC_KEY "BEGIN PGP PUBLIC KEY"
-#define PGP_END_PUBLIC_KEY "END PGP PUBLIC KEY"
-
-#define ARS_DELETE_BTC_KEY  0x010u
-#define ARS_DELETE_PGP_KEY  0x020u
-#define ARS_DELETE_ACCOUNT  0x100u
+#define APP_FILE_NOT_FOUND "File not found: %s"
 
 extern "C++" {
 
@@ -638,13 +627,93 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        void CApplicationProcess::LoadSites(CSites &Sites) {
+
+            const CString FileName(Config()->ConfPrefix() + "sites.conf");
+
+            auto OnIniFileParseError = [&FileName](Pointer Sender, LPCTSTR lpszSectionName, LPCTSTR lpszKeyName,
+                                                   LPCTSTR lpszValue, LPCTSTR lpszDefault, int Line)
+            {
+                if ((lpszValue == nullptr) || (lpszValue[0] == '\0')) {
+                    if ((lpszDefault == nullptr) || (lpszDefault[0] == '\0'))
+                        Log()->Error(APP_LOG_EMERG, 0, ConfMsgEmpty, lpszSectionName, lpszKeyName, FileName.c_str(), Line);
+                } else {
+                    if ((lpszDefault == nullptr) || (lpszDefault[0] == '\0'))
+                        Log()->Error(APP_LOG_EMERG, 0, ConfMsgInvalidValue, lpszSectionName, lpszKeyName, lpszValue,
+                                     FileName.c_str(), Line);
+                    else
+                        Log()->Error(APP_LOG_EMERG, 0, ConfMsgInvalidValue _T(" - ignored and set by default: \"%s\""), lpszSectionName, lpszKeyName, lpszValue,
+                                     FileName.c_str(), Line, lpszDefault);
+                }
+            };
+
+            Sites.Clear();
+
+            if (FileExists(FileName.c_str())) {
+                const CString pathSites(Config()->Prefix() + "sites/");
+
+                CIniFile HostFile(FileName.c_str());
+                HostFile.OnIniFileParseError(OnIniFileParseError);
+
+                CStringList configFiles;
+                CString configFile;
+
+                HostFile.ReadSectionValues("hosts", &configFiles);
+                for (int i = 0; i < configFiles.Count(); i++) {
+                    const auto& siteName = configFiles.Names(i);
+
+                    configFile = configFiles.ValueFromIndex(i);
+                    if (!path_separator(configFile.front())) {
+                        configFile = pathSites + configFile;
+                    }
+
+                    if (FileExists(configFile.c_str())) {
+                        int Index = Sites.AddPair(siteName, CJSON());
+                        auto& Config = Sites[Index].Config;
+                        Config.LoadFromFile(configFile.c_str());
+                    } else {
+                        Log()->Error(APP_LOG_EMERG, 0, APP_FILE_NOT_FOUND, configFile.c_str());
+                    }
+                }
+            } else {
+                Log()->Error(APP_LOG_EMERG, 0, APP_FILE_NOT_FOUND, FileName.c_str());
+            }
+
+            auto& defaultSite = Sites.Default();
+            if (defaultSite.Name.IsEmpty()) {
+                defaultSite.Name = _T("*");
+                auto& configJson = defaultSite.Config.Object();
+                configJson.AddPair(_T("hosts"), CJSONArray("[\"*\"]"));
+                configJson.AddPair(_T("listen"), (int) Config()->Port());
+                configJson.AddPair(_T("root"), Config()->DocRoot());
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
         void CApplicationProcess::CreateHTTPServer() {
-            auto LServer = new CHTTPServer((ushort) Config()->Port(), Config()->DocRoot().c_str());
+            auto LServer = new CHTTPServer((ushort) Config()->Port());
 
             LServer->ServerName() = m_pApplication->Title();
 
             CSocketHandle* LBinding = LServer->Bindings()->Add();
             LBinding->IP(Config()->Listen().c_str());
+
+            LoadSites(LServer->Sites());
+
+            for (int i = 0; i < LServer->Sites().Count(); ++i) {
+                const auto& Site = LServer->Sites()[i];
+                const auto& listenPort = Site.Config["listen"];
+                if (Site.Name == "*") {
+                    if (!listenPort.IsEmpty())
+                        LBinding->Port(listenPort.AsInteger());
+                } else {
+                    if (!listenPort.IsEmpty() && listenPort.AsInteger() != Config()->Port()) {
+                        LBinding = LServer->Bindings()->Add();
+                        LBinding->IP(Config()->Listen().c_str());
+                        LBinding->Port(listenPort.AsInteger());
+                    }
+                }
+            }
 
             LServer->PollStack(m_PollStack);
 
@@ -681,7 +750,6 @@ namespace Apostol {
 
             LServer->OnNoCommandHandler(std::bind(&CApplicationProcess::DoNoCommandHandler, this, _1, _2, _3));
 #endif
-
             LServer->ActiveLevel(alBinding);
 
             SetServer(LServer);
@@ -969,7 +1037,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CApplicationProcess::ServerStart() {
-            Server()->DocRoot() = Config()->DocRoot();
+            LoadSites(Server()->Sites());
             Server()->ActiveLevel(alActive);
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -1277,16 +1345,16 @@ namespace Apostol {
                 LProcess = Application()->Process(i);
 
                 log_debug9(APP_LOG_DEBUG_EVENT, Log(), 0,
-                              "process (%s)\t: %P - %i %P e:%d t:%d d:%d r:%d j:%d",
-                               LProcess->GetProcessName(),
-                               Pid(),
-                               i,
-                               LProcess->Pid(),
-                               LProcess->Exiting() ? 1 : 0,
-                               LProcess->Exited() ? 1 : 0,
-                               LProcess->Detached() ? 1 : 0,
-                               LProcess->Respawn() ? 1 : 0,
-                               LProcess->JustSpawn() ? 1 : 0);
+                           "process (%s)\t: %P - %i %P e:%d t:%d d:%d r:%d j:%d",
+                           LProcess->GetProcessName(),
+                           Pid(),
+                           i,
+                           LProcess->Pid(),
+                           LProcess->Exiting() ? 1 : 0,
+                           LProcess->Exited() ? 1 : 0,
+                           LProcess->Detached() ? 1 : 0,
+                           LProcess->Respawn() ? 1 : 0,
+                           LProcess->JustSpawn() ? 1 : 0);
             }
 
             live = true;

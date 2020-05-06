@@ -204,7 +204,7 @@ namespace Apostol {
 
             AConnection->SendReply();
 #ifdef _DEBUG
-            if (LRequest->Uri == _T("/quit"))
+            if (LRequest->URI == _T("/quit"))
                 Application::Application->SignalProcess()->Quit();
 #endif
         }
@@ -226,7 +226,6 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 #ifdef WITH_POSTGRESQL
-
         void CApostolModule::EnumQuery(CPQResult *APQResult, CQueryResult& AResult) {
             CStringList LFields;
 
@@ -269,16 +268,21 @@ namespace Apostol {
             CPQPollQuery *LQuery = Application::Application->GetQuery(AConnection);
 
             if (Assigned(LQuery)) {
+#if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE >= 9)
+                LQuery->OnPollExecuted([this](auto && APollQuery) { DoPostgresQueryExecuted(APollQuery); });
+                LQuery->OnException([this](auto && APollQuery, auto && AException) { DoPostgresQueryException(APollQuery, AException); });
+#else
                 LQuery->OnPollExecuted(std::bind(&CApostolModule::DoPostgresQueryExecuted, this, _1));
                 LQuery->OnException(std::bind(&CApostolModule::DoPostgresQueryException, this, _1, _2));
+#endif
             }
 
             return LQuery;
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        bool CApostolModule::ExecSQL(CPollConnection *AConnection, const CStringList &SQL,
-                COnPQPollQueryExecutedEvent &&OnExecuted, COnPQPollQueryExceptionEvent &&OnException) {
+        bool CApostolModule::ExecSQL(const CStringList &SQL, CPollConnection *AConnection,
+                                     COnPQPollQueryExecutedEvent &&OnExecuted, COnPQPollQueryExceptionEvent &&OnException) {
 
             auto LQuery = GetQuery(AConnection);
 
@@ -303,6 +307,7 @@ namespace Apostol {
 
             return false;
         }
+        //--------------------------------------------------------------------------------------------------------------
 #endif
         CHTTPClient *CApostolModule::GetClient(const CString &Host, uint16_t Port) {
             return Application::Application->GetClient(Host.c_str(), Port);
@@ -310,7 +315,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CApostolModule::DebugRequest(CRequest *ARequest) {
-            DebugMessage("[%p] Request:\n%s %s HTTP/%d.%d\n", ARequest, ARequest->Method.c_str(), ARequest->Uri.c_str(), ARequest->VMajor, ARequest->VMinor);
+            DebugMessage("[%p] Request:\n%s %s HTTP/%d.%d\n", ARequest, ARequest->Method.c_str(), ARequest->URI.c_str(), ARequest->VMajor, ARequest->VMinor);
 
             for (int i = 0; i < ARequest->Headers.Count(); i++)
                 DebugMessage("%s: %s\n", ARequest->Headers[i].Name.c_str(), ARequest->Headers[i].Value.c_str());
