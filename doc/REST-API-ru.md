@@ -78,7 +78,7 @@ GET /api/v1/time
 ```json
 {
   "id": "<string>",
-  "address": "<string>"
+  "address": "<string>",
   "action": "<string>",
   "payload": "<base64>"
 } 
