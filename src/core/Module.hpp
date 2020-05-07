@@ -116,7 +116,7 @@ namespace Apostol {
         public:
 
             CMethodHandler(bool Allow, COnMethodHandlerEvent && Handler): CObject(),
-                                                                          m_Allow(Allow), m_Handler(Handler) {
+                m_Allow(Allow), m_Handler(Handler) {
 
             };
 
@@ -203,7 +203,7 @@ namespace Apostol {
 
         protected:
 
-            CStringList m_Methods;
+            CStringList *m_pMethods;
             CStringList m_Headers;
 
             virtual void CORS(CHTTPServerConnection *AConnection);
@@ -221,7 +221,7 @@ namespace Apostol {
 
             explicit CApostolModule(CModuleManager *AManager);
 
-            ~CApostolModule() override = default;
+            ~CApostolModule() override;
 
             virtual void InitMethods() abstract;
 

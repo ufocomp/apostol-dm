@@ -60,6 +60,8 @@ namespace Apostol {
             m_LocalHost = "http://localhost:";
             m_LocalHost << BPS_SERVER_PORT;
             m_ProxyManager = new CHTTPProxyManager();
+
+            CWebService::InitMethods();
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -70,25 +72,25 @@ namespace Apostol {
 
         void CWebService::InitMethods() {
 #if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE >= 9)
-            m_Methods.AddObject(_T("GET")    , (CObject *) new CMethodHandler(true , [this](auto && Connection) { DoGet(Connection); }));
-            m_Methods.AddObject(_T("POST")   , (CObject *) new CMethodHandler(true , [this](auto && Connection) { DoPost(Connection); }));
-            m_Methods.AddObject(_T("OPTIONS"), (CObject *) new CMethodHandler(true , [this](auto && Connection) { DoOptions(Connection); }));
-            m_Methods.AddObject(_T("PUT")    , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
-            m_Methods.AddObject(_T("DELETE") , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
-            m_Methods.AddObject(_T("TRACE")  , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
-            m_Methods.AddObject(_T("HEAD")   , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
-            m_Methods.AddObject(_T("PATCH")  , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
-            m_Methods.AddObject(_T("CONNECT"), (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
+            m_pMethods->AddObject(_T("GET")    , (CObject *) new CMethodHandler(true , [this](auto && Connection) { DoGet(Connection); }));
+            m_pMethods->AddObject(_T("POST")   , (CObject *) new CMethodHandler(true , [this](auto && Connection) { DoPost(Connection); }));
+            m_pMethods->AddObject(_T("OPTIONS"), (CObject *) new CMethodHandler(true , [this](auto && Connection) { DoOptions(Connection); }));
+            m_pMethods->AddObject(_T("PUT")    , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
+            m_pMethods->AddObject(_T("DELETE") , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
+            m_pMethods->AddObject(_T("TRACE")  , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
+            m_pMethods->AddObject(_T("HEAD")   , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
+            m_pMethods->AddObject(_T("PATCH")  , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
+            m_pMethods->AddObject(_T("CONNECT"), (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
 #else
-            m_Methods.AddObject(_T("GET"), (CObject *) new CMethodHandler(true, std::bind(&CWebService::DoGet, this, _1)));
-            m_Methods.AddObject(_T("POST"), (CObject *) new CMethodHandler(true, std::bind(&CWebService::DoPost, this, _1)));
-            m_Methods.AddObject(_T("OPTIONS"), (CObject *) new CMethodHandler(true, std::bind(&CWebService::DoOptions, this, _1)));
-            m_Methods.AddObject(_T("PUT"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
-            m_Methods.AddObject(_T("DELETE"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
-            m_Methods.AddObject(_T("TRACE"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
-            m_Methods.AddObject(_T("HEAD"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
-            m_Methods.AddObject(_T("PATCH"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
-            m_Methods.AddObject(_T("CONNECT"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
+            m_pMethods->AddObject(_T("GET"), (CObject *) new CMethodHandler(true, std::bind(&CWebService::DoGet, this, _1)));
+            m_pMethods->AddObject(_T("POST"), (CObject *) new CMethodHandler(true, std::bind(&CWebService::DoPost, this, _1)));
+            m_pMethods->AddObject(_T("OPTIONS"), (CObject *) new CMethodHandler(true, std::bind(&CWebService::DoOptions, this, _1)));
+            m_pMethods->AddObject(_T("PUT"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
+            m_pMethods->AddObject(_T("DELETE"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
+            m_pMethods->AddObject(_T("TRACE"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
+            m_pMethods->AddObject(_T("HEAD"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
+            m_pMethods->AddObject(_T("PATCH"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
+            m_pMethods->AddObject(_T("CONNECT"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
 #endif
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -370,7 +372,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::SendResource(CHTTPServerConnection *AConnection, const CString &Path, bool SendNow) {
+        void CWebService::SendResource(CHTTPServerConnection *AConnection, const CString &Path, LPCTSTR AContentType, bool SendNow) {
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
 
@@ -382,11 +384,14 @@ namespace Apostol {
                 return;
             }
 
-            TCHAR szFileExt[PATH_MAX] = {0};
-            auto fileExt = ExtractFileExt(szFileExt, LResource.c_str());
+            if (AContentType == nullptr) {
+                TCHAR szFileExt[PATH_MAX] = {0};
+                auto fileExt = ExtractFileExt(szFileExt, LResource.c_str());
+                AContentType = Mapping::ExtToType(fileExt);
+            }
 
             LReply->Content.LoadFromFile(LResource.c_str());
-            AConnection->SendReply(CReply::ok, Mapping::ExtToType(fileExt), SendNow);
+            AConnection->SendReply(CReply::ok, AContentType, SendNow);
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1254,10 +1259,10 @@ namespace Apostol {
             LReply->ContentType = CReply::json;
 
             CMethodHandler *Handler;
-            for (i = 0; i < m_Methods.Count(); ++i) {
-                Handler = (CMethodHandler *) m_Methods.Objects(i);
+            for (i = 0; i < m_pMethods->Count(); ++i) {
+                Handler = (CMethodHandler *) m_pMethods->Objects(i);
                 if (Handler->Allow()) {
-                    const auto& Method = m_Methods.Strings(i);
+                    const auto& Method = m_pMethods->Strings(i);
                     if (Method == LRequest->Method) {
                         CORS(AConnection);
                         Handler->Handler(AConnection);
@@ -1266,7 +1271,7 @@ namespace Apostol {
                 }
             }
 
-            if (i == m_Methods.Count()) {
+            if (i == m_pMethods->Count()) {
                 AConnection->SendStockReply(CReply::not_implemented);
             }
         }
