@@ -54,6 +54,7 @@ namespace Apostol {
 
         CWebService::CWebService(CModuleManager *AManager): CApostolModule(AManager) {
             m_Version = -1;
+            m_SyncPeriod = BPS_DEFAULT_SYNC_PERIOD;
             m_ServerIndex = -1;
             m_FixedDate = Now();
             m_RandomDate = Now();
@@ -1357,8 +1358,10 @@ namespace Apostol {
             if (!pgp.meaningful())
                 return;
 
+            CStringList Data;
             CPGPUserIdList List;
             CStringList KeyList;
+
             pgp.ExportUID(List);
 
             for (int i = 0; i < List.Count(); i++) {
@@ -1367,7 +1370,27 @@ namespace Apostol {
                 const auto& name = uid.Name.Lower();
                 const auto& data = uid.Desc.Lower();
 
-                if (uid.Name.Length() >= 35 && uid.Name.SubString(0, 3) == BM_PREFIX) {
+                if (name == "technical_data") {
+                    SplitColumns(data, Data, ';');
+
+                    DebugMessage("Technical data: ");
+                    if (Data.Count() == 3) {
+                        m_SyncPeriod = StrToIntDef(Data[1].Trim().c_str(), BPS_DEFAULT_SYNC_PERIOD);
+                        DebugMessage("\n  - Fee   : %s", Data[0].Trim().c_str());
+                        DebugMessage("\n  - Period: %s", Data[1].Trim().c_str());
+                        DebugMessage("\n  - Keys  : %s", Data[2].Trim().c_str());
+                    } else if (Data.Count() == 2) {
+                        m_SyncPeriod = StrToIntDef(Data[0].Trim().c_str(), BPS_DEFAULT_SYNC_PERIOD);
+                        DebugMessage("\n  - Period: %s", Data[0].Trim().c_str());
+                        DebugMessage("\n  - Keys  : %s", Data[1].Trim().c_str());
+                    } else if (Data.Count() == 1) {
+                        m_SyncPeriod = StrToIntDef(Data[0].Trim().c_str(), BPS_DEFAULT_SYNC_PERIOD);
+                        DebugMessage("\n  - Period: %s", Data[0].Trim().c_str());
+                    } else {
+                        DebugMessage("Unknown error.");
+                    }
+
+                } if (uid.Name.Length() >= 35 && uid.Name.SubString(0, 3) == BM_PREFIX) {
                     CStringList urlList;
                     if (FindURLInLine(uid.Desc, urlList)) {
                         for (int l = 0; l < urlList.Count(); l++) {
@@ -1548,13 +1571,13 @@ namespace Apostol {
                 if (m_PGP.IsEmpty()) {
                     m_RandomDate = now + (CDateTime) 30 / 86400; // 30 sec
                 } else {
-                    m_RandomDate = GetRandomDate(10 * 60, 30 * 60, now); // 10..30 min
+                    m_RandomDate = GetRandomDate(10 * 60, m_SyncPeriod * 60, now); // 10..m_SyncPeriod min
                 }
             }
 /*
             if ((now >= m_FixedDate)) {
                 NextServer();
-                m_FixedDate = now + (CDateTime) 1800 / 86400; // 30 min
+                m_FixedDate = now + (CDateTime) m_SyncPeriod * 60 / 86400; // m_SyncPeriod min
             }
 */
         }

@@ -116,7 +116,7 @@ namespace Apostol {
         public:
 
             CMethodHandler(bool Allow, COnMethodHandlerEvent && Handler): CObject(),
-                m_Allow(Allow), m_Handler(Handler) {
+                                                                          m_Allow(Allow), m_Handler(Handler) {
 
             };
 

@@ -24,7 +24,7 @@ Author:
 #ifndef APOSTOL_WEBSERVICE_HPP
 #define APOSTOL_WEBSERVICE_HPP
 //----------------------------------------------------------------------------------------------------------------------
-
+#define BPS_DEFAULT_SYNC_PERIOD 30
 #define BPS_SERVER_PORT 4977
 #define BPS_SERVER_URL "http://185.141.62.25:4977"
 #define BPS_BM_SERVER_ADDRESS "BM-2cX8y9u9yEi3fdqQfndx9F6NdR5Hv79add"
@@ -46,6 +46,7 @@ namespace Apostol {
         private:
 
             int m_Version;
+            unsigned int m_SyncPeriod;
 
             CStringPairs m_Roots;
 #ifdef WITH_CURL
@@ -130,7 +131,7 @@ namespace Apostol {
             void LoadPGPKey();
 
             static void JsonStringToPGP(const CString& jsonString, CString& Key);
-            static void ParsePGPKey(const CString& Key, CStringPairs& ServerList, CStringList& BTCKeys);
+            void ParsePGPKey(const CString& Key, CStringPairs& ServerList, CStringList& BTCKeys);
 
             static void CheckDeal(const CDeal& Deal);
 

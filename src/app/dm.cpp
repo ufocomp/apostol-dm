@@ -21,7 +21,7 @@ Author:
 
 --*/
 
-#include "DealModule.hpp"
+#include "dm.hpp"
 //----------------------------------------------------------------------------------------------------------------------
 
 #define exit_failure(msg) {                                 \
@@ -37,9 +37,9 @@ extern "C++" {
 
 namespace Apostol {
 
-    namespace DealModule {
+    namespace Application {
 
-        void CDealModule::ShowVersionInfo() {
+        void CApostol::ShowVersionInfo() {
 
             std::cerr << APP_NAME " version: " APP_VERSION " (" APP_DESCRIPTION ")" LINEFEED << std::endl;
 
@@ -66,7 +66,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CDealModule::ParseCmdLine() {
+        void CApostol::ParseCmdLine() {
 
             LPCTSTR P;
 
@@ -185,7 +185,16 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CDealModule::Run() {
+        void CApostol::Run() {
+            if (Config()->TestNet()) {
+                BitcoinConfig.VersionHD = hd_private::testnet;
+                BitcoinConfig.VersionEC = ec_private::testnet;
+                BitcoinConfig.VersionKey = payment_address::testnet_p2kh;
+                BitcoinConfig.VersionScript = payment_address::testnet_p2sh;
+                BitcoinConfig.endpoint = "tcp://testnet.libbitcoin.net:19091";
+                BitcoinConfig.Symbol = "tBTC";
+            }
+
             CApplication::Run();
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -200,18 +209,18 @@ int main(int argc, char *argv[]) {
 
     DefaultLocale.SetLocale("");
 
+    CApostol dm(argc, argv);
+
     try
     {
-        Application = CDealModule::Create(argc, argv);
+        dm.Name() = APP_NAME;
+        dm.Description() = APP_DESCRIPTION;
+        dm.Version() = APP_VERSION;
+        dm.Title() = APP_VER;
 
-        Application->Name() = APP_NAME;
-        Application->Description() = APP_DESCRIPTION;
-        Application->Version() = APP_VERSION;
-        Application->Title() = APP_VER;
+        dm.Run();
 
-        Application->Run();
-
-        exitcode = Application->ExitCode();
+        exitcode = dm.ExitCode();
     }
     catch (std::exception& e)
     {
@@ -221,8 +230,6 @@ int main(int argc, char *argv[]) {
     {
         exit_failure("Unknown error...");
     }
-
-    Application->Destroy();
 
     exit(exitcode);
 }

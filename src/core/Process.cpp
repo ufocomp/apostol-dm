@@ -28,8 +28,7 @@ Author:
 #define BT_BUF_SIZE 255
 //----------------------------------------------------------------------------------------------------------------------
 
-void
-signal_error(int signo, siginfo_t *siginfo, void *ucontext)
+void signal_error(int signo, siginfo_t *siginfo, void *ucontext)
 {
     void*       addr;
     void*       trace[BT_BUF_SIZE];
@@ -67,17 +66,15 @@ signal_error(int signo, siginfo_t *siginfo, void *ucontext)
         free(msg);
     }
 #endif
-    //sig_fatal = 1;
     exit(3);
 }
 //----------------------------------------------------------------------------------------------------------------------
 
-void
-signal_handler(int signo, siginfo_t *siginfo, void *ucontext)
+void signal_handler(int signo, siginfo_t *siginfo, void *ucontext)
 {
     try
     {
-        Application->SignalProcess()->SignalHandler(signo, siginfo, ucontext);
+        GApplication->SignalProcess()->SignalHandler(signo, siginfo, ucontext);
     }
     catch (std::exception& e)
     {
@@ -153,128 +150,6 @@ namespace Apostol {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        //-- CSignal ---------------------------------------------------------------------------------------------------
-
-        //--------------------------------------------------------------------------------------------------------------
-
-        CSignal::CSignal(CCollection *ACollection, int ASigno): CCollectionItem(ACollection), m_signo(ASigno) {
-            m_code = nullptr;
-            m_name = nullptr;
-            m_handler = nullptr;
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CSignal::SetCode(LPCTSTR Value) {
-            if (m_code != Value)
-                m_code = Value;
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CSignal::SetName(LPCTSTR Value) {
-            if (m_name != Value)
-                m_name = Value;
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CSignal::SetHandler(CSignalHandler Value) {
-            if (m_handler != Value)
-                m_handler = Value;
-        }
-
-        //--------------------------------------------------------------------------------------------------------------
-
-        //-- CSignals --------------------------------------------------------------------------------------------------
-
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CSignals::AddSignal(int ASigno, LPCTSTR ACode, LPCTSTR AName, CSignalHandler AHandler) {
-            auto Signal = new CSignal(this, ASigno);
-
-            Signal->Code(ACode);
-            Signal->Name(AName);
-            Signal->Handler(AHandler);
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        CSignal *CSignals::Get(int Index) {
-            if ((Index < 0) || (Index >= Count()))
-                throw ExceptionFrm(SListIndexError, Index);
-
-            return (CSignal *) GetItem(Index);
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CSignals::Put(int Index, CSignal *Signal) {
-            if ((Index < 0) || (Index >= Count()))
-                throw ExceptionFrm(SListIndexError, Index);
-            SetItem(Index, Signal);
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CSignals::InitSignals() {
-
-            CSignal *Signal;
-            struct sigaction sa = {};
-
-            for (int I = 0; I < Count(); ++I) {
-                ZeroMemory(&sa, sizeof(struct sigaction));
-
-                Signal = Get(I);
-
-                if (Signal->Handler()) {
-                    sa.sa_sigaction = Signal->Handler();
-                    sa.sa_flags = SA_SIGINFO;
-                } else {
-                    sa.sa_handler = SIG_IGN;
-                }
-
-                if (Signal->Signo() && !Signal->Name()) {
-                    Signal->Name(strsignal(Signal->Signo()));
-                }
-
-                sigemptyset(&sa.sa_mask);
-                if (sigaction(Signal->Signo(), &sa, nullptr) == -1) {
-                    throw EOSError(errno, "sigaction(%s) failed", Signal->Code());
-                }
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        sigset_t *CSignals::SigAddSet(sigset_t *set) {
-            if (Assigned(set)) {
-                sigemptyset(set);
-                for (int I = 0; I < Count(); ++I) {
-                    if (sigaddset(set, Get(I)->Signo()) == -1) {
-                        throw EOSError(errno, _T("call sigaddset() failed"));
-                    }
-                }
-            }
-
-            return set;
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CSignals::SigProcMask(int How, const sigset_t *set, sigset_t *oset) {
-            if (Assigned(set)) {
-                if (sigprocmask(How, set, oset) == -1) {
-                    throw EOSError(errno, _T("call sigprocmask() failed"));
-                }
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        int CSignals::IndexOfSigno(int Signo) {
-
-            for (int I = 0; I < Count(); ++I) {
-                if (Get(I)->Signo() == Signo)
-                    return I;
-            }
-
-            return -1;
-        }
-
-        //--------------------------------------------------------------------------------------------------------------
-
         //-- CSignalProcess --------------------------------------------------------------------------------------------
 
         //--------------------------------------------------------------------------------------------------------------
@@ -319,22 +194,22 @@ namespace Apostol {
             } else {
 
                 AddSignal(signal_value(SIG_RECONFIGURE_SIGNAL), "SIG" sig_value(SIG_RECONFIGURE_SIGNAL),
-                          "reload", signal_handler);
+                        "reload", signal_handler);
 
                 AddSignal(signal_value(SIG_REOPEN_SIGNAL), "SIG" sig_value(SIG_REOPEN_SIGNAL),
-                          "reopen", signal_handler);
+                        "reopen", signal_handler);
 
                 AddSignal(signal_value(SIG_NOACCEPT_SIGNAL), "SIG" sig_value(SIG_NOACCEPT_SIGNAL),
-                          "", signal_handler);
+                        "", signal_handler);
 
                 AddSignal(signal_value(SIG_TERMINATE_SIGNAL), "SIG" sig_value(SIG_TERMINATE_SIGNAL),
-                          "stop", signal_handler);
+                        "stop", signal_handler);
 
                 AddSignal(signal_value(SIG_SHUTDOWN_SIGNAL), "SIG" sig_value(SIG_SHUTDOWN_SIGNAL),
-                          "quit", signal_handler);
+                        "quit", signal_handler);
 
                 AddSignal(signal_value(SIG_CHANGEBIN_SIGNAL), "SIG" sig_value(SIG_CHANGEBIN_SIGNAL),
-                          "", signal_handler);
+                        "", signal_handler);
 
                 AddSignal(SIGINT, "SIGINT", nullptr, signal_handler);
 
@@ -371,7 +246,7 @@ namespace Apostol {
 
             err = errno;
 
-            int I = IndexOfSigno(signo);
+            int I = IndexOfSigNo(signo);
             if (I >= 0)
                 sigcode = Signals(I)->Code();
             else
@@ -644,7 +519,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        bool CServerProcess::ExecSQL(CPollConnection *AConnection, const CStringList &SQL,
+        bool CServerProcess::ExecSQL(const CStringList &SQL, CPollConnection *AConnection,
                                      COnPQPollQueryExecutedEvent &&OnExecuted,
                                      COnPQPollQueryExceptionEvent &&OnException) {
 
@@ -679,7 +554,7 @@ namespace Apostol {
                 Log()->Postgres(APP_LOG_INFO, _T("Receiver message: %s"), PQresultErrorMessage(AResult));
             } else {
                 Log()->Postgres(APP_LOG_INFO, "[%d] [postgresql://%s@%s:%s/%s] Receiver message: %s", AConnection->Socket(),
-                        Info["user"].c_str(), Info["host"].c_str(), Info["port"].c_str(), Info["dbname"].c_str(), PQresultErrorMessage(AResult));
+                                Info["user"].c_str(), Info["host"].c_str(), Info["port"].c_str(), Info["dbname"].c_str(), PQresultErrorMessage(AResult));
             }
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -690,7 +565,7 @@ namespace Apostol {
                 Log()->Postgres(APP_LOG_INFO, _T("Processor message: %s"), AMessage);
             } else {
                 Log()->Postgres(APP_LOG_INFO, "[%d] [postgresql://%s@%s:%s/%s] Processor message: %s", AConnection->Socket(),
-                        Info["user"].c_str(), Info["host"].c_str(), Info["port"].c_str(), Info["dbname"].c_str(), AMessage);
+                                Info["user"].c_str(), Info["host"].c_str(), Info["port"].c_str(), Info["dbname"].c_str(), AMessage);
             }
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -793,7 +668,7 @@ namespace Apostol {
                 const auto& Info = LConnection->ConnInfo();
                 if (!Info.ConnInfo().IsEmpty()) {
                     Log()->Postgres(APP_LOG_NOTICE, "[%d] [postgresql://%s@%s:%s/%s] Connected.", LConnection->PID(),
-                            Info["user"].c_str(), Info["host"].c_str(), Info["port"].c_str(), Info["dbname"].c_str());
+                                    Info["user"].c_str(), Info["host"].c_str(), Info["port"].c_str(), Info["dbname"].c_str());
                 }
             }
         }
@@ -805,7 +680,7 @@ namespace Apostol {
                 const auto& Info = LConnection->ConnInfo();
                 if (!Info.ConnInfo().IsEmpty()) {
                     Log()->Postgres(APP_LOG_NOTICE, "[%d] [postgresql://%s@%s:%s/%s] Disconnected.", LConnection->PID(),
-                            Info["user"].c_str(), Info["host"].c_str(), Info["port"].c_str(), Info["dbname"].c_str());
+                                    Info["user"].c_str(), Info["host"].c_str(), Info["port"].c_str(), Info["dbname"].c_str());
                 }
             }
         }
@@ -836,7 +711,7 @@ namespace Apostol {
         CHTTPClient *CServerProcess::GetClient(const CString &Host, uint16_t Port) {
             auto LClient = new CHTTPClient(Host.c_str(), Port);
 
-            LClient->ClientName() = Application::Application->Title();
+            LClient->ClientName() = GApplication->Title();
 
             LClient->PollStack(m_pServer->PollStack());
 #if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE >= 9)

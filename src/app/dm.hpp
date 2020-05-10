@@ -2,15 +2,15 @@
 
 Program name:
 
-  deal-module
+  dm
 
 Module Name:
 
-  DealModule.hpp
+  dm.hpp
 
 Notices:
 
-  Bitcoin Payment Service (Deal Module)
+  BitDeals Payment Service (Deal Module)
 
 Author:
 
@@ -39,9 +39,9 @@ extern "C++" {
 
 namespace Apostol {
 
-    namespace DealModule {
+    namespace Application {
 
-        class CDealModule: public CApplication {
+        class CApostol: public CApplication {
         protected:
 
             void ParseCmdLine() override;
@@ -49,14 +49,14 @@ namespace Apostol {
 
         public:
 
-            CDealModule(int argc, char *const *argv): CApplication(argc, argv) {
+            CApostol(int argc, char *const *argv): CApplication(argc, argv) {
                 CreateModules(this);
             };
 
-            ~CDealModule() override = default;
+            ~CApostol() override = default;
 
-            static class CDealModule *Create(int argc, char *const *argv) {
-                return new CDealModule(argc, argv);
+            static class CApostol *Create(int argc, char *const *argv) {
+                return new CApostol(argc, argv);
             };
 
             inline void Destroy() override { delete this; };
@@ -66,8 +66,6 @@ namespace Apostol {
         };
     }
 }
-
-using namespace Apostol::DealModule;
 }
 
 #endif //APOSTOL_APOSTOL_HPP
