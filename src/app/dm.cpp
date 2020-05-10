@@ -37,9 +37,9 @@ extern "C++" {
 
 namespace Apostol {
 
-    namespace Application {
+    namespace DealModule {
 
-        void CApostol::ShowVersionInfo() {
+        void CDealModule::ShowVersionInfo() {
 
             std::cerr << APP_NAME " version: " APP_VERSION " (" APP_DESCRIPTION ")" LINEFEED << std::endl;
 
@@ -66,7 +66,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CApostol::ParseCmdLine() {
+        void CDealModule::ParseCmdLine() {
 
             LPCTSTR P;
 
@@ -185,7 +185,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CApostol::Run() {
+        void CDealModule::Run() {
             if (Config()->TestNet()) {
                 BitcoinConfig.VersionHD = hd_private::testnet;
                 BitcoinConfig.VersionEC = ec_private::testnet;
@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
 
     DefaultLocale.SetLocale("");
 
-    CApostol dm(argc, argv);
+    CDealModule dm(argc, argv);
 
     try
     {

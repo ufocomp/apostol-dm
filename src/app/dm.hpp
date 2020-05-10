@@ -39,9 +39,9 @@ extern "C++" {
 
 namespace Apostol {
 
-    namespace Application {
+    namespace DealModule {
 
-        class CApostol: public CApplication {
+        class CDealModule: public CApplication {
         protected:
 
             void ParseCmdLine() override;
@@ -49,14 +49,14 @@ namespace Apostol {
 
         public:
 
-            CApostol(int argc, char *const *argv): CApplication(argc, argv) {
+            CDealModule(int argc, char *const *argv): CApplication(argc, argv) {
                 CreateModules(this);
             };
 
-            ~CApostol() override = default;
+            ~CDealModule() override = default;
 
-            static class CApostol *Create(int argc, char *const *argv) {
-                return new CApostol(argc, argv);
+            static class CDealModule *Create(int argc, char *const *argv) {
+                return new CDealModule(argc, argv);
             };
 
             inline void Destroy() override { delete this; };
@@ -66,6 +66,8 @@ namespace Apostol {
         };
     }
 }
+
+using namespace Apostol::DealModule;
 }
 
 #endif //APOSTOL_APOSTOL_HPP
