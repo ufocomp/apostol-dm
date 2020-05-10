@@ -194,22 +194,22 @@ namespace Apostol {
             } else {
 
                 AddSignal(signal_value(SIG_RECONFIGURE_SIGNAL), "SIG" sig_value(SIG_RECONFIGURE_SIGNAL),
-                        "reload", signal_handler);
+                          "reload", signal_handler);
 
                 AddSignal(signal_value(SIG_REOPEN_SIGNAL), "SIG" sig_value(SIG_REOPEN_SIGNAL),
-                        "reopen", signal_handler);
+                          "reopen", signal_handler);
 
                 AddSignal(signal_value(SIG_NOACCEPT_SIGNAL), "SIG" sig_value(SIG_NOACCEPT_SIGNAL),
-                        "", signal_handler);
+                          "", signal_handler);
 
                 AddSignal(signal_value(SIG_TERMINATE_SIGNAL), "SIG" sig_value(SIG_TERMINATE_SIGNAL),
-                        "stop", signal_handler);
+                          "stop", signal_handler);
 
                 AddSignal(signal_value(SIG_SHUTDOWN_SIGNAL), "SIG" sig_value(SIG_SHUTDOWN_SIGNAL),
-                        "quit", signal_handler);
+                          "quit", signal_handler);
 
                 AddSignal(signal_value(SIG_CHANGEBIN_SIGNAL), "SIG" sig_value(SIG_CHANGEBIN_SIGNAL),
-                        "", signal_handler);
+                          "", signal_handler);
 
                 AddSignal(SIGINT, "SIGINT", nullptr, signal_handler);
 
