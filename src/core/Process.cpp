@@ -103,7 +103,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         CCustomProcess::CCustomProcess(CProcessType AType, CCustomProcess *AParent): CObject(), CGlobalComponent(),
-            m_Type(AType), m_pParent(AParent) {
+                m_Type(AType), m_pParent(AParent) {
 
             m_Pid = MainThreadID;
 
@@ -280,7 +280,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         CSignalProcess::CSignalProcess(CProcessType AType, CCustomProcess *AParent):
-            CCustomProcess(AType, AParent), CSignals(), m_pSignalProcess(this) {
+                CCustomProcess(AType, AParent), CSignals(), m_pSignalProcess(this) {
 
             sig_reap = 0;
             sig_sigio = 0;
@@ -702,6 +702,11 @@ namespace Apostol {
 
         void CServerProcess::DoPQServerException(CPQServer *AServer, Delphi::Exception::Exception *AException) {
             Log()->Postgres(APP_LOG_EMERG, AException->what());
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CServerProcess::DoPQError(CPQConnection *AConnection) {
+            Log()->Postgres(APP_LOG_EMERG, AConnection->GetErrorMessage());
         }
         //--------------------------------------------------------------------------------------------------------------
 
