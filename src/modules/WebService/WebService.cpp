@@ -1060,18 +1060,18 @@ namespace Apostol {
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
 
-            CStringList LUri;
-            SplitColumns(LRequest->URI.c_str(), LRequest->URI.Size(), &LUri, '/');
+            CStringList LRouts;
+            SplitColumns(LRequest->Location.pathname, LRouts, '/');
 
-            if (LUri.Count() < 3) {
+            if (LRouts.Count() < 3) {
                 AConnection->SendStockReply(CReply::not_found);
                 return;
             }
 
-            const auto& LService = LUri[0].Lower();
-            const auto& LVersion = LUri[1].Lower();
-            const auto& LCommand = LUri[2].Lower();
-            const auto& LAction = LUri.Count() == 4 ? LUri[3].Lower() : "";
+            const auto& LService = LRouts[0].Lower();
+            const auto& LVersion = LRouts[1].Lower();
+            const auto& LCommand = LRouts[2].Lower();
+            const auto& LAction = LRouts.Count() == 4 ? LRouts[3].Lower() : "";
 
             if (LVersion == "v1") {
                 m_Version = 1;
@@ -1091,9 +1091,9 @@ namespace Apostol {
             }
 
             CString LRoute;
-            for (int I = 0; I < LUri.Count(); ++I) {
+            for (int I = 0; I < LRouts.Count(); ++I) {
                 LRoute.Append('/');
-                LRoute.Append(LUri[I]);
+                LRoute.Append(LRouts[I]);
             }
 
             try {
@@ -1139,15 +1139,7 @@ namespace Apostol {
             auto LServer = dynamic_cast<CHTTPServer *> (AConnection->Server());
             auto LRequest = AConnection->Request();
 
-            // Decode url to path.
-            CString url;
-            if (!CHTTPServer::URLDecode(LRequest->URI, url)) {
-                AConnection->SendStockReply(CReply::bad_request);
-                return;
-            }
-
-            CLocation Location(url);
-            auto& requestPath = Location.pathname;
+            CString requestPath(LRequest->Location.pathname);
 
             // Request path must be absolute and not contain "..".
             if (requestPath.empty() || requestPath.front() != '/' || requestPath.find("..") != CString::npos) {
@@ -1178,18 +1170,18 @@ namespace Apostol {
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
 
-            CStringList LUri;
-            SplitColumns(LRequest->URI.c_str(), LRequest->URI.Size(), &LUri, '/');
+            CStringList LRouts;
+            SplitColumns(LRequest->Location.pathname, LRouts, '/');
 
-            if (LUri.Count() < 3) {
+            if (LRouts.Count() < 3) {
                 AConnection->SendStockReply(CReply::not_found);
                 return;
             }
 
-            const auto& LService = LUri[0].Lower();
-            const auto& LVersion = LUri[1].Lower();
-            const auto& LCommand = LUri[2].Lower();
-            const auto& LAction = LUri.Count() == 4 ? LUri[3].Lower() : "";
+            const auto& LService = LRouts[0].Lower();
+            const auto& LVersion = LRouts[1].Lower();
+            const auto& LCommand = LRouts[2].Lower();
+            const auto& LAction = LRouts.Count() == 4 ? LRouts[3].Lower() : "";
 
             if (LVersion == "v1") {
                 m_Version = 1;
@@ -1209,9 +1201,9 @@ namespace Apostol {
             }
 
             CString LRoute;
-            for (int I = 0; I < LUri.Count(); ++I) {
+            for (int I = 0; I < LRouts.Count(); ++I) {
                 LRoute.Append('/');
-                LRoute.Append(LUri[I]);
+                LRoute.Append(LRouts[I]);
             }
 
             try {

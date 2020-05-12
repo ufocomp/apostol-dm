@@ -185,7 +185,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CDealModule::Run() {
+        void CDealModule::StartProcess() {
             if (Config()->TestNet()) {
                 BitcoinConfig.VersionHD = hd_private::testnet;
                 BitcoinConfig.VersionEC = ec_private::testnet;
@@ -195,6 +195,11 @@ namespace Apostol {
                 BitcoinConfig.Symbol = "tBTC";
             }
 
+            CApplication::StartProcess();
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CDealModule::Run() {
             CApplication::Run();
         }
         //--------------------------------------------------------------------------------------------------------------
