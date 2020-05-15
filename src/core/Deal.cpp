@@ -87,6 +87,7 @@ namespace Apostol {
             Data.Format("Customer: %s;", Customer.Address.c_str());
             Data.Format("Until: %s;", Payment.Until.c_str());
             Data.Format("Sum: %s;", Payment.Sum.c_str());
+            Data.Format("LeaveBefore: %s", FeedBack.LeaveBefore.c_str());
 
             return Data;
         }
@@ -207,7 +208,7 @@ namespace Apostol {
                 case doDeleted:
                     return "Deleted";
                 case doFeedback:
-                    return "feedback";
+                    return "Feedback";
                 default:
                     return "Unknown";
             }
