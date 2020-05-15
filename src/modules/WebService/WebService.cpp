@@ -53,7 +53,6 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         CWebService::CWebService(CModuleManager *AManager): CApostolModule(AManager) {
-            m_Version = -1;
             m_SyncPeriod = BPS_DEFAULT_SYNC_PERIOD;
             m_ServerIndex = -1;
             m_FixedDate = Now();
@@ -75,50 +74,24 @@ namespace Apostol {
 #if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE >= 9)
             m_pMethods->AddObject(_T("GET")    , (CObject *) new CMethodHandler(true , [this](auto && Connection) { DoGet(Connection); }));
             m_pMethods->AddObject(_T("POST")   , (CObject *) new CMethodHandler(true , [this](auto && Connection) { DoPost(Connection); }));
+            m_pMethods->AddObject(_T("HEAD")   , (CObject *) new CMethodHandler(true , [this](auto && Connection) { DoHead(Connection); }));
             m_pMethods->AddObject(_T("OPTIONS"), (CObject *) new CMethodHandler(true , [this](auto && Connection) { DoOptions(Connection); }));
             m_pMethods->AddObject(_T("PUT")    , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
             m_pMethods->AddObject(_T("DELETE") , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
             m_pMethods->AddObject(_T("TRACE")  , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
-            m_pMethods->AddObject(_T("HEAD")   , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
             m_pMethods->AddObject(_T("PATCH")  , (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
             m_pMethods->AddObject(_T("CONNECT"), (CObject *) new CMethodHandler(false, [this](auto && Connection) { MethodNotAllowed(Connection); }));
 #else
             m_pMethods->AddObject(_T("GET"), (CObject *) new CMethodHandler(true, std::bind(&CWebService::DoGet, this, _1)));
             m_pMethods->AddObject(_T("POST"), (CObject *) new CMethodHandler(true, std::bind(&CWebService::DoPost, this, _1)));
+            m_pMethods->AddObject(_T("HEAD"), (CObject *) new CMethodHandler(true, std::bind(&CWebService::DoHead, this, _1)));
             m_pMethods->AddObject(_T("OPTIONS"), (CObject *) new CMethodHandler(true, std::bind(&CWebService::DoOptions, this, _1)));
             m_pMethods->AddObject(_T("PUT"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
             m_pMethods->AddObject(_T("DELETE"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
             m_pMethods->AddObject(_T("TRACE"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
-            m_pMethods->AddObject(_T("HEAD"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
             m_pMethods->AddObject(_T("PATCH"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
             m_pMethods->AddObject(_T("CONNECT"), (CObject *) new CMethodHandler(false, std::bind(&CWebService::MethodNotAllowed, this, _1)));
 #endif
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CWebService::InitRoots(const CSites &Sites) {
-            for (int i = 0; i < Sites.Count(); ++i) {
-                const auto& Site = Sites[i];
-                if (Site.Name != "default") {
-                    const auto& Hosts = Site.Config["hosts"];
-                    const auto& Root = Site.Config["root"].AsString();
-                    if (!Hosts.IsNull()) {
-                        for (int l = 0; l < Hosts.Count(); ++l)
-                            m_Roots.AddPair(Hosts[l].AsString(), Root);
-                    } else {
-                        m_Roots.AddPair(Site.Name, Root);
-                    }
-                }
-            }
-            m_Roots.AddPair("*", Sites.Default().Config["root"].AsString());
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        const CString &CWebService::GetRoot(const CString &Host) const {
-            auto Index = m_Roots.IndexOfName(Host);
-            if (Index == -1)
-                return m_Roots["*"].Value;
-            return m_Roots[Index].Value;
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -360,39 +333,6 @@ namespace Apostol {
             LProxy->OnDisconnected(std::bind(&CWebService::DoProxyDisconnected, this, _1));
 #endif
             return LProxy;
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CWebService::Redirect(CHTTPServerConnection *AConnection, const CString& Location, bool SendNow) {
-            auto LReply = AConnection->Reply();
-
-            LReply->AddHeader(_T("Location"), Location);
-            Log()->Message("Redirected to %s.", Location.c_str());
-
-            AConnection->SendStockReply(CReply::moved_temporarily, SendNow);
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CWebService::SendResource(CHTTPServerConnection *AConnection, const CString &Path, LPCTSTR AContentType, bool SendNow) {
-            auto LRequest = AConnection->Request();
-            auto LReply = AConnection->Reply();
-
-            const CString& LFullPath = GetRoot(LRequest->Location.Host()) + Path;
-            const CString& LResource = LFullPath.back() == '/' ? LFullPath + "index.html" : LFullPath;
-
-            if (!FileExists(LResource.c_str())) {
-                AConnection->SendStockReply(CReply::not_found, SendNow);
-                return;
-            }
-
-            if (AContentType == nullptr) {
-                TCHAR szFileExt[PATH_MAX] = {0};
-                auto fileExt = ExtractFileExt(szFileExt, LResource.c_str());
-                AContentType = Mapping::ExtToType(fileExt);
-            }
-
-            LReply->Content.LoadFromFile(LResource.c_str());
-            AConnection->SendReply(CReply::ok, AContentType, SendNow);
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1130,25 +1070,16 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::DoOptions(CHTTPServerConnection *AConnection) {
-            CApostolModule::DoOptions(AConnection);
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
         void CWebService::DoGet(CHTTPServerConnection *AConnection) {
-            auto LServer = dynamic_cast<CHTTPServer *> (AConnection->Server());
             auto LRequest = AConnection->Request();
 
-            CString requestPath(LRequest->Location.pathname);
+            CString LPath(LRequest->Location.pathname);
 
             // Request path must be absolute and not contain "..".
-            if (requestPath.empty() || requestPath.front() != '/' || requestPath.find("..") != CString::npos) {
+            if (LPath.empty() || LPath.front() != '/' || LPath.find("..") != CString::npos) {
                 AConnection->SendStockReply(CReply::bad_request);
                 return;
             }
-
-            if (m_Roots.Count() == 0)
-                InitRoots(LServer->Sites());
 
             CAuthorization Authorization;
             if (!CheckAuthorization(AConnection, Authorization)) {
@@ -1156,12 +1087,12 @@ namespace Apostol {
                 return;
             }
 
-            if (requestPath.SubString(0, 5) == "/api/") {
+            if (LPath.SubString(0, 5) == "/api/") {
                 DoAPI(AConnection);
                 return;
             }
 
-            SendResource(AConnection, requestPath);
+            SendResource(AConnection, LPath);
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1232,46 +1163,6 @@ namespace Apostol {
                 AConnection->SendReply(CReply::internal_server_error);
                 Log()->Error(APP_LOG_EMERG, 0, e.what());
             }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CWebService::BeforeExecute(Pointer Data) {
-
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CWebService::Execute(CHTTPServerConnection *AConnection) {
-            int i = 0;
-
-            auto LRequest = AConnection->Request();
-            auto LReply = AConnection->Reply();
-#ifdef _DEBUG
-            DebugConnection(AConnection);
-#endif
-            LReply->Clear();
-            LReply->ContentType = CReply::json;
-
-            CMethodHandler *Handler;
-            for (i = 0; i < m_pMethods->Count(); ++i) {
-                Handler = (CMethodHandler *) m_pMethods->Objects(i);
-                if (Handler->Allow()) {
-                    const auto& Method = m_pMethods->Strings(i);
-                    if (Method == LRequest->Method) {
-                        CORS(AConnection);
-                        Handler->Handler(AConnection);
-                        break;
-                    }
-                }
-            }
-
-            if (i == m_pMethods->Count()) {
-                AConnection->SendStockReply(CReply::not_implemented);
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CWebService::AfterExecute(Pointer Data) {
-
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1403,23 +1294,6 @@ namespace Apostol {
                 const auto& key = KeyList[Name];
                 if (!key.IsEmpty())
                     BTCKeys.Add(key);
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CWebService::LoadFromOpenPGP() {
-            const auto& FingerPrint = Config()->PGPFingerPrint();
-            const auto& KeyId = Config()->PGPKeyId();
-
-            if (FingerPrint.IsEmpty() && KeyId.IsEmpty()) {
-                Log()->Message(_T("PGP Fingerprint or KEY-ID not set in configuration file. Application will be stopped."));
-                //sig_quit = 1;
-            } else {
-                if (!FingerPrint.IsEmpty()) {
-                    KeyFromOpenPGPByFingerPrint(FingerPrint, m_PGP);
-                } else {
-                    KeyFromOpenPGPByKeyId(KeyId, m_PGP);
-                }
             }
         }
         //--------------------------------------------------------------------------------------------------------------

@@ -536,13 +536,13 @@ namespace Apostol {
 
             LQuery->SQL() = SQL;
 
-            if (LQuery->QueryStart() != POLL_QUERY_START_ERROR) {
+            if (LQuery->Start() != POLL_QUERY_START_ERROR) {
                 return true;
             } else {
                 delete LQuery;
             }
 
-            Log()->Error(APP_LOG_ALERT, 0, "ExecSQL: QueryStart() failed!");
+            Log()->Error(APP_LOG_ALERT, 0, "ExecSQL: StartQuery() failed!");
 
             return false;
         }
@@ -884,6 +884,7 @@ namespace Apostol {
 
         CModuleProcess::CModuleProcess(CProcessType AType, CCustomProcess *AParent): CModuleManager(),
             CServerProcess(AType, AParent) {
+
         }
         //--------------------------------------------------------------------------------------------------------------
 

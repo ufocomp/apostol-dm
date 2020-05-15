@@ -45,10 +45,8 @@ namespace Apostol {
         class CWebService: public CApostolModule {
         private:
 
-            int m_Version;
             unsigned int m_SyncPeriod;
 
-            CStringPairs m_Roots;
 #ifdef WITH_CURL
             CCurlApi m_Curl;
 #endif
@@ -66,10 +64,9 @@ namespace Apostol {
 
             CHTTPProxyManager *m_ProxyManager;
 
-            void InitRoots(const CSites &Sites);
-            const CString& GetRoot(const CString &Host) const;
-
             CHTTPProxy *GetProxy(CHTTPServerConnection *AConnection);
+
+            void InitMethods() override;
 
             static bool CheckAuthorization(CHTTPServerConnection *AConnection, CAuthorization &Authorization);
 
@@ -86,7 +83,6 @@ namespace Apostol {
             bool ServerPing(const CString &URL);
             void NextServer();
 
-            void LoadFromOpenPGP();
             void LoadFromBPS();
 
             static int CheckFee(const CString& Fee);
@@ -95,9 +91,7 @@ namespace Apostol {
 
             void DoAPI(CHTTPServerConnection *AConnection);
 
-            void DoOptions(CHTTPServerConnection *AConnection) override;
-
-            void DoGet(CHTTPServerConnection *AConnection);
+            void DoGet(CHTTPServerConnection *AConnection) override;
             void DoPost(CHTTPServerConnection *AConnection);
 
             void DoVerbose(CSocketEvent *Sender, CTCPConnection *AConnection, LPCTSTR AFormat, va_list args);
@@ -118,13 +112,7 @@ namespace Apostol {
                 return new CWebService(AManager);
             }
 
-            void InitMethods() override;
-
-            void BeforeExecute(Pointer Data) override;
-            void AfterExecute(Pointer Data) override;
-
             void Heartbeat() override;
-            void Execute(CHTTPServerConnection *AConnection) override;
 
             bool CheckUserAgent(const CString &Value) override;
 
@@ -142,10 +130,6 @@ namespace Apostol {
             static void ExceptionToJson(int ErrorCode, const std::exception &AException, CString& Json);
 
             static CDateTime GetRandomDate(int a, int b, CDateTime Date = Now());
-
-            static void Redirect(CHTTPServerConnection *AConnection, const CString& Location, bool SendNow = false);
-
-            void SendResource(CHTTPServerConnection *AConnection, const CString &Path, LPCTSTR AContentType = nullptr, bool SendNow = false);
 
         };
     }
