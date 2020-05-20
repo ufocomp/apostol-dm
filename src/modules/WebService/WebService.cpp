@@ -56,7 +56,7 @@ namespace Apostol {
             m_SyncPeriod = BPS_DEFAULT_SYNC_PERIOD;
             m_ServerIndex = -1;
             m_KeyIndex = 0;
-            m_KeyCount = 0;
+            m_KeyStatus = ksUnknown;
             m_RandomDate = Now();
             m_LocalHost = "http://localhost:";
             m_LocalHost << BPS_SERVER_PORT;
@@ -1292,7 +1292,7 @@ namespace Apostol {
             const auto result = Json["result"].AsBoolean();
             const auto& message = Json["message"].AsString();
 
-            Log()->Debug(0, "Load key message: %s", message.c_str());
+            Log()->Debug(0, "Key message: %s", message.c_str());
 
             if (result) {
                 Key = key;
@@ -1300,12 +1300,13 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::LoadPGP() {
+        void CWebService::FetchPGP() {
             const auto& LServer = CurrentServer();
 
-            Log()->Debug(0, "Trying to download a PGP key from: %s", LServer.c_str());
+            Log()->Debug(0, "Trying to fetch a PGP key from: %s", LServer.c_str());
 
-            auto OnRequest = [](CRequest *ARequest) {
+            auto OnRequest = [this](CRequest *ARequest) {
+                m_KeyStatus = ksPGPFetching;
                 CRequest::Prepare(ARequest, "GET", "/api/v1/key?type=PGP-PUBLIC&name=DEFAULT");
             };
 
@@ -1327,16 +1328,16 @@ namespace Apostol {
                         if (ServerList.Count() != 0)
                             m_ServerList = ServerList;
 
-                        m_KeyCount = BTCKeys.Count();
                         m_BTCKeys = BTCKeys;
+                        m_KeyStatus = ksPGPSuccess;
                     }
                 } catch (Delphi::Exception::Exception &e) {
-                    Log()->Error(APP_LOG_ERR, 0, "[PGP] Error: %s", e.what());
-                    LoadKeys();
+                    Log()->Error(APP_LOG_INFO, 0, "[PGP] Message: %s", e.what());
+                    m_KeyStatus = ksPGPError;
+                    FetchBTC();
                 }
 
                 LConnection->CloseConnection(true);
-
                 return true;
             };
 
@@ -1346,7 +1347,8 @@ namespace Apostol {
 
                 Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LClient->Host().c_str(), LClient->Port(), AException->what());
 
-                LoadKeys();
+                m_KeyStatus = ksPGPError;
+                FetchBTC();
             };
 
             CLocation Location(LServer);
@@ -1360,12 +1362,13 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::LoadBTC() {
+        void CWebService::FetchBTC() {
             const auto& LServer = CurrentServer();
 
-            Log()->Debug(0, "Trying to download a BTC KEY%d from: %s", m_KeyIndex + 1, LServer.c_str());
+            Log()->Debug(0, "Trying to fetch a BTC KEY%d from: %s", m_KeyIndex + 1, LServer.c_str());
 
             auto OnRequest = [this](CRequest *ARequest) {
+                m_KeyStatus = ksBTCFetching;
                 CString URI("/api/v1/key?type=BTC-PUBLIC&name=KEY");
                 URI << m_KeyIndex + 1;
                 CRequest::Prepare(ARequest, "GET", URI.c_str());
@@ -1381,13 +1384,15 @@ namespace Apostol {
                     if (!Key.IsEmpty()) {
                         m_BTCKeys.Add(Key);
                         m_KeyIndex++;
-                        LoadBTC();
-                    } else {
-                        m_KeyCount = m_KeyIndex;
+                        FetchBTC();
                     }
                 } catch (Delphi::Exception::Exception &e) {
-                    Log()->Error(APP_LOG_ERR, 0, "[BTC] Error: %s", e.what());
-                    m_KeyCount = m_KeyIndex;
+                    Log()->Error(APP_LOG_INFO, 0, "[BTC] Message: %s", e.what());
+                    if (m_BTCKeys.Count() == 0) {
+                        m_KeyStatus = ksBTCError;
+                    } else {
+                        m_KeyStatus = ksBTCSuccess;
+                    }
                 }
 
                 LConnection->CloseConnection(true);
@@ -1400,8 +1405,7 @@ namespace Apostol {
                 auto LClient = dynamic_cast<CHTTPClient *> (LConnection->Client());
 
                 Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LClient->Host().c_str(), LClient->Port(), AException->what());
-
-                LoadKeys();
+                m_KeyStatus = ksBTCError;
             };
 
             CLocation Location(LServer);
@@ -1415,20 +1419,11 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::LoadFromBPS() {
+        void CWebService::FetchKeys() {
             m_KeyIndex = 0;
-            m_KeyCount = 0;
-
-            LoadPGP();
-
-            if (m_KeyCount == 0)
-                LoadBTC();
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CWebService::LoadKeys() {
-            if (NextServerIndex() != -1 )
-                LoadFromBPS();
+            m_KeyStatus = ksUnknown;
+            if (NextServerIndex() != -1)
+                FetchPGP();
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1440,13 +1435,11 @@ namespace Apostol {
                 m_ServerList.AddPair("local", m_LocalHost);
             }
 
-            if (now >= m_RandomDate) {
-                LoadKeys();
-                if (m_KeyCount == 0) {
-                    m_RandomDate = now + (CDateTime) 30 / 86400; // 30 sec
-                } else {
-                    m_RandomDate = GetRandomDate(10 * 60, m_SyncPeriod * 60, now); // 10..m_SyncPeriod min
-                }
+            if (m_KeyStatus == ksBTCError) {
+                FetchKeys();
+            } else if (now >= m_RandomDate) {
+                FetchKeys();
+                m_RandomDate = GetRandomDate(10 * 60, m_SyncPeriod * 60, now); // 10..m_SyncPeriod min
             }
         }
         //--------------------------------------------------------------------------------------------------------------

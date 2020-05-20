@@ -45,14 +45,22 @@ namespace Apostol {
         class CWebService: public CApostolModule {
         private:
 
-            unsigned int m_SyncPeriod;
+            enum CKeyStatus {
+                ksUnknown = -1,
+                ksPGPFetching,
+                ksPGPSuccess,
+                ksPGPError,
+                ksBTCFetching,
+                ksBTCSuccess,
+                ksBTCError
+            } m_KeyStatus;
+
+            int m_SyncPeriod;
 
             CString m_LocalHost;
 
             int m_ServerIndex;
-
             int m_KeyIndex;
-            int m_KeyCount;
 
             CDateTime m_RandomDate;
 
@@ -80,10 +88,8 @@ namespace Apostol {
 
             const CString &CurrentServer() const;
 
-            void LoadPGP();
-            void LoadBTC();
-
-            void LoadFromBPS();
+            void FetchPGP();
+            void FetchBTC();
 
             static int CheckFee(const CString& Fee);
 
@@ -116,7 +122,7 @@ namespace Apostol {
 
             bool CheckUserAgent(const CString &Value) override;
 
-            void LoadKeys();
+            void FetchKeys();
 
             static void JsonStringToKey(const CString& jsonString, CString& Key);
 
