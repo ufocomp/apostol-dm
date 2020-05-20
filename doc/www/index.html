@@ -21,7 +21,7 @@
                   <a class="nav-link active" data-toggle="pill" role="tab" href="#tab-account" aria-controls="tab-account" aria-selected="true">Account</a>
               </li>
               <li class="nav-item">
-                  <a class="text-sm-center nav-link" data-toggle="pill" role="tab" href="#tab-deal" aria-controls="tab-deal" aria-selected="false">Deal</a>
+                  <a class="text-sm-center nav-link" role="tab" href="#tab-deal" aria-controls="tab-deal" aria-selected="false">Deal</a>
               </li>
               <li class="nav-item">
                   <a class="text-sm-center nav-link" data-toggle="pill" role="tab" href="#tab-signature" aria-controls="tab-deal" aria-selected="false">Signature</a>
@@ -291,8 +291,11 @@
                                   </div>
                                   <div class="form-group row ml-1">
                                       <label for="formDate" class="col-sm-2 col-form-label">date:</label>
-                                      <div class="col-sm-10 ml-n1">
+                                      <div class="input-group col-sm-10 ml-n1">
                                           <input type="text" class="form-control" id="formDate" placeholder="YYYY-MM-DD HH24:MM:SS UTC" required>
+                                          <div class="input-group-append">
+                                              <button class="btn btn-outline-secondary" type="button" id="button-update-form-date" onclick="updateFormDate()">Обновить</button>
+                                          </div>
                                       </div>
                                   </div>
 
@@ -543,8 +546,13 @@
           return window.atob(json['payload']);
       }
 
-      $('.nav-tabs a[href="#tab-deal-form"]').click(function(){
+      $('.nav-pills a[href="#tab-deal"]').click(function(){
           actionDeal();
+          updateFormDate();
+          $(this).tab('show');
+      });
+
+      $('.nav-tabs a[href="#tab-deal-form"]').click(function(){
           $(this).tab('show');
       });
 
@@ -782,15 +790,22 @@
               .catch(reason => RequestForm.html(reason.message));
       }
 
+      function updateFormDate() {
+          let formDate = $("input[id='formDate']");
+          let formPaymentUntil = $("input[id='formPaymentUntil']");
+          let formFeedbackLeaveBefore = $("input[id='formFeedbackLeaveBefore']");
+
+          formDate.val(getFormattedDateTime(new Date()) + ' UTC');
+          formPaymentUntil.val(getFormattedDateTime(new Date(Date.now() + 3600000)) + ' UTC');
+          formFeedbackLeaveBefore.val(getFormattedDateTime(new Date(Date.now() + 24 * 3600000)) + ' UTC');
+      }
+
       function actionDeal() {
           let parser = document.createElement('a');
           parser.href = window.location;
 
           let formAt = $("input[id='formAt']");
-          let formDate = $("input[id='formDate']");
-
           formAt.val(parser.protocol + '//' + parser.host);
-          formDate.val(getFormattedDateTime(new Date()) + ' UTC');
       }
 
       function OnChangeOrder() {
