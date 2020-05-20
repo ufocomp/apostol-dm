@@ -47,14 +47,13 @@ namespace Apostol {
 
             unsigned int m_SyncPeriod;
 
-#ifdef WITH_CURL
-            CCurlApi m_Curl;
-#endif
             CString m_LocalHost;
 
             int m_ServerIndex;
 
-            CDateTime m_FixedDate;
+            int m_KeyIndex;
+            int m_KeyCount;
+
             CDateTime m_RandomDate;
 
             CStringPairs m_ServerList;
@@ -80,8 +79,9 @@ namespace Apostol {
             int NextServerIndex();
 
             const CString &CurrentServer() const;
-            bool ServerPing(const CString &URL);
-            void NextServer();
+
+            void LoadPGP();
+            void LoadBTC();
 
             void LoadFromBPS();
 
@@ -116,9 +116,10 @@ namespace Apostol {
 
             bool CheckUserAgent(const CString &Value) override;
 
-            void LoadPGPKey();
+            void LoadKeys();
 
-            static void JsonStringToPGP(const CString& jsonString, CString& Key);
+            static void JsonStringToKey(const CString& jsonString, CString& Key);
+
             void ParsePGPKey(const CString& Key, CStringPairs& ServerList, CStringList& BTCKeys);
 
             static void CheckDeal(const CDeal& Deal);

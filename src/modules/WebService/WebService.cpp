@@ -55,7 +55,8 @@ namespace Apostol {
         CWebService::CWebService(CModuleManager *AManager): CApostolModule(AManager) {
             m_SyncPeriod = BPS_DEFAULT_SYNC_PERIOD;
             m_ServerIndex = -1;
-            m_FixedDate = Now();
+            m_KeyIndex = 0;
+            m_KeyCount = 0;
             m_RandomDate = Now();
             m_LocalHost = "http://localhost:";
             m_LocalHost << BPS_SERVER_PORT;
@@ -350,7 +351,7 @@ namespace Apostol {
                     return true;
                 }
             } catch (std::exception &e) {
-                Log()->Error(APP_LOG_EMERG, 0, e.what());
+                Log()->Error(APP_LOG_ERR, 0, e.what());
             }
 
             return false;
@@ -868,18 +869,20 @@ namespace Apostol {
                     Node = YAML::Load(LServerRequest->Content.c_str());
                 }
 
-                if (m_PGP.IsEmpty())
-                    throw ExceptionFrm("PGP public key not loaded from server.");
-
                 if (m_BTCKeys.Count() < 2)
-                    throw ExceptionFrm("Bitcoin public keys cannot be empty.");
+                    throw ExceptionFrm("Bitcoin keys cannot be empty.");
+
+                for (int i = 0; i < m_BTCKeys.Count(); ++i) {
+                    if (m_BTCKeys[i].IsEmpty())
+                        throw ExceptionFrm("Bitcoin KEY%d cannot be empty.", i);
+                }
 
                 CDeal Deal(Node);
 
                 auto& Data = Deal.Data();
 
                 if (Data.Order == doCreate) {
-                    Data.Payment.Address = Deal.GetPaymentHD(m_BTCKeys[0], m_BTCKeys[1],
+                    Data.Payment.Address = Deal.GetPaymentHD(m_BTCKeys.Names(0), m_BTCKeys.Names(1),
                             Deal.Data().Transaction.Key, BitcoinConfig.VersionHD, BitcoinConfig.VersionScript);
 
                     Node["deal"]["date"] = Data.Date.c_str();
@@ -1174,27 +1177,6 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::NextServer() {
-#ifdef WITH_CURL
-            while (NextServerIndex() != -1 && !ServerPing(CurrentServer() + "/api/v1/ping")) {
-
-            }
-#endif
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        bool CWebService::ServerPing(const CString &URL) {
-#ifdef WITH_CURL
-            CString Result;
-
-            m_Curl.Reset();
-            m_Curl.Send(URL, Result);
-
-            return m_Curl.Code() == CURLE_OK;
-#endif
-            return true;
-        }
-
         const CString &CWebService::CurrentServer() const {
             if (m_ServerList.Count() == 0 || m_ServerIndex == -1)
                 return m_LocalHost;
@@ -1298,7 +1280,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::JsonStringToPGP(const CString &jsonString, CString& Key) {
+        void CWebService::JsonStringToKey(const CString &jsonString, CString& Key) {
             CJSON Json;
             Json << jsonString;
 
@@ -1306,57 +1288,25 @@ namespace Apostol {
             if (Error.ValueType() == jvtObject)
                 throw Delphi::Exception::Exception(Error["message"].AsString().c_str());
 
-            const auto Result = Json["result"].AsBoolean();
-            const auto& Message = Json["message"].AsString();
+            const auto& key = Json["key"].AsString();
+            const auto result = Json["result"].AsBoolean();
+            const auto& message = Json["message"].AsString();
 
-            if (!Result)
-                throw Delphi::Exception::Exception(Message.c_str());
+            Log()->Debug(0, "Load key message: %s", message.c_str());
 
-            const auto& PGP = Json["key"];
-            if (PGP.ValueType() == jvtString) {
-                Key = PGP.AsString();
+            if (result) {
+                Key = key;
             }
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::LoadFromBPS() {
+        void CWebService::LoadPGP() {
+            const auto& LServer = CurrentServer();
 
-            CString URL(CurrentServer() + "/api/v1/pgp");
-            Log()->Debug(0, "[PGP] Trying to download a key from: %s", URL.c_str());
+            Log()->Debug(0, "Trying to download a PGP key from: %s", LServer.c_str());
 
-#ifdef WITH_CURL
-            CString jsonString;
-
-            m_Curl.Reset();
-            m_Curl.Send(URL, jsonString);
-
-            /* Check for errors */
-            if ( m_Curl.Code() == CURLE_OK ) {
-                try {
-                    JsonStringToPGP(jsonString, m_PGP);
-
-                    if (!m_PGP.IsEmpty()) {
-                        DebugMessage("%s\n", m_PGP.c_str());
-
-                        CStringPairs ServerList;
-                        CStringList BTCKeys;
-
-                        ParsePGPKey(m_PGP, ServerList, BTCKeys);
-
-                        if (ServerList.Count() != 0)
-                            m_ServerList = ServerList;
-
-                        m_BTCKeys = BTCKeys;
-                    }
-                } catch (Delphi::Exception::Exception &e) {
-                    Log()->Error(APP_LOG_ERR, 0, "[PGP] Error: %s", e.what());
-                }
-            } else {
-                Log()->Error(APP_LOG_EMERG, 0, "[PGP] Failed: %s (%s)." , m_Curl.GetErrorMessage().c_str(), URL.c_str());
-            }
-#else
             auto OnRequest = [](CRequest *ARequest) {
-                CRequest::Prepare(ARequest, "GET", "/api/v1/pgp");
+                CRequest::Prepare(ARequest, "GET", "/api/v1/key?type=PGP-PUBLIC&name=DEFAULT");
             };
 
             auto OnExecute = [this](CTCPConnection *AConnection) {
@@ -1364,7 +1314,7 @@ namespace Apostol {
                 auto LReply = LConnection->Reply();
 
                 try {
-                    JsonStringToPGP(LReply->Content, m_PGP);
+                    JsonStringToKey(LReply->Content, m_PGP);
 
                     if (!m_PGP.IsEmpty()) {
                         DebugMessage("%s\n", m_PGP.c_str());
@@ -1377,11 +1327,12 @@ namespace Apostol {
                         if (ServerList.Count() != 0)
                             m_ServerList = ServerList;
 
+                        m_KeyCount = BTCKeys.Count();
                         m_BTCKeys = BTCKeys;
                     }
                 } catch (Delphi::Exception::Exception &e) {
                     Log()->Error(APP_LOG_ERR, 0, "[PGP] Error: %s", e.what());
-                    LoadPGPKey();
+                    LoadKeys();
                 }
 
                 LConnection->CloseConnection(true);
@@ -1395,12 +1346,10 @@ namespace Apostol {
 
                 Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LClient->Host().c_str(), LClient->Port(), AException->what());
 
-                LoadPGPKey();
+                LoadKeys();
             };
-            //--------------------------------------------------------------------------------------------------------------
 
-            CLocation Location(URL);
-
+            CLocation Location(LServer);
             auto LClient = GetClient(Location.hostname, Location.port == 0 ? BPS_SERVER_PORT : Location.port);
 
             LClient->OnRequest(OnRequest);
@@ -1408,19 +1357,78 @@ namespace Apostol {
             LClient->OnException(OnException);
 
             LClient->Active(true);
-#endif
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::LoadPGPKey() {
-#ifdef WITH_CURL
-            while (m_PGP.IsEmpty() && NextServerIndex() != -1) {
-                LoadFromBPS();
+        void CWebService::LoadBTC() {
+            const auto& LServer = CurrentServer();
+
+            Log()->Debug(0, "Trying to download a BTC KEY%d from: %s", m_KeyIndex + 1, LServer.c_str());
+
+            auto OnRequest = [this](CRequest *ARequest) {
+                CString URI("/api/v1/key?type=BTC-PUBLIC&name=KEY");
+                URI << m_KeyIndex + 1;
+                CRequest::Prepare(ARequest, "GET", URI.c_str());
             };
-#else
+
+            auto OnExecute = [this](CTCPConnection *AConnection) {
+                auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
+                auto LReply = LConnection->Reply();
+
+                try {
+                    CString Key;
+                    JsonStringToKey(LReply->Content, Key);
+                    if (!Key.IsEmpty()) {
+                        m_BTCKeys.Add(Key);
+                        m_KeyIndex++;
+                        LoadBTC();
+                    } else {
+                        m_KeyCount = m_KeyIndex;
+                    }
+                } catch (Delphi::Exception::Exception &e) {
+                    Log()->Error(APP_LOG_ERR, 0, "[BTC] Error: %s", e.what());
+                    m_KeyCount = m_KeyIndex;
+                }
+
+                LConnection->CloseConnection(true);
+
+                return true;
+            };
+
+            auto OnException = [this](CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
+                auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
+                auto LClient = dynamic_cast<CHTTPClient *> (LConnection->Client());
+
+                Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LClient->Host().c_str(), LClient->Port(), AException->what());
+
+                LoadKeys();
+            };
+
+            CLocation Location(LServer);
+            auto LClient = GetClient(Location.hostname, Location.port == 0 ? BPS_SERVER_PORT : Location.port);
+
+            LClient->OnRequest(OnRequest);
+            LClient->OnExecute(OnExecute);
+            LClient->OnException(OnException);
+
+            LClient->Active(true);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::LoadFromBPS() {
+            m_KeyIndex = 0;
+            m_KeyCount = 0;
+
+            LoadPGP();
+
+            if (m_KeyCount == 0)
+                LoadBTC();
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWebService::LoadKeys() {
             if (NextServerIndex() != -1 )
                 LoadFromBPS();
-#endif
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1433,19 +1441,13 @@ namespace Apostol {
             }
 
             if (now >= m_RandomDate) {
-                LoadPGPKey();
-                if (m_PGP.IsEmpty()) {
+                LoadKeys();
+                if (m_KeyCount == 0) {
                     m_RandomDate = now + (CDateTime) 30 / 86400; // 30 sec
                 } else {
                     m_RandomDate = GetRandomDate(10 * 60, m_SyncPeriod * 60, now); // 10..m_SyncPeriod min
                 }
             }
-/*
-            if ((now >= m_FixedDate)) {
-                NextServer();
-                m_FixedDate = now + (CDateTime) m_SyncPeriod * 60 / 86400; // m_SyncPeriod min
-            }
-*/
         }
         //--------------------------------------------------------------------------------------------------------------
 
