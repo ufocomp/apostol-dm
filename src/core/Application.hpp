@@ -357,19 +357,8 @@ namespace Apostol {
 
             CPollStack m_PollStack;
 
-            CCurlApi m_Curl;
-
-            CDateTime m_SyncPeriod;
-
             void BeforeRun() override;
             void AfterRun() override;
-
-            void FetchCerts(CAuthParam &Key);
-
-            void FetchProviders();
-            void CheckProviders();
-
-            static void SaveKeys(const CAuthParam &Key);
 
             void UpdateTimer() override;
 

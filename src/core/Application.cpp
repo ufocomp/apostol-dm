@@ -668,43 +668,12 @@ namespace Apostol {
 
             LServer->ServerName() = m_pApplication->Title();
 
-#if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE >= 9)
-            LServer->OnExecute([this](auto && AConnection) { return DoExecute(AConnection); });
-
-            LServer->OnVerbose([this](auto && Sender, auto && AConnection, auto && AFormat, auto && args) { DoVerbose(Sender, AConnection, AFormat, args); });
-            LServer->OnAccessLog([this](auto && AConnection) { DoAccessLog(AConnection); });
-
-            LServer->OnException([this](auto && AConnection, auto && AException) { DoServerException(AConnection, AException); });
-            LServer->OnListenException([this](auto && AConnection, auto && AException) { DoServerListenException(AConnection, AException); });
-
-            LServer->OnEventHandlerException([this](auto && AHandler, auto && AException) { DoServerEventHandlerException(AHandler, AException); });
-
-            LServer->OnConnected([this](auto && Sender) { DoServerConnected(Sender); });
-            LServer->OnDisconnected([this](auto && Sender) { DoServerDisconnected(Sender); });
-
-            LServer->OnNoCommandHandler([this](auto && Sender, auto && AData, auto && AConnection) { DoNoCommandHandler(Sender, AData, AConnection); });
-#else
-            LServer->OnExecute(std::bind(&CApplicationProcess::DoExecute, this, _1));
-
-            LServer->OnVerbose(std::bind(&CApplicationProcess::DoVerbose, this, _1, _2, _3, _4));
-            LServer->OnAccessLog(std::bind(&CApplicationProcess::DoAccessLog, this, _1));
-
-            LServer->OnException(std::bind(&CApplicationProcess::DoServerException, this, _1, _2));
-            LServer->OnListenException(std::bind(&CApplicationProcess::DoServerListenException, this, _1, _2));
-
-            LServer->OnEventHandlerException(std::bind(&CApplicationProcess::DoServerEventHandlerException, this, _1, _2));
-
-            LServer->OnConnected(std::bind(&CApplicationProcess::DoServerConnected, this, _1));
-            LServer->OnDisconnected(std::bind(&CApplicationProcess::DoServerDisconnected, this, _1));
-
-            LServer->OnNoCommandHandler(std::bind(&CApplicationProcess::DoNoCommandHandler, this, _1, _2, _3));
-#endif
             LoadSites(LServer->Sites());
             LoadAuthParams(LServer->AuthParams());
 
-            LServer->ActiveLevel(alBinding);
-
             SetServer(LServer);
+
+            LServer->ActiveLevel(alBinding);
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -714,41 +683,6 @@ namespace Apostol {
 
             LPQServer->ConnInfo().ApplicationName() = "'" + m_pApplication->Title() + "'"; //application_name;
 
-#if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE >= 9)
-            if (Config()->PostgresNotice()) {
-                //LPQServer->OnReceiver([this](auto && AConnection, auto && AResult) { DoPQReceiver(AConnection, AResult); });
-                LPQServer->OnProcessor([this](auto && AConnection, auto && AMessage) { DoPQProcessor(AConnection, AMessage); });
-            }
-
-            LPQServer->OnConnectException([this](auto && AConnection, auto && AException) { DoPQConnectException(AConnection, AException); });
-            LPQServer->OnServerException([this](auto && AServer, auto && AException) { DoPQServerException(AServer, AException); });
-
-            LPQServer->OnEventHandlerException([this](auto && AHandler, auto && AException) { DoServerEventHandlerException(AHandler, AException); });
-
-            LPQServer->OnError([this](auto && AConnection) { DoPQError(AConnection); });
-            LPQServer->OnStatus([this](auto && AConnection) { DoPQStatus(AConnection); });
-            LPQServer->OnPollingStatus([this](auto && AConnection) { DoPQPollingStatus(AConnection); });
-
-            LPQServer->OnConnected([this](auto && Sender) { DoPQConnect(Sender); });
-            LPQServer->OnDisconnected([this](auto && Sender) { DoPQDisconnect(Sender); });
-#else
-            if (Config()->PostgresNotice()) {
-                //LPQServer->OnReceiver(std::bind(&CApplicationProcess::DoPQReceiver, this, _1, _2));
-                LPQServer->OnProcessor(std::bind(&CApplicationProcess::DoPQProcessor, this, _1, _2));
-            }
-
-            LPQServer->OnConnectException(std::bind(&CApplicationProcess::DoPQConnectException, this, _1, _2));
-            LPQServer->OnServerException(std::bind(&CApplicationProcess::DoPQServerException, this, _1, _2));
-
-            LPQServer->OnEventHandlerException(std::bind(&CApplicationProcess::DoServerEventHandlerException, this, _1, _2));
-
-            LPQServer->OnError(std::bind(&CApplicationProcess::DoPQError, this, _1));
-            LPQServer->OnStatus(std::bind(&CApplicationProcess::DoPQStatus, this, _1));
-            LPQServer->OnPollingStatus(std::bind(&CApplicationProcess::DoPQPollingStatus, this, _1));
-
-            LPQServer->OnConnected(std::bind(&CApplicationProcess::DoPQConnect, this, _1));
-            LPQServer->OnDisconnected(std::bind(&CApplicationProcess::DoPQDisconnect, this, _1));
-#endif
             SetPQServer(LPQServer);
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -1052,6 +986,7 @@ namespace Apostol {
             m_PollStack.TimeOut(Config()->TimeOut());
 
             Server()->PollStack(&m_PollStack);
+
             ServerStart();
 #ifdef WITH_POSTGRESQL
             PQServer()->PollStack(&m_PollStack);
@@ -1593,7 +1528,7 @@ namespace Apostol {
 
         CProcessHelper::CProcessHelper(CCustomProcess *AParent, CApplication *AApplication) :
                 inherited(AParent, AApplication, ptHelper) {
-            m_SyncPeriod = 30;
+
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1614,89 +1549,6 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CProcessHelper::FetchCerts(CAuthParam &Key) {
-
-            Key.Status = CAuthParam::ksError;
-
-            const auto& URI = Key.CertURI();
-
-            if (URI.IsEmpty()) {
-                Log()->Error(APP_LOG_WARN, 0, _T("Certificate URI is empty."));
-                return;
-            }
-
-            Log()->Debug(0, _T("Trying to fetch public keys from: %s"), URI.c_str());
-
-            CString jsonString;
-
-            try {
-                m_Curl.Reset();
-                m_Curl.Send(URI, jsonString);
-
-                Key.StatusTime = Now();
-
-                /* Check for errors */
-                if (m_Curl.Code() == CURLE_OK) {
-                    if (!jsonString.IsEmpty()) {
-                        Key.Keys << jsonString;
-                        Key.Status = CAuthParam::ksSuccess;
-                    }
-                } else {
-                    Log()->Error(APP_LOG_EMERG, 0, _T("[CURL] Failed: %s (%s)."), m_Curl.GetErrorMessage().c_str(), URI.c_str());
-                }
-            } catch (Delphi::Exception::Exception &e) {
-                Log()->Error(APP_LOG_EMERG, 0, _T("[CURL] Error: %s"), e.what());
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessHelper::FetchProviders() {
-            auto& Params = Server()->AuthParams();
-            for (int i = 0; i < Params.Count(); i++) {
-                auto& Key = Params[i].Value();
-                if (Key.Status == CAuthParam::ksUnknown) {
-                    Key.StatusTime = Now();
-                    Key.Status = CAuthParam::ksFetching;
-                    FetchCerts(Key);
-                }
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessHelper::CheckProviders() {
-            auto& Params = Server()->AuthParams();
-            for (int i = 0; i < Params.Count(); i++) {
-                auto& Key = Params[i].Value();
-
-                if (Key.Status == CAuthParam::ksSuccess) {
-                    Key.StatusTime = Now();
-                    Key.Status = CAuthParam::ksSaved;
-                    SaveKeys(Key);
-                }
-
-                if (Key.Status != CAuthParam::ksUnknown && (Now() - Key.StatusTime >= (CDateTime) (m_SyncPeriod * 60 / 86400))) {
-                    Key.StatusTime = Now();
-                    Key.Status = CAuthParam::ksUnknown;
-                }
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        void CProcessHelper::SaveKeys(const CAuthParam &Key) {
-            const CString pathCerts = Config()->Prefix() + _T("certs/");
-            const CString lockFile = pathCerts + "lock";
-            if (!FileExists(lockFile.c_str())) {
-                CFile Lock(lockFile.c_str(), FILE_CREATE_OR_OPEN);
-                Lock.Open();
-                Key.Keys.SaveToFile(CString(pathCerts + Key.Provider).c_str());
-                Lock.Close(true);
-                if (unlink(lockFile.c_str()) == FILE_ERROR) {
-                    Log()->Error(APP_LOG_ALERT, errno, _T("Could not delete file: \"%s\" error: "), lockFile.c_str());
-                }
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
         void CProcessHelper::DoHeartbeat(CPollEventHandler *AHandler) {
             uint64_t exp;
             auto now = Now();
@@ -1705,8 +1557,7 @@ namespace Apostol {
             LTimer->Read(&exp, sizeof(uint64_t));
 
             try {
-                FetchProviders();
-                CheckProviders();
+                //
             } catch (std::exception &e) {
                 Log()->Error(APP_LOG_EMERG, 0, e.what());
                 sig_quit = 1;
