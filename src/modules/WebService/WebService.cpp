@@ -1063,7 +1063,7 @@ namespace Apostol {
                 }
 
             } catch (std::exception &e) {
-                CReply::status_type LStatus = CReply::internal_server_error;
+                CReply::CStatusType LStatus = CReply::internal_server_error;
 
                 ExceptionToJson(0, e, LReply->Content);
 
@@ -1180,7 +1180,7 @@ namespace Apostol {
         const CString &CWebService::CurrentServer() const {
             if (m_ServerList.Count() == 0 || m_ServerIndex == -1)
                 return m_LocalHost;
-            return m_ServerList[m_ServerIndex].Value;
+            return m_ServerList[m_ServerIndex].Value();
         }
         //--------------------------------------------------------------------------------------------------------------
 

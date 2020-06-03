@@ -32,7 +32,6 @@ Author:
 //----------------------------------------------------------------------------------------------------------------------
 
 #include "Core.hpp"
-#include "Modules.hpp"
 //----------------------------------------------------------------------------------------------------------------------
 
 extern "C++" {
@@ -52,7 +51,7 @@ namespace Apostol {
         public:
 
             CDealModule(int argc, char *const *argv): CApplication(argc, argv) {
-                CreateModules(this);
+
             };
 
             ~CDealModule() override = default;

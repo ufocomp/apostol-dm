@@ -186,6 +186,10 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CDealModule::StartProcess() {
+            if (Config()->Helper()) {
+                m_ProcessType = ptHelper;
+            }
+
             if (Config()->TestNet()) {
                 BitcoinConfig.VersionHD = hd_private::testnet;
                 BitcoinConfig.VersionEC = ec_private::testnet;

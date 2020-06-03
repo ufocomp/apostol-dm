@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 project(apostol-dm)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -rdynamic")
 
 set(PROJECT_NAME "dm")
 set(PROJECT_DESCRIPTION "Bitcoin Payment Service (Deal Module)")
@@ -15,7 +15,7 @@ message(STATUS "Project description: ${PROJECT_DESCRIPTION}")
 set(INSTALL_AS_ROOT         ON  CACHE BOOL "Install as root")
 set(WITH_POSTGRESQL         OFF CACHE BOOL "Build with PostgreSQL")
 set(WITH_SQLITE3            OFF CACHE BOOL "Build with Sqlite3")
-set(WITH_CURL               OFF CACHE BOOL "Build with cURL")
+set(WITH_CURL               ON  CACHE BOOL "Build with cURL")
 set(WITH_BITCOIN_CLIENT     OFF CACHE BOOL "Build with libbitcoin-client")
 # ----------------------------------------------------------------------------------------------------------------------
 

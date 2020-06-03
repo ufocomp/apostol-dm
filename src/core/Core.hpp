@@ -91,6 +91,7 @@ public:
 #include "Deal.hpp"
 #include "Module.hpp"
 #include "Process.hpp"
+#include "Modules.hpp"
 #include "Application.hpp"
 //----------------------------------------------------------------------------------------------------------------------
 

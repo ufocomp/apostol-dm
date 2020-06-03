@@ -278,6 +278,7 @@ namespace Apostol {
             uint32_t m_nLimitNoFile;
 
             bool m_fMaster;
+            bool m_fHelper;
             bool m_fDaemon;
 
             bool m_fTestNet;
@@ -368,23 +369,23 @@ namespace Apostol {
 
             config_flag_t &Flags() { return m_Flags; };
 
-            uint32_t ErrorCount() { return m_uErrorCount; };
+            uint32_t ErrorCount() const { return m_uErrorCount; };
 
-            uint32_t Workers() { return m_nWorkers; };
+            uint32_t Workers() const { return m_nWorkers; };
 
-            bool Master() { return m_fMaster; };
+            bool Master() const { return m_fMaster; };
+            bool Helper() const { return m_fHelper; };
+            bool Daemon() const { return m_fDaemon; };
 
-            bool Daemon() { return m_fDaemon; };
+            bool TestNet() const { return m_fTestNet; };
 
-            bool TestNet() { return m_fTestNet; };
+            uint32_t Port() const { return m_nPort; };
 
-            uint32_t Port() { return m_nPort; };
+            uint32_t TimeOut() const { return m_nTimeOut; };
 
-            uint32_t TimeOut() { return m_nTimeOut; };
+            uint32_t ConnectTimeOut() const { return m_nConnectTimeOut; };
 
-            uint32_t ConnectTimeOut() { return m_nConnectTimeOut; };
-
-            uint32_t LimitNoFile() { return m_nLimitNoFile; };
+            uint32_t LimitNoFile() const { return m_nLimitNoFile; };
 
             const CString& User() const { return m_sUser; };
             void User(const CString& AValue) { SetUser(AValue.c_str()); };
@@ -483,6 +484,4 @@ namespace Apostol {
 
 using namespace Apostol::Config;
 }
-
-
 #endif
