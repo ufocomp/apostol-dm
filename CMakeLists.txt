@@ -23,8 +23,8 @@ if (INSTALL_AS_ROOT)
     set(INSTALL_BIN_PATH "/usr/sbin")
     set(PROJECT_PREFIX "/etc/${PROJECT_NAME}")
 else()
-    set(INSTALL_BIN_PATH "/usr/bin")
-    set(PROJECT_PREFIX "$ENV{HOME}/.${PROJECT_NAME}")
+    set(INSTALL_BIN_PATH "/usr/local/sbin")
+    set(PROJECT_PREFIX "$ENV{HOME}/.config/${PROJECT_NAME}")
 endif()
 
 list( APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake-modules" )
@@ -32,7 +32,7 @@ list( APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake-modules" )
 add_compile_options("$<$<CONFIG:DEBUG>:-D_DEBUG>")
 
 set(CORE_LIB_NAME apostol-core)
-set(MODULES_LIB_NAME apostol-modules)
+#set(MODULES_LIB_NAME apostol-modules)
 
 add_custom_target(
         auto_increment_version
@@ -185,17 +185,20 @@ link_libraries(
 
 # Project files
 # ----------------------------------------------------------------------------------------------------------------------
-include_directories(src/app src/core src/modules)
+include_directories(src/app src/core src/workers src/helpers)
 
 file(GLOB app_files version.h src/app/*.hpp src/app/*.cpp)
 file(GLOB core_files src/core/*.hpp src/core/*.cpp)
-file(GLOB modules_files src/modules/Modules.hpp src/modules/*/*.hpp src/modules/*/*.cpp)
+file(GLOB modules_files ${modules_files} src/workers/Workers.hpp src/workers/*/*.hpp src/workers/*/*.cpp)
+file(GLOB modules_files ${modules_files} src/helpers/Helpers.hpp src/helpers/*/*.hpp src/helpers/*/*.cpp)
 
 # Apostol Core
 # ----------------------------------------------------------------------------------------------------------------------
 add_library(${CORE_LIB_NAME} STATIC
         $<TARGET_OBJECTS:delphi>
+        ${lib_files}
         ${core_files}
+        ${modules_files}
         )
 
 target_compile_definitions(${CORE_LIB_NAME} PUBLIC
@@ -223,13 +226,13 @@ target_link_libraries(${CORE_LIB_NAME} pthread ${PQ_LIB_NAME} ${SQLITE3_LIB_NAME
 
 # Apostol modules
 # ----------------------------------------------------------------------------------------------------------------------
-add_library(${MODULES_LIB_NAME} STATIC ${modules_files})
-target_link_libraries(${MODULES_LIB_NAME} ${CORE_LIB_NAME})
+#add_library(${MODULES_LIB_NAME} STATIC ${modules_files})
+#target_link_libraries(${MODULES_LIB_NAME} ${CORE_LIB_NAME})
 
 # BitDeals Payment Service (Deal Module)
 # ----------------------------------------------------------------------------------------------------------------------
 add_executable(${PROJECT_NAME} ${app_files})
-target_link_libraries(${PROJECT_NAME} ${MODULES_LIB_NAME})
+target_link_libraries(${PROJECT_NAME} ${CORE_LIB_NAME})
 
 add_dependencies(${PROJECT_NAME} auto_increment_version)
 # ----------------------------------------------------------------------------------------------------------------------
