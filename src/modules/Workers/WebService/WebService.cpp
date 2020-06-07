@@ -56,10 +56,13 @@ namespace Apostol {
             m_SyncPeriod = BPS_DEFAULT_SYNC_PERIOD;
             m_ServerIndex = -1;
             m_KeyIndex = 0;
-            m_KeyStatus = ksUnknown;
             m_RandomDate = Now();
-            m_LocalHost = "http://localhost:";
-            m_LocalHost << BPS_SERVER_PORT;
+
+            m_Local.Name() = BPS_BM_SERVER_ADDRESS;
+            m_Local.Value().URI = "http://localhost:";
+            m_Local.Value().URI << BPS_SERVER_PORT;
+            m_Local.Value().PGP.Name = BPS_BM_SERVER_ADDRESS;
+
             m_ProxyManager = new CHTTPProxyManager();
 
             CWebService::InitMethods();
@@ -372,7 +375,7 @@ namespace Apostol {
             const auto& pgpValue = LServerRequest->Params["pgp"];
 
             const auto& LServerParam = LServerRequest->Params["server"];
-            const auto& LServer = LServerParam.IsEmpty() ? CurrentServer() : LServerParam;
+            const auto& LServer = LServerParam.IsEmpty() ? CurrentServer().Value().URI : LServerParam;
 
             CLocation Location(LServer);
 
@@ -386,7 +389,7 @@ namespace Apostol {
 
                 const auto& ContentType = LServerRequest->Headers.Values(_T("content-type"));
 
-                if (ContentType == "application/x-www-form-urlencoded") {
+                if (ContentType.Find("application/x-www-form-urlencoded") == 0) {
 
                     const CStringList &FormData = LServerRequest->FormData;
 
@@ -431,7 +434,7 @@ namespace Apostol {
                         ClearText << formSign;
                     }
 
-                } else if (ContentType == "multipart/form-data") {
+                } else if (ContentType.Find("multipart/form-data") == 0) {
 
                     CFormData FormData;
                     CRequestParser::ParseFormData(LServerRequest, FormData);
@@ -477,7 +480,7 @@ namespace Apostol {
                         ClearText << formSign;
                     }
 
-                } else if (ContentType == "application/json") {
+                } else if (ContentType.Find("application/json") == 0) {
 
                     const CJSON contextJson(LServerRequest->Content);
 
@@ -529,8 +532,14 @@ namespace Apostol {
                     ClearText = LServerRequest->Content;
                 }
 
-                const auto& LPGPPrivate = Config()->IniFile().ReadString("pgp", "private", "");
+                const auto& LPGPPrivateFile = Config()->IniFile().ReadString("pgp", "private", "");
                 const auto& LPGPPassphrase = Config()->IniFile().ReadString("pgp", "passphrase", "");
+
+                if (!FileExists(LPGPPrivateFile.c_str()))
+                    throw Delphi::Exception::Exception("PGP: Private key file not opened.");
+
+                CString LPGPPrivate;
+                LPGPPrivate.LoadFromFile(LPGPPrivateFile.c_str());
 
                 if (pgpValue == "off" || pgpValue == "false") {
                     Payload = ClearText.Text();
@@ -632,7 +641,7 @@ namespace Apostol {
             const auto& pgpValue = LServerRequest->Params["pgp"];
 
             const auto& LServerParam = LServerRequest->Params["server"];
-            const auto& LServer = LServerParam.IsEmpty() ? CurrentServer() : LServerParam;
+            const auto& LServer = LServerParam.IsEmpty() ? CurrentServer().Value().URI : LServerParam;
 
             CLocation Location(LServer);
 
@@ -647,7 +656,7 @@ namespace Apostol {
 
                 const auto& ContentType = LServerRequest->Headers.Values(_T("content-type"));
 
-                if (ContentType == "application/x-www-form-urlencoded") {
+                if (ContentType.Find("application/x-www-form-urlencoded") == 0) {
 
                     const CStringList &FormData = LServerRequest->FormData;
 
@@ -716,7 +725,7 @@ namespace Apostol {
                             Feedback["comments"] = formFeedbackComments.c_str();
                     }
 
-                } else if (ContentType.Find("multipart/form-data") != CString::npos) {
+                } else if (ContentType.Find("multipart/form-data") == 0) {
 
                     CFormData FormData;
                     CRequestParser::ParseFormData(LServerRequest, FormData);
@@ -786,7 +795,7 @@ namespace Apostol {
                             Feedback["comments"] = formFeedbackComments.c_str();
                     }
 
-                } else if (ContentType == "application/json") {
+                } else if (ContentType.Find("application/json") == 0) {
 
                     const CJSON jsonData(LServerRequest->Content);
 
@@ -900,8 +909,14 @@ namespace Apostol {
 
                 CheckDeal(Deal);
 
-                const auto& LPGPPrivate = Config()->IniFile().ReadString("pgp", "private", "");
+                const auto& LPGPPrivateFile = Config()->IniFile().ReadString("pgp", "private", "");
                 const auto& LPGPPassphrase = Config()->IniFile().ReadString("pgp", "passphrase", "");
+
+                if (!FileExists(LPGPPrivateFile.c_str()))
+                    throw Delphi::Exception::Exception("PGP: Private key file not opened.");
+
+                CString LPGPPrivate;
+                LPGPPrivate.LoadFromFile(LPGPPrivateFile.c_str());
 
                 const CString ClearText(YAML::Dump(Node));
 
@@ -958,42 +973,44 @@ namespace Apostol {
                 return;
             }
 
-            if (m_PGP.IsEmpty())
-                throw ExceptionFrm("Server PGP signature not added.");
+            const auto& LServerKey = CurrentServer().Value().PGP.Key;
+
+            if (LServerKey.IsEmpty())
+                throw ExceptionFrm("Server PGP key not added.");
 
             CString Message;
             CJSON Json(jvtObject);
 
             const auto& ContentType = LRequest->Headers.Values(_T("content-type"));
 
-            if (ContentType == "application/x-www-form-urlencoded") {
+            if (ContentType.Find("application/x-www-form-urlencoded") == 0) {
                 const CStringList &FormData = LRequest->FormData;
 
                 const auto& ClearText = FormData["message"];
                 CheckKeyForNull("message", ClearText.c_str());
 
-                const auto Verified = CheckVerifyPGPSignature(VerifyPGPSignature(ClearText, m_PGP, Message), Message);
+                const auto Verified = CheckVerifyPGPSignature(VerifyPGPSignature(ClearText, LServerKey, Message), Message);
                 Json.Object().AddPair("verified", Verified);
-            } else if (ContentType == "multipart/form-data") {
+            } else if (ContentType.Find("multipart/form-data") == 0) {
                 CFormData FormData;
                 CRequestParser::ParseFormData(LRequest, FormData);
 
                 const auto& ClearText = FormData.Data("message");
                 CheckKeyForNull("message", ClearText.c_str());
 
-                const auto Verified = CheckVerifyPGPSignature(VerifyPGPSignature(ClearText, m_PGP, Message), Message);
+                const auto Verified = CheckVerifyPGPSignature(VerifyPGPSignature(ClearText, LServerKey, Message), Message);
                 Json.Object().AddPair("verified", Verified);
-            } else if (ContentType == "application/json") {
+            } else if (ContentType.Find("application/json") == 0) {
                 const CJSON jsonData(LRequest->Content);
 
                 const auto& ClearText = jsonData["message"].AsString();
                 CheckKeyForNull("message", ClearText.c_str());
 
-                const auto Verified = CheckVerifyPGPSignature(VerifyPGPSignature(ClearText, m_PGP, Message), Message);
+                const auto Verified = CheckVerifyPGPSignature(VerifyPGPSignature(ClearText, LServerKey, Message), Message);
                 Json.Object().AddPair("verified", Verified);
             } else {
                 const auto& ClearText = LRequest->Content;
-                const auto Verified = CheckVerifyPGPSignature(VerifyPGPSignature(ClearText, m_PGP, Message), Message);
+                const auto Verified = CheckVerifyPGPSignature(VerifyPGPSignature(ClearText, LServerKey, Message), Message);
                 Json.Object().AddPair("verified", Verified);
             }
 
@@ -1084,6 +1101,8 @@ namespace Apostol {
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
 
+            LReply->ContentType = CReply::json;
+
             CString LPath(LRequest->Location.pathname);
 
             // Request path must be absolute and not contain "..".
@@ -1114,6 +1133,8 @@ namespace Apostol {
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
 
+            LReply->ContentType = CReply::json;
+
             CStringList LRouts;
             SplitColumns(LRequest->Location.pathname, LRouts, '/');
 
@@ -1135,12 +1156,6 @@ namespace Apostol {
 
             if (LService != "api" || (m_Version == -1)) {
                 AConnection->SendStockReply(CReply::not_found);
-                return;
-            }
-
-            const CString &LContentType = LRequest->Headers.Values("content-type");
-            if (!LContentType.IsEmpty() && LRequest->ContentLength == 0) {
-                AConnection->SendStockReply(CReply::no_content);
                 return;
             }
 
@@ -1181,16 +1196,18 @@ namespace Apostol {
 
         int CWebService::NextServerIndex() {
             m_ServerIndex++;
-            if (m_ServerIndex >= m_ServerList.Count())
+            if (m_ServerIndex >= m_Servers.Count())
                 m_ServerIndex = -1;
             return m_ServerIndex;
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        const CString &CWebService::CurrentServer() const {
-            if (m_ServerList.Count() == 0 || m_ServerIndex == -1)
-                return m_LocalHost;
-            return m_ServerList[m_ServerIndex].Value();
+        const CServer &CWebService::CurrentServer() const {
+            if (m_Servers.Count() == 0 && m_ServerIndex == -1)
+                return m_Local;
+            if (m_ServerIndex == -1)
+                return m_Servers[0];
+            return m_Servers[m_ServerIndex];
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1310,58 +1327,72 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::FetchPGP() {
-            const auto& LServer = CurrentServer();
+        void CWebService::FetchPGP(CKeyContext &PGP) {
 
-            Log()->Debug(0, "Trying to fetch a PGP key from: %s", LServer.c_str());
+            const auto& LServerContext = CurrentServer().Value();
 
-            auto OnRequest = [this](CRequest *ARequest) {
-                m_KeyStatus = ksPGPFetching;
-                CRequest::Prepare(ARequest, "GET", "/api/v1/key?type=PGP-PUBLIC&name=DEFAULT");
+            Log()->Debug(0, "Trying to fetch a PGP key \"%s\" from: %s", PGP.Name.c_str(), LServerContext.URI.c_str());
+
+            auto OnRequest = [this, &PGP](CRequest *ARequest) {
+                const auto& LServerContext = CurrentServer().Value();
+                PGP.StatusTime = Now();
+                PGP.Status = CKeyContext::ksFetching;
+                CRequest::Prepare(ARequest, "GET", CString().Format("/api/v1/key?type=PGP-PUBLIC&name=%s", PGP.Name.c_str()).c_str());
             };
 
-            auto OnExecute = [this](CTCPConnection *AConnection) {
+            auto OnExecute = [this, &PGP](CTCPConnection *AConnection) {
                 auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
                 auto LReply = LConnection->Reply();
+                const auto& LServerContext = CurrentServer().Value();
 
                 try {
-                    JsonStringToKey(LReply->Content, m_PGP);
+                    PGP.StatusTime = Now();
+                    PGP.Status = CKeyContext::ksError;
 
-                    if (!m_PGP.IsEmpty()) {
-                        DebugMessage("%s\n", m_PGP.c_str());
+                    JsonStringToKey(LReply->Content, PGP.Key);
+                    DebugMessage("%s\n", PGP.Key.c_str());
 
+                    if (PGP.Name == "DEFAULT" && !PGP.Key.IsEmpty()) {
                         CStringPairs ServerList;
                         CStringList BTCKeys;
 
-                        ParsePGPKey(m_PGP, ServerList, BTCKeys);
+                        ParsePGPKey(PGP.Key, ServerList, BTCKeys);
 
-                        if (ServerList.Count() != 0)
-                            m_ServerList = ServerList;
+                        if (ServerList.Count() != 0) {
+                            CStringPairs::ConstEnumerator em(ServerList);
+                            while (em.MoveNext()) {
+                                const auto &Current = em.Current();
+                                if (m_Servers.IndexOfName(Current.Name()) == -1) {
+                                    m_Servers.AddPair(Current.Name(), CServerContext(Current.Value()));
+                                }
+                            }
+                        }
 
                         m_BTCKeys = BTCKeys;
-                        m_KeyStatus = ksPGPSuccess;
                     }
+
+                    PGP.Status = CKeyContext::ksSuccess;
                 } catch (Delphi::Exception::Exception &e) {
                     Log()->Error(APP_LOG_INFO, 0, "[PGP] Message: %s", e.what());
-                    m_KeyStatus = ksPGPError;
-                    FetchBTC();
+                    PGP.Status = CKeyContext::ksError;
+                    //FetchBTC();
                 }
 
                 LConnection->CloseConnection(true);
                 return true;
             };
 
-            auto OnException = [this](CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
+            auto OnException = [this, &PGP](CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
                 auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
                 auto LClient = dynamic_cast<CHTTPClient *> (LConnection->Client());
 
                 Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LClient->Host().c_str(), LClient->Port(), AException->what());
 
-                m_KeyStatus = ksPGPError;
-                FetchBTC();
+                PGP.Status = CKeyContext::ksError;
+                //FetchBTC();
             };
 
-            CLocation Location(LServer);
+            CLocation Location(LServerContext.URI);
             auto LClient = GetClient(Location.hostname, Location.port == 0 ? BPS_SERVER_PORT : Location.port);
 
             LClient->OnRequest(OnRequest);
@@ -1372,19 +1403,22 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::FetchBTC() {
-            const auto& LServer = CurrentServer();
+        void CWebService::FetchBTC(CKeyContext &BTC) {
 
-            Log()->Debug(0, "Trying to fetch a BTC KEY%d from: %s", m_KeyIndex + 1, LServer.c_str());
+            const auto& LServerContext = CurrentServer().Value();
 
-            auto OnRequest = [this](CRequest *ARequest) {
-                m_KeyStatus = ksBTCFetching;
+            Log()->Debug(0, "Trying to fetch a BTC KEY%d from: %s", m_KeyIndex + 1, LServerContext.URI.c_str());
+
+            auto OnRequest = [this, &BTC](CRequest *ARequest) {
+                const auto& LServerContext = CurrentServer().Value();
+                BTC.StatusTime = Now();
+                BTC.Status = CKeyContext::ksFetching;
                 CString URI("/api/v1/key?type=BTC-PUBLIC&name=KEY");
                 URI << m_KeyIndex + 1;
                 CRequest::Prepare(ARequest, "GET", URI.c_str());
             };
 
-            auto OnExecute = [this](CTCPConnection *AConnection) {
+            auto OnExecute = [this, &BTC](CTCPConnection *AConnection) {
                 auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
                 auto LReply = LConnection->Reply();
 
@@ -1394,14 +1428,14 @@ namespace Apostol {
                     if (!Key.IsEmpty()) {
                         m_BTCKeys.Add(Key);
                         m_KeyIndex++;
-                        FetchBTC();
+                        //FetchBTC();
                     }
                 } catch (Delphi::Exception::Exception &e) {
                     Log()->Error(APP_LOG_INFO, 0, "[BTC] Message: %s", e.what());
                     if (m_BTCKeys.Count() == 0) {
-                        m_KeyStatus = ksBTCError;
+                        BTC.Status = CKeyContext::ksError;
                     } else {
-                        m_KeyStatus = ksBTCSuccess;
+                        BTC.Status = CKeyContext::ksSuccess;
                     }
                 }
 
@@ -1410,15 +1444,15 @@ namespace Apostol {
                 return true;
             };
 
-            auto OnException = [this](CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
+            auto OnException = [this, &BTC](CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
                 auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
                 auto LClient = dynamic_cast<CHTTPClient *> (LConnection->Client());
 
                 Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LClient->Host().c_str(), LClient->Port(), AException->what());
-                m_KeyStatus = ksBTCError;
+                BTC.Status = CKeyContext::ksError;
             };
 
-            CLocation Location(LServer);
+            CLocation Location(LServerContext.URI);
             auto LClient = GetClient(Location.hostname, Location.port == 0 ? BPS_SERVER_PORT : Location.port);
 
             LClient->OnRequest(OnRequest);
@@ -1431,21 +1465,28 @@ namespace Apostol {
 
         void CWebService::FetchKeys() {
             m_KeyIndex = 0;
-            m_KeyStatus = ksUnknown;
-            if (NextServerIndex() != -1)
-                FetchPGP();
+            if (NextServerIndex() != -1) {
+                m_PGP.Status = CKeyContext::ksUnknown;
+                FetchPGP(m_PGP);
+                FetchPGP(m_Servers[m_ServerIndex].Value().PGP);
+            }
         }
         //--------------------------------------------------------------------------------------------------------------
 
         void CWebService::Heartbeat() {
-            const CDateTime now = Now();
+            const auto now = Now();
 
-            if (m_ServerList.Count() == 0) {
-                m_ServerList.AddPair(BPS_BM_SERVER_ADDRESS, BPS_SERVER_URL);
-                m_ServerList.AddPair("local", m_LocalHost);
+            if (m_Servers.Count() == 0) {
+#ifdef _DEBUG
+                m_Servers.Add(m_Local);
+#else
+                m_Servers.AddPair(BPS_BM_SERVER_ADDRESS, CServerContext(BPS_SERVER_URL));
+#endif
             }
 
-            if (m_KeyStatus == ksBTCError) {
+            const auto& Server = CurrentServer().Value();
+
+            if (Server.PGP.Status == CKeyContext::ksError) {
                 FetchKeys();
             } else if (now >= m_RandomDate) {
                 FetchKeys();

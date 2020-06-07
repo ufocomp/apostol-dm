@@ -36,6 +36,49 @@ namespace Apostol {
 
     namespace Workers {
 
+        struct CKeyContext {
+
+            CString Name;
+            CString Key;
+
+            enum CKeyStatus {
+                ksUnknown = -1,
+                ksFetching,
+                ksSuccess,
+                ksError,
+            } Status;
+
+            CDateTime StatusTime;
+
+            CKeyContext(): Status(ksUnknown), StatusTime(Now()) {
+                Name = "DEFAULT";
+            }
+
+            CKeyContext(const CString& Name, const CString& Key): CKeyContext() {
+                this->Name = Name;
+                this->Key = Key;
+            }
+
+        };
+
+        struct CServerContext {
+
+            CString URI;
+            CKeyContext PGP;
+
+            CServerContext() {
+
+            };
+
+            explicit CServerContext(const CString& URI) {
+                this->URI = URI;
+            }
+
+        };
+
+        typedef TPair<CServerContext> CServer;
+        typedef TPairs<CServerContext> CServerList;
+
         //--------------------------------------------------------------------------------------------------------------
 
         //-- CWebService -----------------------------------------------------------------------------------------------
@@ -45,28 +88,19 @@ namespace Apostol {
         class CWebService: public CApostolModule {
         private:
 
-            enum CKeyStatus {
-                ksUnknown = -1,
-                ksPGPFetching,
-                ksPGPSuccess,
-                ksPGPError,
-                ksBTCFetching,
-                ksBTCSuccess,
-                ksBTCError
-            } m_KeyStatus;
-
             int m_SyncPeriod;
 
-            CString m_LocalHost;
+            CServer m_Local;
 
             int m_ServerIndex;
             int m_KeyIndex;
 
             CDateTime m_RandomDate;
 
-            CStringPairs m_ServerList;
+            CKeyContext m_PGP;
 
-            CString m_PGP;
+            CServerList m_Servers;
+
             CStringList m_BTCKeys;
 
             CHTTPProxyManager *m_ProxyManager;
@@ -86,10 +120,10 @@ namespace Apostol {
 
             int NextServerIndex();
 
-            const CString &CurrentServer() const;
+            const CServer &CurrentServer() const;
 
-            void FetchPGP();
-            void FetchBTC();
+            void FetchPGP(CKeyContext& PGP);
+            void FetchBTC(CKeyContext& BTC);
 
             static int CheckFee(const CString& Fee);
 
