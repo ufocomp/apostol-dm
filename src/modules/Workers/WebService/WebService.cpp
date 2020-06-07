@@ -38,7 +38,7 @@ extern "C++" {
 
 namespace Apostol {
 
-    namespace Module {
+    namespace Workers {
 
         CString to_string(unsigned long Value) {
             TCHAR szString[_INT_T_LEN + 1] = {0};
@@ -52,7 +52,7 @@ namespace Apostol {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        CWebService::CWebService(CModuleManager *AManager): CApostolModule(AManager) {
+        CWebService::CWebService(CModuleProcess *AProcess): CApostolModule(AProcess, "web service") {
             m_SyncPeriod = BPS_DEFAULT_SYNC_PERIOD;
             m_ServerIndex = -1;
             m_KeyIndex = 0;
@@ -347,7 +347,8 @@ namespace Apostol {
 
             try {
                 Authorization << LAuthorization;
-                if (Authorization.Username == "module" && Authorization.Password == Config()->ModuleAddress()) {
+                const auto& LModuleAddress = Config()->IniFile().ReadString("module", "address", "");
+                if (Authorization.Username == "module" && Authorization.Password == LModuleAddress) {
                     return true;
                 }
             } catch (std::exception &e) {
@@ -363,7 +364,7 @@ namespace Apostol {
             auto LServerRequest = AConnection->Request();
             auto LProxyRequest = LProxy->Request();
 
-            const auto& LModuleAddress = Config()->ModuleAddress();
+            const auto& LModuleAddress = Config()->IniFile().ReadString("module", "address", "");
 
             const auto& LOrigin = LServerRequest->Headers.Values("origin");
             const auto& LUserAddress = LServerRequest->Params["address"];
@@ -528,12 +529,15 @@ namespace Apostol {
                     ClearText = LServerRequest->Content;
                 }
 
+                const auto& LPGPPrivate = Config()->IniFile().ReadString("pgp", "private", "");
+                const auto& LPGPPassphrase = Config()->IniFile().ReadString("pgp", "passphrase", "");
+
                 if (pgpValue == "off" || pgpValue == "false") {
                     Payload = ClearText.Text();
                 } else {
                     Apostol::PGP::CleartextSignature(
-                            Config()->PGPPrivate(),
-                            Config()->PGPPassphrase(),
+                            LPGPPrivate,
+                            LPGPPassphrase,
                             BPS_PGP_HASH,
                             ClearText.Text(),
                             Payload);
@@ -615,8 +619,8 @@ namespace Apostol {
             auto LServerRequest = AConnection->Request();
             auto LProxyRequest = LProxy->Request();
 
-            const auto& LModuleAddress = Config()->ModuleAddress();
-            const auto& LModuleFee = Config()->ModuleFee();
+            const auto& LModuleAddress = Config()->IniFile().ReadString("module", "address", "");
+            const auto& LModuleFee = Config()->IniFile().ReadString("module", "fee", "0.1%");
 
             const auto checkFee = CheckFee(LModuleFee);
             if (checkFee == -1)
@@ -896,14 +900,17 @@ namespace Apostol {
 
                 CheckDeal(Deal);
 
+                const auto& LPGPPrivate = Config()->IniFile().ReadString("pgp", "private", "");
+                const auto& LPGPPassphrase = Config()->IniFile().ReadString("pgp", "passphrase", "");
+
                 const CString ClearText(YAML::Dump(Node));
 
                 if (pgpValue == "off" || pgpValue == "false") {
                     Payload = ClearText;
                 } else {
                     Apostol::PGP::CleartextSignature(
-                            Config()->PGPPrivate(),
-                            Config()->PGPPassphrase(),
+                            LPGPPrivate,
+                            LPGPPassphrase,
                             BPS_PGP_HASH,
                             ClearText,
                             Payload);
@@ -1075,6 +1082,7 @@ namespace Apostol {
 
         void CWebService::DoGet(CHTTPServerConnection *AConnection) {
             auto LRequest = AConnection->Request();
+            auto LReply = AConnection->Reply();
 
             CString LPath(LRequest->Location.pathname);
 
@@ -1086,7 +1094,9 @@ namespace Apostol {
 
             CAuthorization Authorization;
             if (!CheckAuthorization(AConnection, Authorization)) {
-                AConnection->SendStockReply(CReply::unauthorized);
+                CReply::GetReply(LReply, CReply::unauthorized);
+                CReply::AddUnauthorized(LReply, false);
+                AConnection->SendReply();
                 return;
             }
 
@@ -1444,10 +1454,16 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        bool CWebService::CheckUserAgent(const CString& Value) {
-            return true;
+        bool CWebService::IsEnabled() {
+            if (m_ModuleStatus == msUnknown)
+                m_ModuleStatus = msEnabled;
+            return m_ModuleStatus == msEnabled;
         }
         //--------------------------------------------------------------------------------------------------------------
+
+        bool CWebService::CheckUserAgent(const CString &Value) {
+            return IsEnabled();
+        }
 
     }
 }

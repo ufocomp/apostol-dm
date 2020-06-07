@@ -6,11 +6,11 @@ Library name:
 
 Module Name:
 
-  Workers.hpp
+  Processes.hpp
 
 Notices:
 
-  Add-ons: Workers
+  Application others processes
 
 Author:
 
@@ -21,15 +21,15 @@ Author:
 
 --*/
 
-#ifndef APOSTOL_MODULES_HPP
-#define APOSTOL_MODULES_HPP
+#ifndef APOSTOL_PROCESSES_HPP
+#define APOSTOL_PROCESSES_HPP
 //----------------------------------------------------------------------------------------------------------------------
 
 #include "Header.hpp"
 //----------------------------------------------------------------------------------------------------------------------
 
-#include "Workers/Workers.hpp"
-#include "Helpers/Helpers.hpp"
-//----------------------------------------------------------------------------------------------------------------------
+static inline void CreateProcesses(CCustomProcess *AParent, CApplication *AApplication) {
 
-#endif //APOSTOL_MODULES_HPP
+}
+
+#endif //APOSTOL_PROCESSES_HPP

@@ -190,7 +190,7 @@ namespace Apostol {
                 m_ProcessType = ptHelper;
             }
 
-            if (Config()->TestNet()) {
+            if (Config()->IniFile().ReadBool("bitcoin", "testnet", false)) {
                 BitcoinConfig.VersionHD = hd_private::testnet;
                 BitcoinConfig.VersionEC = ec_private::testnet;
                 BitcoinConfig.VersionKey = payment_address::testnet_p2kh;

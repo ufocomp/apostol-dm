@@ -183,14 +183,14 @@ link_libraries(
         ${dl_LIBRARIES}
 )
 
-# Project files
+# Apostol
 # ----------------------------------------------------------------------------------------------------------------------
-include_directories(src/app src/core src/workers src/helpers)
+include_directories(src/app src/core src/modules src/modules/workers src/modules/helpers src/processes)
 
 file(GLOB app_files version.h src/app/*.hpp src/app/*.cpp)
 file(GLOB core_files src/core/*.hpp src/core/*.cpp)
-file(GLOB modules_files ${modules_files} src/workers/Workers.hpp src/workers/*/*.hpp src/workers/*/*.cpp)
-file(GLOB modules_files ${modules_files} src/helpers/Helpers.hpp src/helpers/*/*.hpp src/helpers/*/*.cpp)
+file(GLOB modules_files src/modules/Modules.hpp src/modules/*/*/*.hpp src/modules/*/*/*.cpp)
+file(GLOB processes_files src/processes/Processes.hpp src/processes/*/*.hpp src/processes/*/*.cpp)
 
 # Apostol Core
 # ----------------------------------------------------------------------------------------------------------------------
@@ -199,6 +199,7 @@ add_library(${CORE_LIB_NAME} STATIC
         ${lib_files}
         ${core_files}
         ${modules_files}
+        ${processes_files}
         )
 
 target_compile_definitions(${CORE_LIB_NAME} PUBLIC
@@ -209,7 +210,7 @@ target_compile_definitions(${CORE_LIB_NAME} PUBLIC
         APP_OLDPID_EXT=".oldbin"
         APP_DEFAULT_USER="nobody"
         APP_DEFAULT_GROUP="nogroup"
-        APP_DEFAULT_LISTEN="127.0.0.1"
+        APP_DEFAULT_LISTEN="0.0.0.0"
         APP_PREFIX="${PROJECT_PREFIX}/"
         APP_CONF_PREFIX="conf/"
         APP_CACHE_PREFIX="cache/"
@@ -219,6 +220,7 @@ target_compile_definitions(${CORE_LIB_NAME} PUBLIC
         APP_LOCK_FILE="logs/${PROJECT_NAME}.lock"
         APP_ERROR_LOG_FILE="logs/error.log"
         APP_ACCESS_LOG_FILE="logs/access.log"
+        APP_POSTGRES_LOG_FILE="logs/postgres.log"
         APP_DOC_ROOT="www/"
         )
 

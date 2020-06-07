@@ -34,7 +34,7 @@ extern "C++" {
 
 namespace Apostol {
 
-    namespace Module {
+    namespace Workers {
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -110,17 +110,18 @@ namespace Apostol {
 
         public:
 
-            explicit CWebService(CModuleManager *AManager);
+            explicit CWebService(CModuleProcess *AProcess);
 
             ~CWebService() override;
 
-            static class CWebService *CreateModule(CModuleManager *AManager) {
-                return new CWebService(AManager);
+            static class CWebService *CreateModule(CModuleProcess *AProcess) {
+                return new CWebService(AProcess);
             }
 
             void Heartbeat() override;
 
-            bool CheckUserAgent(const CString &Value) override;
+            bool IsEnabled() override;
+            bool CheckUserAgent(const CString& Value) override;
 
             void FetchKeys();
 
@@ -142,6 +143,6 @@ namespace Apostol {
     }
 }
 
-using namespace Apostol::Module;
+using namespace Apostol::Workers;
 }
 #endif //APOSTOL_WEBSERVICE_HPP

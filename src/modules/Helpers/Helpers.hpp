@@ -1,16 +1,16 @@
 /*++
 
-Library name:
+Program name:
 
-  apostol-core
+  apostol
 
 Module Name:
 
-  Workers.hpp
+  Helpers.hpp
 
 Notices:
 
-  Add-ons: Workers
+  Apostol Web Service
 
 Author:
 
@@ -21,15 +21,15 @@ Author:
 
 --*/
 
-#ifndef APOSTOL_MODULES_HPP
-#define APOSTOL_MODULES_HPP
+#ifndef APOSTOL_HELPERS_HPP
+#define APOSTOL_HELPERS_HPP
 //----------------------------------------------------------------------------------------------------------------------
 
-#include "Header.hpp"
+#include "CertificateDownloader/CertificateDownloader.hpp"
 //----------------------------------------------------------------------------------------------------------------------
 
-#include "Workers/Workers.hpp"
-#include "Helpers/Helpers.hpp"
-//----------------------------------------------------------------------------------------------------------------------
+static inline void CreateHelpers(CModuleProcess *AProcess) {
+    CCertificateDownloader::CreateModule(AProcess);
+}
 
-#endif //APOSTOL_MODULES_HPP
+#endif //APOSTOL_HELPERS_HPP
