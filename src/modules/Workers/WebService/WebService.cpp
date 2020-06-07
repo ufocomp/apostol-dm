@@ -1027,6 +1027,8 @@ namespace Apostol {
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
 
+            LReply->ContentType = CReply::json;
+
             CStringList LRouts;
             SplitColumns(LRequest->Location.pathname, LRouts, '/');
 
@@ -1100,8 +1102,6 @@ namespace Apostol {
         void CWebService::DoGet(CHTTPServerConnection *AConnection) {
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
-
-            LReply->ContentType = CReply::json;
 
             CString LPath(LRequest->Location.pathname);
 
