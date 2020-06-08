@@ -185,11 +185,11 @@ link_libraries(
 
 # Apostol
 # ----------------------------------------------------------------------------------------------------------------------
-include_directories(src/app src/core src/modules src/modules/workers src/modules/helpers src/processes)
+include_directories(src/app src/core src/modules src/modules/Workers src/modules/Helpers src/processes)
 
 file(GLOB app_files version.h src/app/*.hpp src/app/*.cpp)
 file(GLOB core_files src/core/*.hpp src/core/*.cpp)
-file(GLOB modules_files src/modules/Modules.hpp src/modules/*/*/*.hpp src/modules/*/*/*.cpp)
+file(GLOB modules_files src/modules/Modules.hpp src/modules/*/*.hpp src/modules/*/*/*.hpp src/modules/*/*/*.cpp)
 file(GLOB processes_files src/processes/Processes.hpp src/processes/*/*.hpp src/processes/*/*.cpp)
 
 # Apostol Core
