@@ -275,7 +275,12 @@ namespace Apostol {
                 LServerReply->ContentType = CReply::html;
             }
 
-            LProxy->Connection()->SendStockReply(CReply::bad_gateway, true);
+            try {
+                LProxy->Connection()->SendStockReply(CReply::bad_gateway, true);
+            } catch (...) {
+
+            }
+
             Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LProxy->Host().c_str(), LProxy->Port(),
                     AException->what());
         }
