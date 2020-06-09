@@ -943,6 +943,8 @@ namespace Apostol {
             CJSON Json(jvtObject);
 
             Json.Object().AddPair("id", ApostolUID());
+            if (!LUserAddress.IsEmpty())
+                Json.Object().AddPair("address", LUserAddress.IsEmpty() ? LModuleAddress : LUserAddress);
 
             if (!Payload.IsEmpty())
                 Json.Object().AddPair("payload", base64_encode(Payload));
@@ -1058,12 +1060,6 @@ namespace Apostol {
                 return;
             }
 
-            const CString &LContentType = LRequest->Headers.Values("content-type");
-            if (!LContentType.IsEmpty() && LRequest->ContentLength == 0) {
-                AConnection->SendStockReply(CReply::no_content);
-                return;
-            }
-
             CString LRoute;
             for (int I = 0; I < LRouts.Count(); ++I) {
                 LRoute.Append('/');
@@ -1086,6 +1082,12 @@ namespace Apostol {
                     LRequest->Content.Clear();
 
                     RouteUser(AConnection, "GET", LRoute);
+
+                } else if (m_Version == 1 && LCommand == "deal" && LAction == "status") {
+
+                    LRequest->Content.Clear();
+
+                    RouteDeal(AConnection, "GET", LRoute, "status");
 
                 } else {
 

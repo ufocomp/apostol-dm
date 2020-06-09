@@ -61,6 +61,12 @@
                               <li class="nav-item">
                                   <a class="nav-link" href="#tab-account-delete">Delete</a>
                               </li>
+                              <li class="nav-item">
+                                  <a class="nav-link" href="#tab-account-get">Get</a>
+                              </li>
+                              <li class="nav-item">
+                                  <a class="nav-link" href="#tab-account-list">List</a>
+                              </li>
                           </ul>
                           <span class="navbar-text">
                               Account registration
@@ -226,6 +232,46 @@
                               </div>
                           </div>
                       </div>
+                      <div id="tab-account-get" class="container tab-pane fade">
+                          <div class="mt-3">
+                              <form onsubmit="actionAccountGet()">
+                                  <div class="form-group row">
+                                      <label for="account-get-ModuleAddress" class="col-sm-2 col-form-label">Module address</label>
+                                      <div class="col-sm-10">
+                                          <input type="text" class="form-control" id="account-get-ModuleAddress" required>
+                                      </div>
+                                  </div>
+                                  <div class="form-group row">
+                                      <label for="account-get-UserAddress" class="col-sm-2 col-form-label">User address</label>
+                                      <div class="col-sm-10">
+                                          <input type="text" class="form-control" id="account-get-UserAddress" placeholder="User bitcoin address" required>
+                                      </div>
+                                  </div>
+                                  <button id="btnAccountGet" type="submit" class="btn btn-primary">Execute</button>
+                              </form>
+                              <hr>
+                              <div id="action-account-get">
+                                  <small class="form-text text-muted">Press "Execute" button...</small>
+                              </div>
+                          </div>
+                      </div>
+                      <div id="tab-account-list" class="container tab-pane fade">
+                          <div class="mt-3">
+                              <form onsubmit="actionAccountList()">
+                                  <div class="form-group row">
+                                      <label for="account-list-ModuleAddress" class="col-sm-2 col-form-label">Module address</label>
+                                      <div class="col-sm-10">
+                                          <input type="text" class="form-control" id="account-list-ModuleAddress" required>
+                                      </div>
+                                  </div>
+                                  <button id="btnAccountList" type="submit" class="btn btn-primary">Execute</button>
+                              </form>
+                              <hr>
+                              <div id="action-account-list">
+                                  <small class="form-text text-muted">Press "Execute" button...</small>
+                              </div>
+                          </div>
+                      </div>
                   </div>
               </div>
               <div id="tab-deal" class="tab-pane fade">
@@ -237,13 +283,22 @@
                       <div class="collapse navbar-collapse" id="navbarDeal">
                           <ul class="nav nav-tabs mr-auto">
                               <li class="nav-item">
-                                  <a class="nav-link active" href="#tab-deal-form">Form</a>
+                                  <a class="nav-link active" data-toggle="tab" href="#tab-deal-status">Status</a>
+                              </li>
+                              <li class="nav-item">
+                                  <a class="nav-link" href="#tab-deal-form">Form</a>
                               </li>
                               <li class="nav-item">
                                   <a class="nav-link" data-toggle="tab" href="#tab-deal-json">JSON</a>
                               </li>
                               <li class="nav-item">
                                   <a class="nav-link" data-toggle="tab" href="#tab-deal-yaml">YAML</a>
+                              </li>
+                              <li class="nav-item">
+                                  <a class="nav-link" data-toggle="tab" href="#tab-deal-get">Get</a>
+                              </li>
+                              <li class="nav-item">
+                                  <a class="nav-link" data-toggle="tab" href="#tab-deal-list">List</a>
                               </li>
                           </ul>
                           <span class="navbar-text">
@@ -253,7 +308,30 @@
                   </nav>
                   <!-- Tab panes -->
                   <div class="tab-content">
-                      <div id="tab-deal-form" class="container tab-pane active">
+                      <div id="tab-deal-status" class="container tab-pane active">
+                          <div class="mt-3">
+                              <form onsubmit="actionDealStatus()">
+                                  <div class="form-group row">
+                                      <label for="deal-status-ModuleAddress" class="col-sm-2 col-form-label">Module address</label>
+                                      <div class="col-sm-10">
+                                          <input type="text" readonly class="form-control-plaintext" id="deal-status-ModuleAddress">
+                                      </div>
+                                  </div>
+                                  <div class="form-group row">
+                                      <label for="deal-status-Address" class="col-sm-2 col-form-label">Payment</label>
+                                      <div class="col-sm-10">
+                                          <input type="text" class="form-control" id="deal-status-Address" placeholder="Deal payment address" required>
+                                      </div>
+                                  </div>
+                                  <button id="btnDealStatus" type="submit" class="btn btn-primary">Execute</button>
+                              </form>
+                              <hr>
+                              <div id="action-deal-status">
+                                  <small class="form-text text-muted">Press "Execute" button...</small>
+                              </div>
+                          </div>
+                      </div>
+                      <div id="tab-deal-form" class="container tab-pane fade">
                           <div class="mt-3">
                               <form onsubmit="executeDealForm()">
                                   <div class="form-group">
@@ -413,6 +491,46 @@
                               <small class="form-text text-muted">Press "Execute" button...</small>
                           </div>
                       </div>
+                      <div id="tab-deal-get" class="container tab-pane fade">
+                          <div class="mt-3">
+                              <form onsubmit="actionDealGet()">
+                                  <div class="form-group row">
+                                      <label for="deal-get-ModuleAddress" class="col-sm-2 col-form-label">Module address</label>
+                                      <div class="col-sm-10">
+                                          <input type="text" class="form-control" id="deal-get-ModuleAddress" required>
+                                      </div>
+                                  </div>
+                                  <div class="form-group row">
+                                      <label for="deal-get-Payment" class="col-sm-2 col-form-label">Payment</label>
+                                      <div class="col-sm-10">
+                                          <input type="text" class="form-control" id="deal-get-Payment" placeholder="Deal payment address" required>
+                                      </div>
+                                  </div>
+                                  <button id="btnDealGet" type="submit" class="btn btn-primary">Execute</button>
+                              </form>
+                              <hr>
+                              <div id="action-deal-get">
+                                  <small class="form-text text-muted">Press "Execute" button...</small>
+                              </div>
+                          </div>
+                      </div>
+                      <div id="tab-deal-list" class="container tab-pane fade">
+                          <div class="mt-3">
+                              <form onsubmit="actionDealList()">
+                                  <div class="form-group row">
+                                      <label for="deal-list-ModuleAddress" class="col-sm-2 col-form-label">Module address</label>
+                                      <div class="col-sm-10">
+                                          <input type="text" class="form-control" id="deal-list-ModuleAddress" required>
+                                      </div>
+                                  </div>
+                                  <button id="btnDealList" type="submit" class="btn btn-primary">Execute</button>
+                              </form>
+                              <hr>
+                              <div id="action-deal-list">
+                                  <small class="form-text text-muted">Press "Execute" button...</small>
+                              </div>
+                          </div>
+                      </div>
                   </div>
               </div>
               <div id="tab-signature" class="container tab-pane fade">
@@ -546,6 +664,13 @@
           return window.atob(json['payload']);
       }
 
+      /**
+       * @return {string}
+       */
+      function PayloadToHTML(payload) {
+          return '<html lang="ru"><body><pre><code>' + payload + '</code></pre></body></html>';
+      }
+
       $('.nav-pills a[href="#tab-deal"]').click(function(){
           actionDeal();
           updateFormDate();
@@ -598,6 +723,35 @@
               objectAddress.val(address);
           $("input[id='deleteDate']").val(getFormattedDate(new Date()));
           $("textarea[id='deleteFlags']").val('-account');
+          $(this).tab('show');
+      });
+
+      // Select tabs status
+      $('.nav-tabs a[href="#tab-account-get"]').click(function(){
+          const moduleAddress = $("input[id='statusModuleAddress']").val();
+          $("input[id='account-get-ModuleAddress']").val(moduleAddress);
+          $(this).tab('show');
+      });
+
+      // Select tabs status
+      $('.nav-tabs a[href="#tab-account-list"]').click(function(){
+          const moduleAddress = $("input[id='statusModuleAddress']").val();
+          $("input[id='account-list-ModuleAddress']").val(moduleAddress);
+          $(this).tab('show');
+      });
+
+      // Select tabs status
+      $('.nav-tabs a[href="#tab-deal-status"]').click(function(){
+          $(this).tab('show');
+      });
+
+      // Select tabs status
+      $('.nav-tabs a[href="#tab-deal-get"]').click(function(){
+          $(this).tab('show');
+      });
+
+      // Select tabs status
+      $('.nav-tabs a[href="#tab-deal-list"]').click(function(){
           $(this).tab('show');
       });
 
@@ -806,6 +960,11 @@
 
           let formAt = $("input[id='formAt']");
           formAt.val(parser.protocol + '//' + parser.host);
+
+          const moduleAddress = $("input[id='statusModuleAddress']").val();
+          $("input[id='deal-status-ModuleAddress']").val(moduleAddress);
+          $("input[id='deal-get-ModuleAddress']").val(moduleAddress);
+          $("input[id='deal-list-ModuleAddress']").val(moduleAddress);
       }
 
       function OnChangeOrder() {
@@ -1079,6 +1238,185 @@
           execute.prop('disabled', true);
 
           AsyncFetch(api + '/signature', JSON.stringify(json), 'POST', {'Content-Type': 'application/json'})
+              .then(function(json) {
+                  let html;
+
+                  if (json.hasOwnProperty('error')) {
+                      let error = json['error'];
+                      html = '<html lang="ru"><body><pre>' + error['message'] + '</pre></body></html>';
+                  } else {
+                      const verified = json['verified'];
+                      if (verified) {
+                          html = '<html lang="ru"><body><pre>' + json['message'] + '</pre></body></html>';
+                      } else {
+                          html = JsonToHTML(json);
+                      }
+                  }
+
+                  RequestForm.html(html);
+
+                  execute.prop('disabled', false);
+              })
+              .catch((e) => {
+                  RequestForm.html(e.message);
+                  execute.prop('disabled', false);
+              });
+      }
+
+      function actionAccountGet() {
+          const api = $("input[id='apiURL']").val();
+          const server = $("input[id='serverURL']").val();
+
+          const moduleAddress = $("input[id='account-get-ModuleAddress']").val();
+          let accountAddress = $("input[id='account-get-UserAddress']").val();
+
+          let params = `?module=${moduleAddress}&bitcoin=${accountAddress}`;
+
+          const RequestForm = $("#action-account-get");
+
+          let execute = $("button[id='btnAccountGet']");
+          execute.prop('disabled', true);
+
+          AsyncFetch(`${server}${api}/account/get${params}`)
+              .then(function(json) {
+                  let html;
+
+                  if (json.hasOwnProperty('error')) {
+                      let error = json['error'];
+                      html = '<html lang="ru"><body><pre>' + error['message'] + '</pre></body></html>';
+                  } else {
+                      const verified = json['verified'];
+                      if (verified) {
+                          html = '<html lang="ru"><body><pre>' + json['message'] + '</pre></body></html>';
+                      } else {
+                          html = JsonToHTML(json);
+                      }
+                  }
+
+                  RequestForm.html(html);
+
+                  execute.prop('disabled', false);
+              })
+              .catch((e) => {
+                  RequestForm.html(e.message);
+                  execute.prop('disabled', false);
+              });
+      }
+
+      function actionAccountList() {
+          const api = $("input[id='apiURL']").val();
+          const server = $("input[id='serverURL']").val();
+
+          const moduleAddress = $("input[id='account-list-ModuleAddress']").val();
+
+          let params = `?module=${moduleAddress}`;
+
+          const RequestForm = $("#action-account-list");
+
+          let execute = $("button[id='btnAccountList']");
+          execute.prop('disabled', true);
+
+          AsyncFetch(`${server}${api}/account/list${params}`)
+              .then(function(json) {
+                  let html;
+
+                  if (json.hasOwnProperty('error')) {
+                      let error = json['error'];
+                      html = '<html lang="ru"><body><pre>' + error['message'] + '</pre></body></html>';
+                  } else {
+                      const verified = json['verified'];
+                      if (verified) {
+                          html = '<html lang="ru"><body><pre>' + json['message'] + '</pre></body></html>';
+                      } else {
+                          html = JsonToHTML(json);
+                      }
+                  }
+
+                  RequestForm.html(html);
+
+                  execute.prop('disabled', false);
+              })
+              .catch((e) => {
+                  RequestForm.html(e.message);
+                  execute.prop('disabled', false);
+              });
+      }
+
+      function actionDealStatus() {
+          const address = $("input[id='deal-status-Address']").val();
+
+          const api = $("input[id='apiURL']").val();
+          const server = $("input[id='serverURL']").val();
+
+          let settings = "";
+          if (!empty(server))
+              settings = '?server=' + server;
+          if (!empty(address)) {
+              settings += empty(settings) ? '?' : '&';
+              settings += 'address=' + address;
+          }
+
+          const RequestForm = $("#action-deal-status");
+
+          AsyncFetch(api + '/deal/status' + settings)
+              .then(json => RequestForm.html(PayloadToHTML(JsonToPayload(json))))
+              .catch(reason => RequestForm.html(reason.message));
+      }
+
+      function actionDealGet() {
+          const api = $("input[id='apiURL']").val();
+          const server = $("input[id='serverURL']").val();
+
+          const moduleAddress = $("input[id='deal-get-ModuleAddress']").val();
+          let accountAddress = $("input[id='deal-get-Payment']").val();
+
+          let params = `?module=${moduleAddress}&payment=${accountAddress}`;
+
+          const RequestForm = $("#action-deal-get");
+
+          let execute = $("button[id='btnDealGet']");
+          execute.prop('disabled', true);
+
+          AsyncFetch(`${server}${api}/deal/get${params}`)
+              .then(function(json) {
+                  let html;
+
+                  if (json.hasOwnProperty('error')) {
+                      let error = json['error'];
+                      html = '<html lang="ru"><body><pre>' + error['message'] + '</pre></body></html>';
+                  } else {
+                      const verified = json['verified'];
+                      if (verified) {
+                          html = '<html lang="ru"><body><pre>' + json['message'] + '</pre></body></html>';
+                      } else {
+                          html = JsonToHTML(json);
+                      }
+                  }
+
+                  RequestForm.html(html);
+
+                  execute.prop('disabled', false);
+              })
+              .catch((e) => {
+                  RequestForm.html(e.message);
+                  execute.prop('disabled', false);
+              });
+      }
+
+      function actionDealList() {
+          const api = $("input[id='apiURL']").val();
+          const server = $("input[id='serverURL']").val();
+
+          const moduleAddress = $("input[id='deal-list-ModuleAddress']").val();
+
+          let params = `?module=${moduleAddress}`;
+
+          const RequestForm = $("#action-deal-list");
+
+          let execute = $("button[id='btnDealList']");
+          execute.prop('disabled', true);
+
+          AsyncFetch(`${server}${api}/deal/list${params}`)
               .then(function(json) {
                   let html;
 
