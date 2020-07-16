@@ -1340,7 +1340,7 @@ namespace Apostol {
 
             Log()->Debug(0, "Trying to fetch a PGP key \"%s\" from: %s", PGP.Name.c_str(), LServerContext.URI.c_str());
 
-            auto OnRequest = [this, &PGP](CRequest *ARequest) {
+            auto OnRequest = [this, &PGP](CHTTPClient *Sender, CRequest *ARequest) {
                 const auto& LServerContext = CurrentServer().Value();
                 PGP.StatusTime = Now();
                 PGP.Status = CKeyContext::ksFetching;
@@ -1416,7 +1416,7 @@ namespace Apostol {
 
             Log()->Debug(0, "Trying to fetch a BTC KEY%d from: %s", m_KeyIndex + 1, LServerContext.URI.c_str());
 
-            auto OnRequest = [this, &BTC](CRequest *ARequest) {
+            auto OnRequest = [this, &BTC](CHTTPClient *Sender, CRequest *ARequest) {
                 const auto& LServerContext = CurrentServer().Value();
                 BTC.StatusTime = Now();
                 BTC.Status = CKeyContext::ksFetching;
