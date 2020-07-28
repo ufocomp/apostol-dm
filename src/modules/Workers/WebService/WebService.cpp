@@ -1341,16 +1341,15 @@ namespace Apostol {
             Log()->Debug(0, "Trying to fetch a PGP key \"%s\" from: %s", PGP.Name.c_str(), LServerContext.URI.c_str());
 
             auto OnRequest = [this, &PGP](CHTTPClient *Sender, CRequest *ARequest) {
-                const auto& LServerContext = CurrentServer().Value();
                 PGP.StatusTime = Now();
                 PGP.Status = CKeyContext::ksFetching;
                 CRequest::Prepare(ARequest, "GET", CString().Format("/api/v1/key?type=PGP-PUBLIC&name=%s", PGP.Name.c_str()).c_str());
             };
 
             auto OnExecute = [this, &PGP](CTCPConnection *AConnection) {
+
                 auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
                 auto LReply = LConnection->Reply();
-                const auto& LServerContext = CurrentServer().Value();
 
                 try {
                     PGP.StatusTime = Now();

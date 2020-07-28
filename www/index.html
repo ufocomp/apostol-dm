@@ -267,7 +267,7 @@
                                   <button id="btnAccountList" type="submit" class="btn btn-primary">Execute</button>
                               </form>
                               <hr>
-                              <div id="action-account-list">
+                              <div id="action-account-list" class="table-responsive">
                                   <small class="form-text text-muted">Press "Execute" button...</small>
                               </div>
                           </div>
@@ -526,7 +526,7 @@
                                   <button id="btnDealList" type="submit" class="btn btn-primary">Execute</button>
                               </form>
                               <hr>
-                              <div id="action-deal-list">
+                              <div id="action-deal-list" class="table-responsive">
                                   <small class="form-text text-muted">Press "Execute" button...</small>
                               </div>
                           </div>
@@ -655,6 +655,81 @@
        */
       function JsonToHTML(json) {
           return '<html lang="ru"><body><pre><code>' + JSON.stringify(json, undefined, 4) + '</code></pre></body></html>';
+      }
+
+      /**
+       * @return {string}
+       */
+      function JsonToTableOne(json) {
+          let i, txt;
+
+          txt = '<table class="table table-sm table-striped">';
+          txt += '<thead>';
+          txt += '<tr>';
+          txt += '<th scope="col">key</th>';
+          txt += `<th scope="col">value</th>`;
+          txt += '</tr>';
+          txt += '</thead>';
+
+          txt += '<tbody>';
+          for (i in json) {
+              const value = json[i];
+              txt += '<tr>';
+              txt += `<th scope="row">${i}</th>`;
+              if (typeof value === 'object') {
+                  txt += `<td scope="row">${JSON.stringify(value, ['name'])}</td>`;
+              } else {
+                  txt += `<td scope="row">${value}</td>`;
+              }
+              txt += '</tr>';
+          }
+
+          txt += '</tbody>';
+          txt += '</table>';
+
+          return txt;
+      }
+
+      /**
+       * @return {string}
+       */
+      function JsonToTable(json) {
+          let obj, x, i, txt, index;
+
+          txt = '<table class="table table-sm table-hover table-striped">';
+          txt += '<thead>';
+          txt += '<tr>';
+
+          txt += '<th scope="col">#</th>';
+
+          obj = json[0];
+          for (i in obj)
+              txt += `<th scope="col">${i}</th>`;
+
+          txt += '</tr>';
+          txt += '</thead>';
+
+          txt += '<tbody>';
+
+          index = 0;
+          for (x in json) {
+              txt += '<tr>';
+
+              txt += `<th scope="row">${++index}</th>`;
+
+              obj = json[x];
+
+              for (i in obj) {
+                  txt += `<td scope="row">${obj[i]}</td>`;
+              }
+
+              txt += '</tr>';
+          }
+
+          txt += '</tbody>';
+          txt += '</table>';
+
+          return txt;
       }
 
       /**
@@ -1289,7 +1364,7 @@
                       if (verified) {
                           html = '<html lang="ru"><body><pre>' + json['message'] + '</pre></body></html>';
                       } else {
-                          html = JsonToHTML(json);
+                          html = JsonToTableOne(json);
                       }
                   }
 
@@ -1328,7 +1403,7 @@
                       if (verified) {
                           html = '<html lang="ru"><body><pre>' + json['message'] + '</pre></body></html>';
                       } else {
-                          html = JsonToHTML(json);
+                          html = JsonToTable(json);
                       }
                   }
 
@@ -1389,7 +1464,7 @@
                       if (verified) {
                           html = '<html lang="ru"><body><pre>' + json['message'] + '</pre></body></html>';
                       } else {
-                          html = JsonToHTML(json);
+                          html = JsonToTableOne(json);
                       }
                   }
 
@@ -1428,7 +1503,7 @@
                       if (verified) {
                           html = '<html lang="ru"><body><pre>' + json['message'] + '</pre></body></html>';
                       } else {
-                          html = JsonToHTML(json);
+                          html = JsonToTable(json);
                       }
                   }
 
