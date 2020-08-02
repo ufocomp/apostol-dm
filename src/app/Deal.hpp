@@ -102,27 +102,27 @@ namespace Apostol {
                 return S;
             };
 
-            bool operator== (const CRating& R) {
+            bool operator== (const CRating& R) const {
                 return Compare(R) == 0;
             };
 
-            bool operator!= (const CRating& R) {
+            bool operator!= (const CRating& R) const {
                 return Compare(R) != 0;
             };
 
-            bool operator< (const CRating& R) {
+            bool operator< (const CRating& R) const {
                 return Compare(R) < 0;
             };
 
-            bool operator<= (const CRating& R) {
+            bool operator<= (const CRating& R) const {
                 return Compare(R) <= 0;
             };
 
-            bool operator> (const CRating& R) {
+            bool operator> (const CRating& R) const {
                 return Compare(R) > 0;
             };
 
-            bool operator>= (const CRating& R) {
+            bool operator>= (const CRating& R) const {
                 return Compare(R) >= 0;
             };
 
@@ -163,7 +163,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         enum CDealOrder { doCreate = 0, doCreated, doPay, doPaid, doComplete, doCompleted, doCancel, doCanceled,
-                doExecute, doExecuted, doDelete, doDeleted, doFeedback };
+            doExecute, doExecuted, doDelete, doDeleted, doFeedback };
         //--------------------------------------------------------------------------------------------------------------
 
         typedef struct DealData {
@@ -180,11 +180,13 @@ namespace Apostol {
             struct seller {
                 CString Address;
                 CRating Rating;
+                CString Signature;
             } Seller;
 
             struct customer {
                 CString Address;
                 CRating Rating;
+                CString Signature;
             } Customer;
 
             struct payment {

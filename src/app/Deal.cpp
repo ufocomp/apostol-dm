@@ -406,6 +406,9 @@ namespace Apostol {
                 if (seller["rating"])
                     m_Data.Seller.Rating = seller["rating"].as<std::string>();
 
+                if (seller["signature"])
+                    m_Data.Seller.Signature = seller["signature"].as<std::string>();
+
                 const auto& customer = deal["customer"];
                 m_Data.Customer.Address = customer["address"].as<std::string>();
 
@@ -414,6 +417,9 @@ namespace Apostol {
 
                 if (customer["rating"])
                     m_Data.Customer.Rating = customer["rating"].as<std::string>();
+
+                if (customer["signature"])
+                    m_Data.Customer.Signature = customer["signature"].as<std::string>();
 
                 const auto& payment = deal["payment"];
                 if (payment) {
@@ -455,7 +461,7 @@ namespace Apostol {
                 const CDateTime Date = StringToDate(m_Data.Date);
 
                 if (m_Data.Payment.Until.IsEmpty())
-                    m_Data.Payment.Until = DateToString(Date + (CDateTime) 3600 / 86400); // 60 min
+                    m_Data.Payment.Until = DateToString(Date + (CDateTime) 3600 / SecsPerDay); // 60 min
 
                 if (m_Data.FeedBack.LeaveBefore.IsEmpty())
                     m_Data.FeedBack.LeaveBefore = DateToString(Date + 1);

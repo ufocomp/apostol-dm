@@ -283,10 +283,7 @@
                       <div class="collapse navbar-collapse" id="navbarDeal">
                           <ul class="nav nav-tabs mr-auto">
                               <li class="nav-item">
-                                  <a class="nav-link active" data-toggle="tab" href="#tab-deal-status">Status</a>
-                              </li>
-                              <li class="nav-item">
-                                  <a class="nav-link" href="#tab-deal-form">Form</a>
+                                  <a class="nav-link active" href="#tab-deal-form">Form</a>
                               </li>
                               <li class="nav-item">
                                   <a class="nav-link" data-toggle="tab" href="#tab-deal-json">JSON</a>
@@ -295,7 +292,10 @@
                                   <a class="nav-link" data-toggle="tab" href="#tab-deal-yaml">YAML</a>
                               </li>
                               <li class="nav-item">
-                                  <a class="nav-link" data-toggle="tab" href="#tab-deal-get">Get</a>
+                                  <a class="nav-link ml-2" data-toggle="tab" href="#tab-deal-status">Status</a>
+                              </li>
+                              <li class="nav-item">
+                                  <a class="nav-link ml-2" data-toggle="tab" href="#tab-deal-get">Get</a>
                               </li>
                               <li class="nav-item">
                                   <a class="nav-link" data-toggle="tab" href="#tab-deal-list">List</a>
@@ -308,161 +308,148 @@
                   </nav>
                   <!-- Tab panes -->
                   <div class="tab-content">
-                      <div id="tab-deal-status" class="container tab-pane active">
-                          <div class="mt-3">
-                              <form onsubmit="actionDealStatus()">
-                                  <div class="form-group row">
-                                      <label for="deal-status-ModuleAddress" class="col-sm-2 col-form-label">Module address</label>
-                                      <div class="col-sm-10">
-                                          <input type="text" readonly class="form-control-plaintext" id="deal-status-ModuleAddress">
-                                      </div>
+                      <div id="tab-deal-form" class="container tab-pane active">
+                          <form onsubmit="executeDealForm()">
+                              <div class="card mt-3">
+                                  <div class="card-header">
+                                      Deal
                                   </div>
-                                  <div class="form-group row">
-                                      <label for="deal-status-Address" class="col-sm-2 col-form-label">Payment</label>
-                                      <div class="col-sm-10">
-                                          <input type="text" class="form-control" id="deal-status-Address" placeholder="Deal payment address" required>
-                                      </div>
-                                  </div>
-                                  <button id="btnDealStatus" type="submit" class="btn btn-primary">Execute</button>
-                              </form>
-                              <hr>
-                              <div id="action-deal-status">
-                                  <small class="form-text text-muted">Press "Execute" button...</small>
-                              </div>
-                          </div>
-                      </div>
-                      <div id="tab-deal-form" class="container tab-pane fade">
-                          <div class="mt-3">
-                              <form onsubmit="executeDealForm()">
-                                  <div class="form-group">
-                                      <div>deal:</div>
-                                  </div>
+                                  <div class="card-body">
+                                      <div class="form-row">
+                                          <div class="form-group col-md-6">
+                                              <label for="formOrder" class="col-form-label">Order:</label>
+                                              <select id="formOrder" class="form-control" onchange="OnChangeOrder()">
+                                                  <option selected>Create</option>
+                                                  <option>Pay</option>
+                                                  <option>Complete</option>
+                                                  <option>Cancel</option>
+                                                  <option>Feedback</option>
+                                              </select>
+                                          </div>
 
-                                  <div class="form-group row ml-1">
-                                      <label for="formOrder" class="col-sm-2 col-form-label">order:</label>
-                                      <div class="col-sm-10 ml-n1">
-                                          <select id="formOrder" class="form-control" onchange="OnChangeOrder()">
-                                              <option selected>Create</option>
-                                              <option>Pay</option>
-                                              <option>Complete</option>
-                                              <option>Cancel</option>
-                                              <option>Delete</option>
-                                          </select>
+                                          <div class="form-group col-md-6">
+                                              <label for="formType" class="col-form-label">Type:</label>
+                                              <select id="formType" class="form-control" onchange="OnChangeType()">
+                                                  <option selected>Prepayment</option>
+                                                  <option>Postpayment</option>
+                                              </select>
+                                          </div>
                                       </div>
-                                  </div>
-
-                                  <div class="form-group row ml-1">
-                                      <label for="formType" class="col-sm-2 col-form-label">type:</label>
-                                      <div class="col-sm-10 ml-n1">
-                                          <select id="formType" class="form-control" onchange="OnChangeType()">
-                                              <option selected>Prepayment</option>
-                                              <option>Postpayment</option>
-                                          </select>
-                                      </div>
-                                  </div>
-
-                                  <div class="form-group row ml-1">
-                                      <label for="formAt" class="col-sm-2 col-form-label">at:</label>
-                                      <div class="col-sm-10 ml-n1">
-                                          <input type="text" class="form-control" id="formAt" placeholder="http://host:port" required>
-                                      </div>
-                                  </div>
-                                  <div class="form-group row ml-1">
-                                      <label for="formDate" class="col-sm-2 col-form-label">date:</label>
-                                      <div class="input-group col-sm-10 ml-n1">
-                                          <input type="text" class="form-control" id="formDate" placeholder="YYYY-MM-DD HH24:MM:SS UTC" required>
-                                          <div class="input-group-append">
-                                              <button class="btn btn-outline-secondary" type="button" id="button-update-form-date" onclick="updateFormDate()">Обновить</button>
+                                      <div class="form-row">
+                                          <div class="form-group col-md-6">
+                                              <label for="formAt" class="col-form-label">At:</label>
+                                              <input type="text" class="form-control" id="formAt" placeholder="http://host:port" required>
+                                          </div>
+                                          <div class="form-group col-md-6">
+                                              <label for="formDate" class="col-form-label">Date:</label>
+                                              <div class="input-group mb-3">
+                                                  <input type="text" class="form-control" id="formDate" placeholder="YYYY-MM-DD HH24:MM:SS UTC" required>
+                                                  <div class="input-group-append">
+                                                      <button class="btn btn-outline-secondary" type="button" id="button-update-form-date" onclick="updateFormDate()">Обновить</button>
+                                                  </div>
+                                              </div>
                                           </div>
                                       </div>
                                   </div>
+                              </div>
 
-                                  <div class="form-group row ml-1">
-                                      <div class="col-sm-2">seller:</div>
+                              <div class="card mt-2">
+                                  <div class="card-header">
+                                      Seller
                                   </div>
-                                  <div class="form-group row ml-3">
-                                      <label for="formSellerAddress" class="col-sm-2 col-form-label">address:</label>
-                                      <div class="col-sm-10 ml-n3">
-                                          <input type="text" class="form-control" id="formSellerAddress" placeholder="Bitcoin address" required>
+                                  <div class="card-body">
+                                      <div class="form-row">
+                                          <div class="form-group col-5">
+                                              <label for="formSellerAddress" class="col-form-label">Address:</label>
+                                              <input type="text" class="form-control" id="formSellerAddress" placeholder="Bitcoin address" required>
+                                          </div>
+                                          <div class="form-group col-2">
+                                              <label for="formSellerRating" class="col-form-label">Rating:</label>
+                                              <input type="text" class="form-control" id="formSellerRating" placeholder="count, percent%" disabled>
+                                          </div>
+                                          <div class="form-group col">
+                                              <label for="formSellerSignature" class="col-form-label">Signature:</label>
+                                              <input type="text" class="form-control" id="formSellerSignature" placeholder="Signature for order: Cancel" disabled>
+                                          </div>
                                       </div>
                                   </div>
-                                  <div class="form-group row ml-3">
-                                      <label for="formSellerRating" class="col-sm-2 col-form-label">rating:</label>
-                                      <div class="col-sm-10 ml-n3">
-                                          <input type="text" class="form-control" id="formSellerRating" placeholder="(count, percent%)" disabled>
-                                      </div>
-                                  </div>
+                              </div>
 
-                                  <div class="form-group row ml-1">
-                                      <div class="col-sm-2">customer:</div>
+                              <div class="card mt-2">
+                                  <div class="card-header">
+                                      Customer
                                   </div>
-                                  <div class="form-group row ml-3">
-                                      <label for="formCustomerAddress" class="col-sm-2 col-form-label">address:</label>
-                                      <div class="col-sm-10 ml-n3">
-                                          <input type="text" class="form-control" id="formCustomerAddress" placeholder="Bitcoin address" required>
+                                  <div class="card-body">
+                                      <div class="form-row">
+                                          <div class="form-group col-5">
+                                              <label for="formCustomerAddress" class="col-form-label">Address:</label>
+                                              <input type="text" class="form-control" id="formCustomerAddress" placeholder="Bitcoin address" required>
+                                          </div>
+                                          <div class="form-group col-2">
+                                              <label for="formCustomerRating" class="col-form-label">Rating:</label>
+                                              <input type="text" class="form-control" id="formCustomerRating" placeholder="count, percent%" disabled>
+                                          </div>
+                                          <div class="form-group col">
+                                              <label for="formCustomerSignature" class="col-form-label">Signature:</label>
+                                              <input type="text" class="form-control" id="formCustomerSignature" placeholder="Signature for order: Feedback" disabled>
+                                          </div>
                                       </div>
                                   </div>
-                                  <div class="form-group row ml-3">
-                                      <label for="formCustomerRating" class="col-sm-2 col-form-label">rating:</label>
-                                      <div class="col-sm-10 ml-n3">
-                                          <input type="text" class="form-control" id="formCustomerRating" placeholder="(count, percent%)" disabled>
-                                      </div>
-                                  </div>
+                              </div>
 
-                                  <div class="form-group row ml-1">
-                                      <div class="col-sm-2">payment:</div>
+                              <div class="card mt-2">
+                                  <div class="card-header">
+                                      Payment
                                   </div>
-                                  <div class="form-group row ml-3">
-                                      <label for="formPaymentAddress" class="col-sm-2 col-form-label">address:</label>
-                                      <div class="col-sm-10 ml-n3">
-                                          <input type="text" class="form-control" id="formPaymentAddress" placeholder="Bitcoin address" disabled>
+                                  <div class="card-body">
+                                      <div class="form-row">
+                                          <div class="form-group col-5">
+                                              <label for="formPaymentAddress" class="col-form-label">Address:</label>
+                                              <input type="text" class="form-control" id="formPaymentAddress" placeholder="Bitcoin address" disabled>
+                                          </div>
+                                          <div class="form-group col">
+                                              <label for="formPaymentUntil" class="col-form-label">Until:</label>
+                                              <input type="text" class="form-control" id="formPaymentUntil" placeholder="YYYY-MM-DD HH24:MM:SS UTC" disabled>
+                                          </div>
+                                          <div class="form-group col">
+                                              <label for="formPaymentSum" class="col-form-label">Sum:</label>
+                                              <input type="text" class="form-control" id="formPaymentSum" placeholder="0.00000000" required>
+                                          </div>
                                       </div>
                                   </div>
-                                  <div class="form-group row ml-3">
-                                      <label for="formPaymentUntil" class="col-sm-2 col-form-label">until:</label>
-                                      <div class="col-sm-10 ml-n3">
-                                          <input type="text" class="form-control" id="formPaymentUntil" placeholder="YYYY-MM-DD HH24:MM:SS UTC" disabled>
-                                      </div>
-                                  </div>
-                                  <div class="form-group row ml-3">
-                                      <label for="formPaymentSum" class="col-sm-2 col-form-label">sum:</label>
-                                      <div class="col-sm-10 ml-n3">
-                                          <input type="text" class="form-control" id="formPaymentSum" placeholder="BTC (0.00000000)" required>
-                                      </div>
-                                  </div>
+                              </div>
 
-                                  <div class="form-group row ml-1">
-                                      <div class="col-sm-2">feedback:</div>
+                              <div class="card mt-2">
+                                  <div class="card-header">
+                                      Feedback
                                   </div>
-                                  <div class="form-group row ml-3">
-                                      <label for="formFeedbackLeaveBefore" class="col-sm-2 col-form-label">leave-before:</label>
-                                      <div class="col-sm-10 ml-n3">
-                                          <input type="text" class="form-control" id="formFeedbackLeaveBefore" placeholder="YYYY-MM-DD HH24:MM:SS UTC" disabled>
+                                  <div class="card-body">
+                                      <div class="form-row">
+                                          <div class="form-group col">
+                                              <label for="formFeedbackLeaveBefore" class="col-form-label">Leave-Before:</label>
+                                              <input type="text" class="form-control" id="formFeedbackLeaveBefore" placeholder="YYYY-MM-DD HH24:MM:SS UTC" disabled>
+                                          </div>
+                                          <div class="form-group col">
+                                              <label for="formFeedbackStatus" class="col-form-label">Status:</label>
+                                              <select id="formFeedbackStatus" class="form-control" disabled>
+                                                  <option>Negative</option>
+                                                  <option selected>Neutral</option>
+                                                  <option>Positive</option>
+                                              </select>
+                                          </div>
                                       </div>
-                                  </div>
-                                  <div class="form-group row ml-3">
-                                      <label for="formFeedbackStatus" class="col-sm-2 col-form-label">status:</label>
-                                      <div class="col-sm-10 ml-n3">
-                                          <select id="formFeedbackStatus" class="form-control" disabled>
-                                              <option>Negative</option>
-                                              <option selected>Neutral</option>
-                                              <option>Positive</option>
-                                          </select>
-                                      </div>
-                                  </div>
-                                  <div class="form-group row ml-3">
-                                      <label for="formFeedbackComments" class="col-sm-2 col-form-label">comments:</label>
-                                      <div class="col-sm-10 ml-n3">
+                                      <div class="form-group">
+                                          <label for="formFeedbackComments" class="col-form-label">Comments:</label>
                                           <input type="text" class="form-control" id="formFeedbackComments" placeholder="Sample text" disabled>
                                       </div>
                                   </div>
-                                  <hr>
-                                  <button id="btnDealForm" type="submit" class="btn btn-primary">Execute</button>
-                              </form>
-                              <hr>
-                              <div id="deal-form">
-                                  <small class="form-text text-muted">Press "Execute" button...</small>
                               </div>
+                              <hr>
+                              <button id="btnDealForm" type="submit" class="btn btn-primary">Execute</button>
+                          </form>
+                          <hr>
+                          <div id="deal-form">
+                              <small class="form-text text-muted">Press "Execute" button...</small>
                           </div>
                       </div>
                       <div id="tab-deal-json" class="container tab-pane fade">
@@ -491,6 +478,29 @@
                               <small class="form-text text-muted">Press "Execute" button...</small>
                           </div>
                       </div>
+                      <div id="tab-deal-status" class="container tab-pane fade">
+                          <div class="mt-3">
+                              <form onsubmit="actionDealStatus()">
+                                  <div class="form-group row">
+                                      <label for="deal-status-ModuleAddress" class="col-sm-2 col-form-label">Module address</label>
+                                      <div class="col-sm-10">
+                                          <input type="text" readonly class="form-control-plaintext" id="deal-status-ModuleAddress">
+                                      </div>
+                                  </div>
+                                  <div class="form-group row">
+                                      <label for="deal-status-Address" class="col-sm-2 col-form-label">Payment</label>
+                                      <div class="col-sm-10">
+                                          <input type="text" class="form-control" id="deal-status-Address" placeholder="Deal payment address" required>
+                                      </div>
+                                  </div>
+                                  <button id="btnDealStatus" type="submit" class="btn btn-primary">Execute</button>
+                              </form>
+                              <hr>
+                              <div id="action-deal-status">
+                                  <small class="form-text text-muted">Press "Execute" button...</small>
+                              </div>
+                          </div>
+                      </div>
                       <div id="tab-deal-get" class="container tab-pane fade">
                           <div class="mt-3">
                               <form onsubmit="actionDealGet()">
@@ -509,7 +519,7 @@
                                   <button id="btnDealGet" type="submit" class="btn btn-primary">Execute</button>
                               </form>
                               <hr>
-                              <div id="action-deal-get">
+                              <div id="action-deal-get" class="table-responsive">
                                   <small class="form-text text-muted">Press "Execute" button...</small>
                               </div>
                           </div>
@@ -1046,7 +1056,9 @@
           const formOrder = $("select[id='formOrder']").val();
 
           let formSellerRating = $("input[id='formSellerRating']");
+          let formSellerSignature = $("input[id='formSellerSignature']");
           let formCustomerRating = $("input[id='formCustomerRating']");
+          let formCustomerSignature = $("input[id='formCustomerSignature']");
           let formPaymentAddress = $("input[id='formPaymentAddress']");
           let formPaymentUntil = $("input[id='formPaymentUntil']");
           let formFeedbackLeaveBefore = $("input[id='formFeedbackLeaveBefore']");
@@ -1055,7 +1067,9 @@
 
           if (formOrder === 'Create') {
               formSellerRating.prop('disabled', true);
+              formSellerSignature.prop('disabled', true);
               formCustomerRating.prop('disabled', true);
+              formCustomerSignature.prop('disabled', true);
               formPaymentAddress.prop('disabled', true);
               formPaymentUntil.prop('disabled', true);
               formFeedbackLeaveBefore.prop('disabled', true);
@@ -1063,7 +1077,9 @@
               formFeedbackComments.prop('disabled', true);
           } else if (formOrder === 'Pay') {
               formSellerRating.prop('disabled', false);
+              formSellerSignature.prop('disabled', true);
               formCustomerRating.prop('disabled', false);
+              formCustomerSignature.prop('disabled', true);
               formPaymentAddress.prop('disabled', false);
               formPaymentUntil.prop('disabled', false);
               formFeedbackLeaveBefore.prop('disabled', true);
@@ -1071,7 +1087,9 @@
               formFeedbackComments.prop('disabled', true);
           } else if (formOrder === 'Complete') {
               formSellerRating.prop('disabled', false);
+              formSellerSignature.prop('disabled', true);
               formCustomerRating.prop('disabled', false);
+              formCustomerSignature.prop('disabled', true);
               formPaymentAddress.prop('disabled', false);
               formPaymentUntil.prop('disabled', false);
               formFeedbackLeaveBefore.prop('disabled', false);
@@ -1079,15 +1097,19 @@
               formFeedbackComments.prop('disabled', false);
           } else if (formOrder === 'Cancel') {
               formSellerRating.prop('disabled', false);
+              formSellerSignature.prop('disabled', false);
               formCustomerRating.prop('disabled', false);
+              formCustomerSignature.prop('disabled', true);
               formPaymentAddress.prop('disabled', false);
               formPaymentUntil.prop('disabled', false);
               formFeedbackLeaveBefore.prop('disabled', false);
               formFeedbackStatus.prop('disabled', false);
               formFeedbackComments.prop('disabled', false);
-          } else if (formOrder === 'Delete') {
+          } else if (formOrder === 'Feedback') {
               formSellerRating.prop('disabled', false);
+              formSellerSignature.prop('disabled', true);
               formCustomerRating.prop('disabled', false);
+              formCustomerSignature.prop('disabled', false);
               formPaymentAddress.prop('disabled', false);
               formPaymentUntil.prop('disabled', false);
               formFeedbackLeaveBefore.prop('disabled', false);
@@ -1111,8 +1133,10 @@
           const formDate = $("input[id='formDate']");
           const formSellerAddress = $("input[id='formSellerAddress']");
           const formSellerRating = $("input[id='formSellerRating']");
+          const formSellerSignature = $("input[id='formSellerSignature']");
           const formCustomerAddress = $("input[id='formCustomerAddress']");
           const formCustomerRating = $("input[id='formCustomerRating']");
+          const formCustomerSignature = $("input[id='formCustomerSignature']");
           const formPaymentAddress = $("input[id='formPaymentAddress']");
           const formPaymentUntil = $("input[id='formPaymentUntil']");
           const formPaymentSum = $("input[id='formPaymentSum']");
@@ -1127,13 +1151,23 @@
           formData.append('date', formDate.val());
 
           formData.append('seller_address', formSellerAddress.val());
+
           if (!formSellerRating.attr('disabled')) {
               formData.append('seller_rating', formSellerRating.val());
           }
 
+          if (!formSellerSignature.attr('disabled')) {
+              formData.append('seller_signature', formSellerSignature.val());
+          }
+
           formData.append('customer_address', formCustomerAddress.val());
+
           if (!formCustomerRating.attr('disabled')) {
               formData.append('customer_rating', formCustomerRating.val());
+          }
+
+          if (!formCustomerSignature.attr('disabled')) {
+              formData.append('customer_signature', formCustomerSignature.val());
           }
 
           if (!formPaymentAddress.attr('disabled')) {
@@ -1418,22 +1452,52 @@
       }
 
       function actionDealStatus() {
-          const address = $("input[id='deal-status-Address']").val();
-
           const api = $("input[id='apiURL']").val();
           const server = $("input[id='serverURL']").val();
 
-          let settings = "";
+          const address = $("input[id='deal-status-Address']").val();
+
+          let settings = `?address=${address}`;
           if (!empty(server))
-              settings = '?server=' + server;
-          if (!empty(address)) {
-              settings += empty(settings) ? '?' : '&';
-              settings += 'address=' + address;
-          }
+              settings += `&server=${server}`;
 
           const RequestForm = $("#action-deal-status");
 
-          AsyncFetch(api + '/deal/status' + settings)
+          AsyncFetch(`${api}/deal/status${settings}`)
+              .then(json => RequestForm.html(PayloadToHTML(JsonToPayload(json))))
+              .catch(reason => RequestForm.html(reason.message));
+      }
+
+      function actionDealFeedback() {
+          const api = $("input[id='apiURL']").val();
+          const server = $("input[id='serverURL']").val();
+
+          const address = $("input[id='deal-feedback-Address']").val();
+
+          let settings = `?address=${address}`;
+          if (!empty(server))
+              settings += `&server=${server}`;
+
+          const RequestForm = $("#action-deal-feedback");
+
+          AsyncFetch(`${api}/deal/feedback${settings}`)
+              .then(json => RequestForm.html(PayloadToHTML(JsonToPayload(json))))
+              .catch(reason => RequestForm.html(reason.message));
+      }
+
+      function actionDealCancel() {
+          const api = $("input[id='apiURL']").val();
+          const server = $("input[id='serverURL']").val();
+
+          const address = $("input[id='deal-cancel-Address']").val();
+
+          let settings = `?address=${address}`;
+          if (!empty(server))
+              settings += `&server=${server}`;
+
+          const RequestForm = $("#action-deal-cancel");
+
+          AsyncFetch(`${api}/deal/cancel${settings}`)
               .then(json => RequestForm.html(PayloadToHTML(JsonToPayload(json))))
               .catch(reason => RequestForm.html(reason.message));
       }
@@ -1484,14 +1548,14 @@
 
           const moduleAddress = $("input[id='deal-list-ModuleAddress']").val();
 
-          let params = `?module=${moduleAddress}`;
+          let params = `module=${moduleAddress}`;
 
           const RequestForm = $("#action-deal-list");
 
           let execute = $("button[id='btnDealList']");
           execute.prop('disabled', true);
 
-          AsyncFetch(`${server}${api}/deal/list${params}`)
+          AsyncFetch(`${server}${api}/deal/list?${params}`)
               .then(function(json) {
                   let html;
 

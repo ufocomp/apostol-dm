@@ -589,6 +589,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CWebService::CheckDeal(const CDeal &Deal) {
+
             const auto& Data = Deal.Data();
 
             const auto DateTime = UTC();
@@ -598,23 +599,43 @@ namespace Apostol {
                 if (DateTime < Date)
                     throw ExceptionFrm("Invalid deal date.");
 
-                if ((DateTime - Date) > (CDateTime) 180 / 86400)
+                if ((DateTime - Date) > (CDateTime) 180 / SecsPerDay)
                     throw ExceptionFrm("Deal date expired.");
             }
 
             if (Data.Order == doComplete) {
                 const CDateTime LeaveBefore = StringToDate(Data.FeedBack.LeaveBefore);
                 if (DateTime > LeaveBefore)
-                    throw ExceptionFrm("Deal feedback expired.");
+                    throw ExceptionFrm("Date feedback expired.");
             }
 
-            if (Odd(int(Data.Order)) || Data.Order == doExecute)
+            if (Odd(int(Data.Order)) || Data.Order == doExecute || Data.Order == doDelete)
                 throw ExceptionFrm("Invalid \"order\" value for deal module.");
 
             if (Data.Order == doCancel) {
                 const CDateTime Until = StringToDate(Data.Payment.Until);
                 if (DateTime > Until)
                     throw ExceptionFrm("Deal cancellation expired.");
+
+                CString Message(Data.Payment.Address);
+                if (!Data.FeedBack.Comments.IsEmpty()) {
+                    Message += LINEFEED;
+                    Message += Data.FeedBack.Comments;
+                }
+
+                if (Data.Seller.Signature.IsEmpty() || !VerifyMessage(Message, Data.Seller.Address, Data.Seller.Signature))
+                    throw ExceptionFrm("The deal is not signed by the seller.");
+            }
+
+            if (Data.Order == doFeedback) {
+                CString Message(Data.Payment.Address);
+                if (!Data.FeedBack.Comments.IsEmpty()) {
+                    Message += LINEFEED;
+                    Message += Data.FeedBack.Comments;
+                }
+
+                if (Data.Customer.Signature.IsEmpty() || !VerifyMessage(Message, Data.Customer.Address, Data.Customer.Signature))
+                    throw ExceptionFrm("The deal is not signed by the customer.");
             }
 
             if (!valid_address(Data.Seller.Address))
@@ -629,6 +650,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         void CWebService::RouteDeal(CHTTPServerConnection *AConnection, const CString &Method, const CString &URI, const CString &Action) {
+
             auto LProxy = GetProxy(AConnection);
             auto LServerRequest = AConnection->Request();
             auto LProxyRequest = LProxy->Request();
@@ -670,8 +692,10 @@ namespace Apostol {
                     const auto& formDate = FormData["date"];
                     const auto& formSellerAddress = FormData["seller_address"];
                     const auto& formSellerRating = FormData["seller_rating"];
+                    const auto& formSellerSignature = FormData["seller_signature"];
                     const auto& formCustomerAddress = FormData["customer_address"];
                     const auto& formCustomerRating = FormData["customer_rating"];
+                    const auto& formCustomerSignature = FormData["customer_signature"];
                     const auto& formPaymentAddress = FormData["payment_address"];
                     const auto& formPaymentUntil = FormData["payment_until"];
                     const auto& formPaymentSum = FormData["payment_sum"];
@@ -679,6 +703,7 @@ namespace Apostol {
                     const auto& formFeedbackStatus = FormData["feedback_status"];
                     const auto& formFeedbackComments = FormData["feedback_comments"];
 
+                    CheckKeyForNull("order", Action.c_str());
                     CheckKeyForNull("type", formType.c_str());
                     CheckKeyForNull("at", formAt.c_str());
                     CheckKeyForNull("date", formDate.c_str());
@@ -686,9 +711,17 @@ namespace Apostol {
                     CheckKeyForNull("customer_address", formCustomerAddress.c_str());
                     CheckKeyForNull("payment_sum", formPaymentSum.c_str());
 
+                    if (Action == "cancel") {
+                        CheckKeyForNull("seller_signature", formSellerSignature.c_str());
+                    }
+
+                    if (Action == "feedback") {
+                        CheckKeyForNull("customer_signature", formCustomerSignature.c_str());
+                    }
+
                     YAML::Node Deal = Node["deal"];
 
-                    Deal["order"] = Action.IsEmpty() ? "" : Action.c_str();
+                    Deal["order"] = Action.c_str();
                     Deal["type"] = formType.c_str();
 
                     Deal["at"] = formAt.c_str();
@@ -701,12 +734,18 @@ namespace Apostol {
                     if (!formSellerRating.IsEmpty())
                         Seller["rating"] = formSellerRating.c_str();
 
+                    if (!formSellerSignature.IsEmpty())
+                        Seller["signature"] = formSellerSignature.c_str();
+
                     YAML::Node Customer = Deal["customer"];
 
                     Customer["address"] = formCustomerAddress.c_str();
 
-                    if (!formSellerRating.IsEmpty())
+                    if (!formCustomerRating.IsEmpty())
                         Customer["rating"] = formCustomerRating.c_str();
+
+                    if (!formCustomerSignature.IsEmpty())
+                        Customer["signature"] = formCustomerSignature.c_str();
 
                     YAML::Node Payment = Deal["payment"];
 
@@ -740,8 +779,10 @@ namespace Apostol {
                     const auto& formDate = FormData.Data("date");
                     const auto& formSellerAddress = FormData.Data("seller_address");
                     const auto& formSellerRating = FormData.Data("seller_rating");
+                    const auto& formSellerSignature = FormData.Data("seller_signature");
                     const auto& formCustomerAddress = FormData.Data("customer_address");
                     const auto& formCustomerRating = FormData.Data("customer_rating");
+                    const auto& formCustomerSignature = FormData.Data("customer_signature");
                     const auto& formPaymentAddress = FormData.Data("payment_address");
                     const auto& formPaymentUntil = FormData.Data("payment_until");
                     const auto& formPaymentSum = FormData.Data("payment_sum");
@@ -749,6 +790,7 @@ namespace Apostol {
                     const auto& formFeedbackStatus = FormData.Data("feedback_status");
                     const auto& formFeedbackComments = FormData.Data("feedback_comments");
 
+                    CheckKeyForNull("order", Action.c_str());
                     CheckKeyForNull("type", formType.c_str());
                     CheckKeyForNull("at", formAt.c_str());
                     CheckKeyForNull("date", formDate.c_str());
@@ -756,9 +798,17 @@ namespace Apostol {
                     CheckKeyForNull("customer_address", formCustomerAddress.c_str());
                     CheckKeyForNull("payment_sum", formPaymentSum.c_str());
 
+                    if (Action == "cancel") {
+                        CheckKeyForNull("seller_signature", formSellerSignature.c_str());
+                    }
+
+                    if (Action == "feedback") {
+                        CheckKeyForNull("customer_signature", formCustomerSignature.c_str());
+                    }
+
                     YAML::Node Deal = Node["deal"];
 
-                    Deal["order"] = Action.IsEmpty() ? "" : Action.c_str();
+                    Deal["order"] = Action.c_str();
                     Deal["type"] = formType.c_str();
 
                     Deal["at"] = formAt.c_str();
@@ -771,12 +821,18 @@ namespace Apostol {
                     if (!formSellerRating.IsEmpty())
                         Seller["rating"] = formSellerRating.c_str();
 
+                    if (!formSellerSignature.IsEmpty())
+                        Seller["signature"] = formSellerSignature.c_str();
+
                     YAML::Node Customer = Deal["customer"];
 
                     Customer["address"] = formCustomerAddress.c_str();
 
                     if (!formSellerRating.IsEmpty())
                         Customer["rating"] = formCustomerRating.c_str();
+
+                    if (!formCustomerSignature.IsEmpty())
+                        Customer["signature"] = formCustomerSignature.c_str();
 
                     YAML::Node Payment = Deal["payment"];
 
@@ -804,7 +860,7 @@ namespace Apostol {
 
                     const CJSON jsonData(LServerRequest->Content);
 
-                    const auto& formOrder = jsonData["order"].AsString();
+                    const auto& formOrder = jsonData["order"].AsString().Lower();
                     const auto& formType = jsonData["type"].AsString();
 
                     const auto& formAt = jsonData["at"].AsString();
@@ -814,11 +870,13 @@ namespace Apostol {
 
                     const auto& formSellerAddress = jsonSeller["address"].AsString();
                     const auto& formSellerRating = jsonSeller["rating"].AsString();
+                    const auto& formSellerSignature = jsonSeller["signature"].AsString();
 
                     const CJSONValue &jsonCustomer = jsonData["customer"];
 
                     const auto& formCustomerAddress = jsonCustomer["address"].AsString();
                     const auto& formCustomerRating = jsonCustomer["rating"].AsString();
+                    const auto& formCustomerSignature = jsonCustomer["signature"].AsString();
 
                     const CJSONValue &jsonPayment = jsonData["payment"];
 
@@ -832,16 +890,27 @@ namespace Apostol {
                     const auto& formFeedbackStatus = jsonFeedback["status"].AsString();
                     const auto& formFeedbackComments = jsonFeedback["comments"].AsString();
 
+                    const auto &action = Action.IsEmpty() ? formOrder : Action;
+
+                    CheckKeyForNull("order", action.c_str());
                     CheckKeyForNull("type", formType.c_str());
                     CheckKeyForNull("at", formAt.c_str());
                     CheckKeyForNull("date", formDate.c_str());
-                    CheckKeyForNull("seller->address", formSellerAddress.c_str());
-                    CheckKeyForNull("customer->address", formCustomerAddress.c_str());
-                    CheckKeyForNull("payment->sum", formPaymentSum.c_str());
+                    CheckKeyForNull("seller.address", formSellerAddress.c_str());
+                    CheckKeyForNull("customer.address", formCustomerAddress.c_str());
+                    CheckKeyForNull("payment.sum", formPaymentSum.c_str());
+
+                    if (action == "cancel") {
+                        CheckKeyForNull("seller.signature", formSellerSignature.c_str());
+                    }
+
+                    if (action == "feedback") {
+                        CheckKeyForNull("customer.signature", formCustomerSignature.c_str());
+                    }
 
                     YAML::Node Deal = Node["deal"];
 
-                    Deal["order"] = Action.IsEmpty() ? formOrder.c_str() : Action.c_str();
+                    Deal["order"] = action.c_str();
                     Deal["type"] = formType.c_str();
 
                     Deal["at"] = formAt.c_str();
@@ -905,9 +974,12 @@ namespace Apostol {
 
                     Node["deal"]["date"] = Data.Date.c_str();
 
-                    Node["deal"]["payment"]["address"] = Data.Payment.Address.c_str();
-                    Node["deal"]["payment"]["until"] = Data.Payment.Until.c_str();
-                    Node["deal"]["payment"]["sum"] = Data.Payment.Sum.c_str();
+                    YAML::Node Payment = Node["deal"]["payment"];
+                    Payment.remove("sum");
+
+                    Payment["address"] = Data.Payment.Address.c_str();
+                    Payment["until"] = Data.Payment.Until.c_str();
+                    Payment["sum"] = Data.Payment.Sum.c_str();
 
                     Node["deal"]["feedback"]["leave-before"] = Data.FeedBack.LeaveBefore.c_str();
                 }
@@ -1087,7 +1159,7 @@ namespace Apostol {
 
                     LRequest->Content.Clear();
 
-                    RouteDeal(AConnection, "GET", LRoute, "status");
+                    RouteDeal(AConnection, "GET", LRoute, LAction);
 
                 } else {
 

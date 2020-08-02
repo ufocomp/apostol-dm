@@ -644,6 +644,20 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
+        bool verify_message(const std::string& msg, const std::string& addr, const std::string& sig) {
+
+            const raw message(msg);
+            const wallet::payment_address address(addr);
+            const signature signature(sig);
+
+            return wallet::verify_message(message, address, signature);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        bool VerifyMessage(const CString &Message, const CString &Address, const CString &Signature) {
+            return verify_message(Message.c_str(), Address.c_str(), Signature.c_str());
+        }
+        //--------------------------------------------------------------------------------------------------------------
 #ifdef BITCOIN_VERSION_4
 
         std::string script_to_address(const system::script &script, uint8_t version) {

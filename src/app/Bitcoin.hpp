@@ -216,6 +216,10 @@ namespace Apostol {
         wallet::ec_public hd_to_ec_public(const wallet::hd_key& key, uint32_t prefix = hd_public::mainnet);
         //--------------------------------------------------------------------------------------------------------------
 
+        bool verify_message(const std::string& msg, const std::string& addr, const std::string& sig);
+        bool VerifyMessage(const CString& Message, const CString& Address, const CString& Signature);
+        //--------------------------------------------------------------------------------------------------------------
+
 #ifdef BITCOIN_VERSION_4
         std::string address_to_key(const wallet::payment_address &address);
 #endif
