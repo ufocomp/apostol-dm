@@ -1573,16 +1573,12 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        bool CWebService::IsEnabled() {
+        bool CWebService::Enabled() {
             if (m_ModuleStatus == msUnknown)
                 m_ModuleStatus = msEnabled;
             return m_ModuleStatus == msEnabled;
         }
         //--------------------------------------------------------------------------------------------------------------
-
-        bool CWebService::CheckUserAgent(const CString &Value) {
-            return IsEnabled();
-        }
 
     }
 }

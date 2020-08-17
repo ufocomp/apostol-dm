@@ -70,11 +70,9 @@ namespace Apostol {
 
             void Heartbeat() override;
 
-            bool IsEnabled() override;
-            bool CheckUserAgent(const CString& Value) override;
+            bool Enabled() override;
 
         };
-
     }
 }
 

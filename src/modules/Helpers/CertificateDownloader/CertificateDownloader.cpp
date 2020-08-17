@@ -188,7 +188,7 @@ namespace Apostol {
                     SaveKeys(Provider);
                 }
 
-                if (Provider.Status != CProvider::ksUnknown && (Now() - Provider.StatusTime >= (CDateTime) (m_SyncPeriod * 60 / 86400))) {
+                if (Provider.Status != CProvider::ksUnknown && (Now() - Provider.StatusTime >= (CDateTime) (m_SyncPeriod * 60 / SecsPerDay))) {
                     Provider.StatusTime = Now();
                     Provider.Status = CProvider::ksUnknown;
                 }
@@ -217,16 +217,13 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        bool CCertificateDownloader::IsEnabled() {
+        bool CCertificateDownloader::Enabled() {
             if (m_ModuleStatus == msUnknown)
                 m_ModuleStatus = msEnabled;
             return m_ModuleStatus == msEnabled;
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        bool CCertificateDownloader::CheckUserAgent(const CString& Value) {
-            return IsEnabled();
-        }
     }
 }
 
