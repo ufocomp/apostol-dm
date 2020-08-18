@@ -530,7 +530,7 @@
                                   <div class="form-group row">
                                       <label for="deal-list-ModuleAddress" class="col-sm-2 col-form-label">Module address</label>
                                       <div class="col-sm-10">
-                                          <input type="text" class="form-control" id="deal-list-ModuleAddress" required>
+                                          <input type="text" class="form-control" id="deal-list-ModuleAddress">
                                       </div>
                                   </div>
                                   <button id="btnDealList" type="submit" class="btn btn-primary">Execute</button>
@@ -1096,7 +1096,7 @@
               formFeedbackStatus.prop('disabled', false);
               formFeedbackComments.prop('disabled', false);
           } else if (formOrder === 'Cancel') {
-              formSellerRating.prop('disabled', false)d
+              formSellerRating.prop('disabled', false);
               formSellerSignature.prop('disabled', false);
               formCustomerRating.prop('disabled', false);
               formCustomerSignature.prop('disabled', true);
