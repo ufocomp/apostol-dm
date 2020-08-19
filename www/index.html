@@ -321,7 +321,7 @@
                                               <select id="formOrder" class="form-control" onchange="OnChangeOrder()">
                                                   <option selected>Create</option>
                                                   <option>Pay</option>
-                                                  <option>Complete</option>
+                                                  <option>Execute</option>
                                                   <option>Cancel</option>
                                                   <option>Feedback</option>
                                               </select>
@@ -1085,7 +1085,7 @@
               formFeedbackLeaveBefore.prop('disabled', true);
               formFeedbackStatus.prop('disabled', true);
               formFeedbackComments.prop('disabled', true);
-          } else if (formOrder === 'Complete') {
+          } else if (formOrder === 'Execute') {
               formSellerRating.prop('disabled', false);
               formSellerSignature.prop('disabled', true);
               formCustomerRating.prop('disabled', false);
