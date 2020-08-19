@@ -603,13 +603,13 @@ namespace Apostol {
                     throw ExceptionFrm("Deal date expired.");
             }
 
-            if (Data.Order == doComplete) {
+            if (Data.Order == doExecute) {
                 const CDateTime LeaveBefore = StringToDate(Data.FeedBack.LeaveBefore);
                 if (DateTime > LeaveBefore)
                     throw ExceptionFrm("Date feedback expired.");
             }
 
-            if (Odd(int(Data.Order)) || Data.Order == doExecute || Data.Order == doDelete)
+            if (Odd(int(Data.Order)) || Data.Order == doComplete || Data.Order == doDelete)
                 throw ExceptionFrm("Invalid \"order\" value for deal module.");
 
             if (Data.Order == doCancel) {

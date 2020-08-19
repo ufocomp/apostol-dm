@@ -137,7 +137,7 @@ namespace Apostol {
 
         CDeal::CDeal() {
             m_Data.Order = doCreate;
-            m_Data.FeedBack.Status = fsNeutral;
+            m_Data.FeedBack.Status = fsPositive;
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -157,18 +157,18 @@ namespace Apostol {
                 return doPay;
             } else if (S == "paid") {
                 return doPaid;
-            } else if (S == "complete") {
-                return doComplete;
-            } else if (S == "completed") {
-                return doCompleted;
-            } else if (S == "cancel") {
-                return doCancel;
-            } else if (S == "canceled") {
-                return doCanceled;
             } else if (S == "execute") {
                 return doExecute;
             } else if (S == "executed") {
                 return doExecuted;
+            } else if (S == "cancel") {
+                return doCancel;
+            } else if (S == "canceled") {
+                return doCanceled;
+            } else if (S == "complete") {
+                return doComplete;
+            } else if (S == "completed") {
+                return doCompleted;
             } else if (S == "delete") {
                 return doDelete;
             } else if (S == "deleted") {
@@ -191,18 +191,18 @@ namespace Apostol {
                     return "Pay";
                 case doPaid:
                     return "Paid";
-                case doComplete:
-                    return "Complete";
-                case doCompleted:
-                    return "Completed";
-                case doCancel:
-                    return "Cancel";
-                case doCanceled:
-                    return "Canceled";
                 case doExecute:
                     return "Execute";
                 case doExecuted:
                     return "Executed";
+                case doCancel:
+                    return "Cancel";
+                case doCanceled:
+                    return "Canceled";
+                case doComplete:
+                    return "Complete";
+                case doCompleted:
+                    return "Completed";
                 case doDelete:
                     return "Delete";
                 case doDeleted:
@@ -439,6 +439,9 @@ namespace Apostol {
 
                     if (feedback["status"])
                         m_Data.FeedBack.Status = StringToFeedBackStatus(feedback["status"].as<std::string>());
+
+                    if (feedback["refund"])
+                        m_Data.FeedBack.Refund = feedback["refund"].as<std::string>();
 
                     if (feedback["comments"])
                         m_Data.FeedBack.Comments = feedback["comments"].as<std::string>();
