@@ -15,31 +15,5 @@
       "https://oauthdebugger.com/debug",
       "https://auth.advancedrestclient.com/oauth-popup.html"
     ]
-  },
-  "android": {
-    "issuers": ["accounts.bitdeals.com"],
-    "scopes": ["api","openid","profile","email"],
-    "client_id": "android-bitdeals.com",
-    "client_secret": "",
-    "algorithm": "HS256",
-    "auth_uri": "https://bitdeals.com/oauth2/authorize",
-    "token_uri": "https://bitdeals.com/oauth2/token",
-    "redirect_uris": [
-      "http://127.0.0.1/oauth2/code",
-      "http://127.0.0.1/oauth2/callback"
-    ]
-  },
-  "ios": {
-    "issuers": ["accounts.bitdeals.com"],
-    "scopes": ["api","openid","profile","email"],
-    "client_id": "ios-bitdeals.com",
-    "client_secret": "",
-    "algorithm": "HS256",
-    "auth_uri": "https://bitdeals.com/oauth2/authorize",
-    "token_uri": "https://bitdeals.com/oauth2/token",
-    "redirect_uris": [
-      "http://127.0.0.1/oauth2/code",
-      "http://127.0.0.1/oauth2/callback"
-    ]
   }
 }
