@@ -162,8 +162,8 @@ namespace Apostol {
         enum CFeedBackStatus { fsNegative = -1, fsNeutral = 0, fsPositive = 1 };
         //--------------------------------------------------------------------------------------------------------------
 
-        enum CDealOrder { doCreate = 0, doCreated, doPay, doPaid, doExecute, doExecuted, doCancel, doCanceled,
-                doComplete, doCompleted, doDelete, doDeleted, doFeedback };
+        enum CDealOrder { doCreate = 0, doCreated, doPay, doPaid, doComplete, doCompleted, doCancel, doCanceled,
+                doExecute, doExecuted, doDelete, doDeleted, doFeedback };
         //--------------------------------------------------------------------------------------------------------------
 
         typedef struct DealData {

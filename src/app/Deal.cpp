@@ -157,18 +157,18 @@ namespace Apostol {
                 return doPay;
             } else if (S == "paid") {
                 return doPaid;
-            } else if (S == "execute") {
-                return doExecute;
-            } else if (S == "executed") {
-                return doExecuted;
-            } else if (S == "cancel") {
-                return doCancel;
-            } else if (S == "canceled") {
-                return doCanceled;
             } else if (S == "complete") {
                 return doComplete;
             } else if (S == "completed") {
                 return doCompleted;
+            } else if (S == "cancel") {
+                return doCancel;
+            } else if (S == "canceled") {
+                return doCanceled;
+            } else if (S == "execute") {
+                return doExecute;
+            } else if (S == "executed") {
+                return doExecuted;
             } else if (S == "delete") {
                 return doDelete;
             } else if (S == "deleted") {
@@ -191,18 +191,18 @@ namespace Apostol {
                     return "Pay";
                 case doPaid:
                     return "Paid";
-                case doExecute:
-                    return "Execute";
-                case doExecuted:
-                    return "Executed";
-                case doCancel:
-                    return "Cancel";
-                case doCanceled:
-                    return "Canceled";
                 case doComplete:
                     return "Complete";
                 case doCompleted:
                     return "Completed";
+                case doCancel:
+                    return "Cancel";
+                case doCanceled:
+                    return "Canceled";
+                case doExecute:
+                    return "Execute";
+                case doExecuted:
+                    return "Executed";
                 case doDelete:
                     return "Delete";
                 case doDeleted:
