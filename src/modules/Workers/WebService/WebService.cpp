@@ -58,19 +58,18 @@ namespace Apostol {
             m_KeyIndex = 0;
             m_RandomDate = Now();
 
-            m_Local.Name() = BPS_BM_SERVER_ADDRESS;
-            m_Local.Value().URI = "http://localhost:";
-            m_Local.Value().URI << BPS_SERVER_PORT;
-            m_Local.Value().PGP.Name = BPS_BM_SERVER_ADDRESS;
+            m_DefaultServer.Name() = BPS_BM_SERVER_ADDRESS;
+            m_DefaultServer.Value().URI = BPS_SERVER_URL;
+            m_DefaultServer.Value().PGP.Name = BPS_BM_SERVER_ADDRESS;
 
-            m_ProxyManager = new CHTTPProxyManager();
+            m_pProxyManager = new CHTTPProxyManager();
 
             CWebService::InitMethods();
         }
         //--------------------------------------------------------------------------------------------------------------
 
         CWebService::~CWebService() {
-            delete m_ProxyManager;
+            delete m_pProxyManager;
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -319,7 +318,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         CHTTPProxy *CWebService::GetProxy(CHTTPServerConnection *AConnection) {
-            auto LProxy = m_ProxyManager->Add(AConnection);
+            auto LProxy = m_pProxyManager->Add(AConnection);
 #if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE >= 9)
             LProxy->OnVerbose([this](auto && Sender, auto && AConnection, auto && AFormat, auto && args) { DoVerbose(Sender, AConnection, AFormat, args); });
 
@@ -1283,7 +1282,7 @@ namespace Apostol {
 
         const CServer &CWebService::CurrentServer() const {
             if (m_Servers.Count() == 0 && m_ServerIndex == -1)
-                return m_Local;
+                return m_DefaultServer;
             if (m_ServerIndex == -1)
                 return m_Servers[0];
             return m_Servers[m_ServerIndex];
@@ -1556,9 +1555,10 @@ namespace Apostol {
 
             if (m_Servers.Count() == 0) {
 #ifdef _DEBUG
-                m_Servers.Add(m_Local);
+                int Index = m_Servers.AddPair("BM-2cXtL92m3CavBKx8qsV2LbZtAU3eQxW2rB", CServerContext("http://localhost:4977"));
+                m_Servers[Index].Value().PGP.Name = m_Servers[Index].Name();
 #else
-                m_Servers.AddPair(BPS_BM_SERVER_ADDRESS, CServerContext(BPS_SERVER_URL));
+                m_Servers.Add(m_DefaultServer);
 #endif
             }
 

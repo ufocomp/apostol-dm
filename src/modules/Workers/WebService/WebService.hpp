@@ -88,10 +88,9 @@ namespace Apostol {
         class CWebService: public CApostolModule {
         private:
 
+            CServer m_DefaultServer;
+
             int m_SyncPeriod;
-
-            CServer m_Local;
-
             int m_ServerIndex;
             int m_KeyIndex;
 
@@ -103,7 +102,7 @@ namespace Apostol {
 
             CStringList m_BTCKeys;
 
-            CHTTPProxyManager *m_ProxyManager;
+            CHTTPProxyManager *m_pProxyManager;
 
             CHTTPProxy *GetProxy(CHTTPServerConnection *AConnection);
 
