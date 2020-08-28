@@ -43,7 +43,6 @@ REST API
 
 1. Компилятор C++;
 1. [CMake](https://cmake.org) или интегрированная среда разработки (IDE) с поддержкой [CMake](https://cmake.org);
-1. Библиотека [libdelphi](https://github.com/ufocomp/libdelphi) (Delphi classes for C++);
 1. Библиотека [libbitcoin-explorer](https://github.com/libbitcoin/libbitcoin-explorer/tree/version3) (Bitcoin Cross-Platform C++ Development Toolkit);
 1. Библиотека [OpenPGP](https://github.com/calccrypto/OpenPGP) (OpenPGP in C++)
 1. Библиотека [yaml-cpp](https://github.com/jbeder/yaml-cpp) (YAML parser and emitter in C++)
@@ -101,33 +100,20 @@ $ git clone git@github.com:ufocomp/apostol-dm.git dm
 
 1. Скачать **BPS (DM)** по [ссылке](https://github.com/ufocomp/apostol-dm/archive/master.zip);
 1. Распаковать;
-1. Скачать **libdelphi** по [ссылке](https://github.com/ufocomp/libdelphi/archive/master.zip);
-1. Распаковать в `src/lib/delphi`;
 1. Настроить `CMakeLists.txt` (по необходимости);
 1. Собрать и скомпилировать (см. ниже).
 
-### libdelphi
-
-###### Библиотеку `libdelphi` можно не устанавливать, достаточно скачать и разместить в каталоге `src/lib` проекта.
-
-Для того чтобы добавить **libdelphi** в проект с помощью Git выполните:
-~~~
-$ cd dm/src/lib
-$ git clone https://github.com/ufocomp/libdelphi.git delphi
-$ cd ../../../
-~~~
-
 ###### Сборка:
 ~~~
-cd dm
-cmake -DCMAKE_BUILD_TYPE=Release . -B cmake-build-release
+$ cd dm
+$ ./configure
 ~~~
 
 ###### Компиляция и установка:
 ~~~
-cd cmake-build-release
-make
-sudo make install
+$ cd cmake-build-release
+$ make
+$ sudo make install
 ~~~
 
 По умолчанию **Модуль сделок** будет установлен в:
@@ -151,12 +137,12 @@ sudo make install
 
 Для запуска Апостол выполните:
 ~~~
-sudo service dm start
+$ sudo service dm start
 ~~~
 
 Для проверки статуса выполните:
 ~~~
-sudo service dm status
+$ sudo service dm status
 ~~~
 
 Результат должен быть **примерно** таким:

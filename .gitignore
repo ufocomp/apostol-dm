@@ -1,4 +1,4 @@
 .gitignore
-/cmake-build-*
 /.idea
-/src/.idea/*
+/cmake-build-*
+version.h
