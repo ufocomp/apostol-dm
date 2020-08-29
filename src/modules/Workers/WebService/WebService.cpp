@@ -103,7 +103,7 @@ namespace Apostol {
             std::mt19937 gen(rd());
             std::uniform_int_distribution<> time(a, b);
             CDateTime delta = time(gen);
-            return Date + (CDateTime) (delta / 86400);
+            return Date + (CDateTime) (delta / SecsPerDay);
         }
         //--------------------------------------------------------------------------------------------------------------
 

@@ -66,9 +66,7 @@ namespace Apostol {
             CString URI;
             CKeyContext PGP;
 
-            CServerContext() {
-
-            };
+            CServerContext() = default;
 
             explicit CServerContext(const CString& URI) {
                 this->URI = URI;
