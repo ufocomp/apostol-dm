@@ -60,6 +60,7 @@ display_help()
     display_message "  --build-dir=<path>       Location of build files (default: $BUILD_DIR)."
     display_message "  --release                Release build (default)."
     display_message "  --debug                  Debug build."
+    display_message "  --update                 Update build."
     display_message "  --help                   Display usage, overriding script execution."
     display_message ""
 }
@@ -128,7 +129,7 @@ Success()
 
 make_configuration()
 {
-    if ! [[ BUILD_UPDATE ]]; then
+    if ! [[ $BUILD_UPDATE ]]; then
         create_directory $BUILD_DIR
     fi
 
