@@ -133,8 +133,8 @@ namespace Apostol {
 
             void DoVerbose(CSocketEvent *Sender, CTCPConnection *AConnection, LPCTSTR AFormat, va_list args);
             bool DoProxyExecute(CTCPConnection *AConnection);
-            void DoProxyException(CTCPConnection *AConnection, Delphi::Exception::Exception *AException);
-            void DoEventHandlerException(CPollEventHandler *AHandler, Delphi::Exception::Exception *AException);
+            void DoProxyException(CTCPConnection *AConnection, const Delphi::Exception::Exception &E);
+            void DoEventHandlerException(CPollEventHandler *AHandler, const Delphi::Exception::Exception &E);
 
             void DoProxyConnected(CObject *Sender);
             void DoProxyDisconnected(CObject *Sender);

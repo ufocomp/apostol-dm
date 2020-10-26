@@ -207,8 +207,8 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::ExceptionToJson(int ErrorCode, const std::exception &AException, CString& Json) {
-            Json.Format(R"({"error": {"code": %u, "message": "%s"}})", ErrorCode, Delphi::Json::EncodeJsonString(AException.what()).c_str());
+        void CWebService::ExceptionToJson(int ErrorCode, const std::exception &E, CString& Json) {
+            Json.Format(R"({"error": {"code": %u, "message": "%s"}})", ErrorCode, Delphi::Json::EncodeJsonString(E.what()).c_str());
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -229,16 +229,16 @@ namespace Apostol {
             if (!Format.IsEmpty()) {
 
                 if (Format == "html") {
-                    LServerReply->ContentType = CReply::html;
+                    LServerReply->ContentType = CHTTPReply::html;
                 } else if (Format == "json") {
-                    LServerReply->ContentType = CReply::json;
+                    LServerReply->ContentType = CHTTPReply::json;
                 } else if (Format == "xml") {
-                    LServerReply->ContentType = CReply::xml;
+                    LServerReply->ContentType = CHTTPReply::xml;
                 } else {
-                    LServerReply->ContentType = CReply::text;
+                    LServerReply->ContentType = CHTTPReply::text;
                 }
 
-                if (LProxyReply->Status == CReply::ok) {
+                if (LProxyReply->Status == CHTTPReply::ok) {
                     if (!LProxyReply->Content.IsEmpty()) {
                         const CJSON json(LProxyReply->Content);
                         LServerReply->Content = base64_decode(json["payload"].AsString());
@@ -248,7 +248,7 @@ namespace Apostol {
                     LProxy->Connection()->SendStockReply(LProxyReply->Status, true);
                 }
             } else {
-                if (LProxyReply->Status == CReply::ok) {
+                if (LProxyReply->Status == CHTTPReply::ok) {
                     LServerReply->Content = LProxyReply->Content;
                     LProxy->Connection()->SendReply(LProxyReply->Status, nullptr, true);
                 } else {
@@ -262,7 +262,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::DoProxyException(CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
+        void CWebService::DoProxyException(CTCPConnection *AConnection, const Delphi::Exception::Exception &E) {
             auto LConnection = dynamic_cast<CHTTPClientConnection*> (AConnection);
             auto LProxy = dynamic_cast<CHTTPProxy*> (LConnection->Client());
 
@@ -271,31 +271,31 @@ namespace Apostol {
 
             const auto& Format = LServerRequest->Params["format"];
             if (Format == "html") {
-                LServerReply->ContentType = CReply::html;
+                LServerReply->ContentType = CHTTPReply::html;
             }
 
             try {
-                LProxy->Connection()->SendStockReply(CReply::bad_gateway, true);
+                LProxy->Connection()->SendStockReply(CHTTPReply::bad_gateway, true);
             } catch (...) {
 
             }
 
             Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LProxy->Host().c_str(), LProxy->Port(),
-                    AException->what());
+                    E.what());
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::DoEventHandlerException(CPollEventHandler *AHandler, Delphi::Exception::Exception *AException) {
+        void CWebService::DoEventHandlerException(CPollEventHandler *AHandler, const Delphi::Exception::Exception &E) {
             auto LConnection = dynamic_cast<CHTTPClientConnection*> (AHandler->Binding());
             auto LProxy = dynamic_cast<CHTTPProxy*> (LConnection->Client());
 
             if (Assigned(LProxy)) {
                 auto LReply = LProxy->Connection()->Reply();
-                ExceptionToJson(0, *AException, LReply->Content);
-                LProxy->Connection()->SendReply(CReply::internal_server_error, nullptr, true);
+                ExceptionToJson(0, E, LReply->Content);
+                LProxy->Connection()->SendReply(CHTTPReply::internal_server_error, nullptr, true);
             }
 
-            Log()->Error(APP_LOG_EMERG, 0, AException->what());
+            Log()->Error(APP_LOG_EMERG, 0, E.what());
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -324,8 +324,8 @@ namespace Apostol {
 
             LProxy->OnExecute([this](auto && AConnection) { return DoProxyExecute(AConnection); });
 
-            LProxy->OnException([this](auto && AConnection, auto && AException) { DoProxyException(AConnection, AException); });
-            LProxy->OnEventHandlerException([this](auto && AHandler, auto && AException) { DoEventHandlerException(AHandler, AException); });
+            LProxy->OnException([this](auto && AConnection, auto && E) { DoProxyException(AConnection, E); });
+            LProxy->OnEventHandlerException([this](auto && AHandler, auto && E) { DoEventHandlerException(AHandler, E); });
 
             LProxy->OnConnected([this](auto && Sender) { DoProxyConnected(Sender); });
             LProxy->OnDisconnected([this](auto && Sender) { DoProxyDisconnected(Sender); });
@@ -441,7 +441,7 @@ namespace Apostol {
                 } else if (ContentType.Find("multipart/form-data") == 0) {
 
                     CFormData FormData;
-                    CRequestParser::ParseFormData(LServerRequest, FormData);
+                    CHTTPRequestParser::ParseFormData(LServerRequest, FormData);
 
                     const auto& formDate = FormData.Data("date");
                     const auto& formAddress = FormData.Data("address");
@@ -572,10 +572,10 @@ namespace Apostol {
 
             LProxyRequest->Location = LServerRequest->Location;
             LProxyRequest->CloseConnection = true;
-            LProxyRequest->ContentType = CRequest::json;
+            LProxyRequest->ContentType = CHTTPRequest::json;
             LProxyRequest->Content << Json;
 
-            CRequest::Prepare(LProxyRequest, Method.c_str(), URI.c_str());
+            CHTTPRequest::Prepare(LProxyRequest, Method.c_str(), URI.c_str());
 
             if (!LModuleAddress.IsEmpty())
                 LProxyRequest->AddHeader("Module-Address", LModuleAddress);
@@ -771,7 +771,7 @@ namespace Apostol {
                 } else if (ContentType.Find("multipart/form-data") == 0) {
 
                     CFormData FormData;
-                    CRequestParser::ParseFormData(LServerRequest, FormData);
+                    CHTTPRequestParser::ParseFormData(LServerRequest, FormData);
 
                     const auto& formType = FormData.Data("type");
                     const auto& formAt = FormData.Data("at");
@@ -1024,10 +1024,10 @@ namespace Apostol {
 
             LProxyRequest->Location = LServerRequest->Location;
             LProxyRequest->CloseConnection = true;
-            LProxyRequest->ContentType = CRequest::json;
+            LProxyRequest->ContentType = CHTTPRequest::json;
             LProxyRequest->Content << Json;
 
-            CRequest::Prepare(LProxyRequest, Method.c_str(), URI.c_str());
+            CHTTPRequest::Prepare(LProxyRequest, Method.c_str(), URI.c_str());
 
             if (!LModuleAddress.IsEmpty())
                 LProxyRequest->AddHeader("Module-Address", LModuleAddress);
@@ -1047,7 +1047,7 @@ namespace Apostol {
             auto LReply = AConnection->Reply();
 
             if (LRequest->Content.IsEmpty()) {
-                AConnection->SendStockReply(CReply::no_content);
+                AConnection->SendStockReply(CHTTPReply::no_content);
                 return;
             }
 
@@ -1071,7 +1071,7 @@ namespace Apostol {
                 Json.Object().AddPair("verified", Verified);
             } else if (ContentType.Find("multipart/form-data") == 0) {
                 CFormData FormData;
-                CRequestParser::ParseFormData(LRequest, FormData);
+                CHTTPRequestParser::ParseFormData(LRequest, FormData);
 
                 const auto& ClearText = FormData.Data("message");
                 CheckKeyForNull("message", ClearText.c_str());
@@ -1097,7 +1097,7 @@ namespace Apostol {
             AConnection->CloseConnection(true);
             LReply->Content << Json;
 
-            AConnection->SendReply(CReply::ok);
+            AConnection->SendReply(CHTTPReply::ok);
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1105,13 +1105,13 @@ namespace Apostol {
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
 
-            LReply->ContentType = CReply::json;
+            LReply->ContentType = CHTTPReply::json;
 
             CStringList LRouts;
             SplitColumns(LRequest->Location.pathname, LRouts, '/');
 
             if (LRouts.Count() < 3) {
-                AConnection->SendStockReply(CReply::not_found);
+                AConnection->SendStockReply(CHTTPReply::not_found);
                 return;
             }
 
@@ -1127,7 +1127,7 @@ namespace Apostol {
             }
 
             if (LService != "api" || (m_Version == -1)) {
-                AConnection->SendStockReply(CReply::not_found);
+                AConnection->SendStockReply(CHTTPReply::not_found);
                 return;
             }
 
@@ -1140,13 +1140,13 @@ namespace Apostol {
             try {
                 if (LCommand == "ping") {
 
-                    AConnection->SendStockReply(CReply::ok);
+                    AConnection->SendStockReply(CHTTPReply::ok);
 
                 } else if (LCommand == "time") {
 
                     LReply->Content << "{\"serverTime\": " << to_string(MsEpoch()) << "}";
 
-                    AConnection->SendReply(CReply::ok);
+                    AConnection->SendReply(CHTTPReply::ok);
 
                 } else if (m_Version == 1 && LCommand == "user" && (LAction == "help" || LAction == "status")) {
 
@@ -1162,12 +1162,12 @@ namespace Apostol {
 
                 } else {
 
-                    AConnection->SendStockReply(CReply::not_found);
+                    AConnection->SendStockReply(CHTTPReply::not_found);
 
                 }
 
             } catch (std::exception &e) {
-                CReply::CStatusType LStatus = CReply::internal_server_error;
+                CHTTPReply::CStatusType LStatus = CHTTPReply::internal_server_error;
 
                 ExceptionToJson(0, e, LReply->Content);
 
@@ -1185,14 +1185,14 @@ namespace Apostol {
 
             // Request path must be absolute and not contain "..".
             if (LPath.empty() || LPath.front() != '/' || LPath.find("..") != CString::npos) {
-                AConnection->SendStockReply(CReply::bad_request);
+                AConnection->SendStockReply(CHTTPReply::bad_request);
                 return;
             }
 
             CAuthorization Authorization;
             if (!CheckAuthorization(AConnection, Authorization)) {
-                CReply::GetReply(LReply, CReply::unauthorized);
-                CReply::AddUnauthorized(LReply, false);
+                CHTTPReply::GetReply(LReply, CHTTPReply::unauthorized);
+                CHTTPReply::AddUnauthorized(LReply, false);
                 AConnection->SendReply();
                 return;
             }
@@ -1211,13 +1211,13 @@ namespace Apostol {
             auto LRequest = AConnection->Request();
             auto LReply = AConnection->Reply();
 
-            LReply->ContentType = CReply::json;
+            LReply->ContentType = CHTTPReply::json;
 
             CStringList LRouts;
             SplitColumns(LRequest->Location.pathname, LRouts, '/');
 
             if (LRouts.Count() < 3) {
-                AConnection->SendStockReply(CReply::not_found);
+                AConnection->SendStockReply(CHTTPReply::not_found);
                 return;
             }
 
@@ -1233,7 +1233,7 @@ namespace Apostol {
             }
 
             if (LService != "api" || (m_Version == -1)) {
-                AConnection->SendStockReply(CReply::not_found);
+                AConnection->SendStockReply(CHTTPReply::not_found);
                 return;
             }
 
@@ -1259,14 +1259,14 @@ namespace Apostol {
 
                 } else {
 
-                    AConnection->SendStockReply(CReply::not_found);
+                    AConnection->SendStockReply(CHTTPReply::not_found);
 
                 }
 
             } catch (std::exception &e) {
                 ExceptionToJson(0, e, LReply->Content);
 
-                AConnection->SendReply(CReply::internal_server_error);
+                AConnection->SendReply(CHTTPReply::internal_server_error);
                 Log()->Error(APP_LOG_EMERG, 0, e.what());
             }
         }
@@ -1411,10 +1411,10 @@ namespace Apostol {
 
             Log()->Debug(0, "Trying to fetch a PGP key \"%s\" from: %s", PGP.Name.c_str(), LServerContext.URI.c_str());
 
-            auto OnRequest = [this, &PGP](CHTTPClient *Sender, CRequest *ARequest) {
+            auto OnRequest = [this, &PGP](CHTTPClient *Sender, CHTTPRequest *ARequest) {
                 PGP.StatusTime = Now();
                 PGP.Status = CKeyContext::ksFetching;
-                CRequest::Prepare(ARequest, "GET", CString().Format("/api/v1/key?type=PGP-PUBLIC&name=%s", PGP.Name.c_str()).c_str());
+                CHTTPRequest::Prepare(ARequest, "GET", CString().Format("/api/v1/key?type=PGP-PUBLIC&name=%s", PGP.Name.c_str()).c_str());
             };
 
             auto OnExecute = [this, &PGP](CTCPConnection *AConnection) {
@@ -1459,11 +1459,11 @@ namespace Apostol {
                 return true;
             };
 
-            auto OnException = [this, &PGP](CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
+            auto OnException = [&PGP](CTCPConnection *AConnection, const Delphi::Exception::Exception &E) {
                 auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
                 auto LClient = dynamic_cast<CHTTPClient *> (LConnection->Client());
 
-                Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LClient->Host().c_str(), LClient->Port(), AException->what());
+                Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LClient->Host().c_str(), LClient->Port(), E.what());
 
                 PGP.Status = CKeyContext::ksError;
                 //FetchBTC();
@@ -1486,13 +1486,13 @@ namespace Apostol {
 
             Log()->Debug(0, "Trying to fetch a BTC KEY%d from: %s", m_KeyIndex + 1, LServerContext.URI.c_str());
 
-            auto OnRequest = [this, &BTC](CHTTPClient *Sender, CRequest *ARequest) {
+            auto OnRequest = [this, &BTC](CHTTPClient *Sender, CHTTPRequest *ARequest) {
                 const auto& LServerContext = CurrentServer().Value();
                 BTC.StatusTime = Now();
                 BTC.Status = CKeyContext::ksFetching;
                 CString URI("/api/v1/key?type=BTC-PUBLIC&name=KEY");
                 URI << m_KeyIndex + 1;
-                CRequest::Prepare(ARequest, "GET", URI.c_str());
+                CHTTPRequest::Prepare(ARequest, "GET", URI.c_str());
             };
 
             auto OnExecute = [this, &BTC](CTCPConnection *AConnection) {
@@ -1521,11 +1521,11 @@ namespace Apostol {
                 return true;
             };
 
-            auto OnException = [this, &BTC](CTCPConnection *AConnection, Delphi::Exception::Exception *AException) {
+            auto OnException = [&BTC](CTCPConnection *AConnection, const Delphi::Exception::Exception &E) {
                 auto LConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
                 auto LClient = dynamic_cast<CHTTPClient *> (LConnection->Client());
 
-                Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LClient->Host().c_str(), LClient->Port(), AException->what());
+                Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", LClient->Host().c_str(), LClient->Port(), E.what());
                 BTC.Status = CKeyContext::ksError;
             };
 
