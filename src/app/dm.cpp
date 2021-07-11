@@ -190,13 +190,32 @@ namespace Apostol {
                 m_ProcessType = ptHelper;
             }
 
-            if (Config()->IniFile().ReadBool("bitcoin", "testnet", false)) {
-                BitcoinConfig.VersionHD = hd_private::testnet;
-                BitcoinConfig.VersionEC = ec_private::testnet;
-                BitcoinConfig.VersionKey = payment_address::testnet_p2kh;
-                BitcoinConfig.VersionScript = payment_address::testnet_p2sh;
+            CIniFile Bitcoin(Config()->ConfPrefix() + "bitcoin.conf");
+
+            if (Bitcoin.ReadBool("main", "testnet", false)) {
                 BitcoinConfig.endpoint = "tcp://testnet.libbitcoin.net:19091";
+                BitcoinConfig.version_hd = hd_private::testnet;
+                BitcoinConfig.version_ec = ec_private::testnet;
+                BitcoinConfig.version_key = payment_address::testnet_p2kh;
+                BitcoinConfig.version_script = payment_address::testnet_p2sh;
+                BitcoinConfig.min_output = 1000;
+                BitcoinConfig.Miner.Fee = "3000";
                 BitcoinConfig.Symbol = "tBTC";
+            } else {
+                BitcoinConfig.endpoint = Bitcoin.ReadString("endpoint", "url", BitcoinConfig.endpoint);
+                BitcoinConfig.Miner.Fee = Bitcoin.ReadString("miner", "fee", "1%");
+                BitcoinConfig.Miner.min = Bitcoin.ReadInteger("miner", "min", 200);
+                BitcoinConfig.Miner.max = Bitcoin.ReadInteger("miner", "max", 2000);
+                BitcoinConfig.min_output = Bitcoin.ReadInteger("transaction", "min_output", 200);
+
+                if (BitcoinConfig.Miner.min < 0)
+                    BitcoinConfig.Miner.min = 0;
+
+                if (BitcoinConfig.Miner.max < 0)
+                    BitcoinConfig.Miner.max = 0;
+
+                if (BitcoinConfig.Miner.min > BitcoinConfig.Miner.max)
+                    BitcoinConfig.Miner.min = BitcoinConfig.Miner.max;
             }
 
             CApplication::StartProcess();

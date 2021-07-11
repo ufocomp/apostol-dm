@@ -1,8 +1,8 @@
 /*++
 
-Library name:
+Program name:
 
-  apostol-core
+  BitDeals
 
 Module Name:
 
@@ -156,26 +156,26 @@ namespace Apostol {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        enum CDealType { dtPrepayment = 0, dtPostpayment };
+        enum CDealType { dtPrepaid = 0, dtPostpaid };
         //--------------------------------------------------------------------------------------------------------------
 
         enum CFeedBackStatus { fsNegative = -1, fsNeutral = 0, fsPositive = 1 };
         //--------------------------------------------------------------------------------------------------------------
 
         enum CDealOrder { doCreate = 0, doCreated, doPay, doPaid, doComplete, doCompleted, doCancel, doCanceled,
-                doExecute, doExecuted, doDelete, doDeleted, doFeedback };
+                doExecute, doExecuted, doDelete, doDeleted, doFail, doFailed, doFeedback };
         //--------------------------------------------------------------------------------------------------------------
 
         typedef struct DealData {
 
             CDealOrder Order = doCreate;
-            CDealType Type = dtPrepayment;
+            CDealType Type = dtPrepaid;
 
             // Hidden value
-            CString Code;
+            CString Code {};
 
-            CString At;
-            CString Date;
+            CString At {};
+            CString Date {};
 
             struct seller {
                 CString Address;
@@ -190,27 +190,26 @@ namespace Apostol {
             } Customer;
 
             struct payment {
-                CString Address;
-                CString Until;
-                CString Sum;
+                CString Address {};
+                CString Until {};
+                CString Sum {};
             } Payment;
 
             struct feedback {
-                CString LeaveBefore;
-                CFeedBackStatus Status;
-                CString Refund;
-                CString Comments;
+                CString LeaveBefore {};
+                CFeedBackStatus Status = fsNeutral;
+                CString Refund {};
+                CString Comments {};
             } FeedBack;
 
             struct transaction {
-                CString Fee;
-                CString Key;
-                CString Hex;
-                TList<CString> Signatures;
+                CString Fee {};
+                CString Key {};
+                CString Hex {};
             } Transaction;
 
             struct error {
-                CString Message;
+                CString Message {};
             } Error;
 
             CString GetStringData() const;
@@ -273,11 +272,13 @@ namespace Apostol {
 
             static CDealType StringToType(const CString &Value);
             static CString TypeToString(CDealType Type);
+            static CString TypeCodeToString(const CString &Code);
 
             static CFeedBackStatus StringToFeedBackStatus(const CString &Value);
             static CString FeedBackStatusToString(CFeedBackStatus Status);
 
             CDealOrder Order() const { return m_Data.Order; }
+            void Order(CDealOrder Value) { m_Data.Order = Value; }
 
             CDealData &Data() { return m_Data; }
             const CDealData &Data() const { return m_Data; }
@@ -285,7 +286,7 @@ namespace Apostol {
             static void SetOrder(YAML::Node &Node, CDealOrder Order);
 
             static void AddFeedback(YAML::Node &Node, CFeedBackStatus Status, const CString &Comments);
-            static void AddTransaction(YAML::Node &Node, const transaction &tx, const CPrivateList &Secrets);
+            static void AddTransaction(YAML::Node &Node, const transaction &tx);
             static void AddError(YAML::Node &Node, const CString &Message);
 
             CDeal& operator<< (const YAML::Node &node) {

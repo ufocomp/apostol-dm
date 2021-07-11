@@ -15,7 +15,7 @@ message(STATUS "Project description: ${PROJECT_DESCRIPTION}")
 set(INSTALL_AS_ROOT         ON  CACHE BOOL "Install as root")
 set(WITH_POSTGRESQL         OFF CACHE BOOL "Build with PostgreSQL")
 set(WITH_SQLITE3            OFF CACHE BOOL "Build with Sqlite3")
-set(WITH_CURL               ON  CACHE BOOL "Build with cURL")
+set(WITH_CURL               OFF CACHE BOOL "Build with cURL")
 set(WITH_BITCOIN_CLIENT     OFF CACHE BOOL "Build with libbitcoin-client")
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -41,14 +41,28 @@ add_custom_target(
         -P ${CMAKE_SOURCE_DIR}/AutoVersion.cmake
 )
 
+set(PROJECT_LIB_DIR "src/lib")
+
 # Delphi classes for C++
 # ----------------------------------------------------------------------------------------------------------------------
+set(DELPHI_LIB_NAME delphi)
+set(DELPHI_LIB_DIR "${PROJECT_LIB_DIR}/${DELPHI_LIB_NAME}")
+
+# -Iinclude
+include_directories(${DELPHI_LIB_DIR}/include)
+include_directories(${DELPHI_LIB_DIR}/src)
+
 add_compile_options("-DDELPHI_LIB_EXPORTS")
 add_compile_options(-DWWWServerName="${PROJECT_DESCRIPTION}")
 
 if (WITH_POSTGRESQL)
     set(PQ_LIB_NAME "pq")
     add_compile_options("-DWITH_POSTGRESQL")
+endif()
+
+if (WITH_SSL)
+    set(SSL_LIB_NAME "ssl")
+    add_compile_options("-DWITH_SSL")
 endif()
 
 if (WITH_SQLITE3)
@@ -61,13 +75,7 @@ if (WITH_CURL)
     add_compile_options("-DWITH_CURL")
 endif()
 
-set(DELPHI_LIB_DIR "src/lib/delphi")
-
 add_subdirectory(${DELPHI_LIB_DIR})
-
-# -Iinclude
-include_directories(${DELPHI_LIB_DIR}/include)
-include_directories(${DELPHI_LIB_DIR}/src)
 
 # Find PkgConfig
 #------------------------------------------------------------------------------
@@ -79,6 +87,30 @@ set( libdir "\${exec_prefix}/lib" )
 set( includedir "\${exec_prefix}/include" )
 
 set( pkgconfigdir "${libdir}/pkgconfig" CACHE PATH "Path to pkgconfig directory." )
+
+# Find dl
+#------------------------------------------------------------------------------
+if ((${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
+    find_package( Dl REQUIRED )
+
+    message(STATUS "Dl libs: ${dl_LIBS}")
+    message(STATUS "Dl libraries: ${dl_LIBRARIES}")
+endif()
+
+# rapidxml
+# ----------------------------------------------------------------------------------------------------------------------
+include_directories(${PROJECT_LIB_DIR}/rapidxml)
+file(GLOB lib_files ${lib_files} ${PROJECT_LIB_DIR}/rapidxml/*.hpp)
+
+# picojson
+# ----------------------------------------------------------------------------------------------------------------------
+include_directories(${PROJECT_LIB_DIR}/picojson)
+file(GLOB lib_files ${lib_files} ${PROJECT_LIB_DIR}/picojson/*.h)
+
+# jwt-cpp
+# ----------------------------------------------------------------------------------------------------------------------
+include_directories(${PROJECT_LIB_DIR}/jwt-cpp)
+file(GLOB lib_files ${lib_files} ${PROJECT_LIB_DIR}/jwt-cpp/*.h)
 
 # Find boost
 #------------------------------------------------------------------------------
@@ -103,12 +135,13 @@ add_definitions( -DGPG_COMPATIBLE )
 # Find Bitcoin
 #------------------------------------------------------------------------------
 
-# set(BITCOIN_VERSION "4.0.0")
-set(BITCOIN_VERSION "3.6.0")
+#set(BITCOIN_VERSION "3.6.0")
+set(BITCOIN_VERSION "3.7.0")
+#set(BITCOIN_VERSION "4.0.0")
 
 #add_definitions( -DWITH_ICU )
 
-if ( ${BITCOIN_VERSION} VERSION_LESS "4.0.0" )
+if ( ${BITCOIN_VERSION} VERSION_LESS "3.7.0" )
 
     set(BITCOIN_LIB_NAME bitcoin)
 
@@ -120,6 +153,13 @@ if ( ${BITCOIN_VERSION} VERSION_LESS "4.0.0" )
 
 else()
 
+    if ( ${BITCOIN_VERSION} VERSION_EQUAL "4.0.0" )
+        add_definitions(-DBITCOIN_VERSION_4)
+    else()
+        add_definitions(-DBITCOIN_VERSION_3_7_x)
+    endif()
+
+    add_definitions(-DBITCOIN_LIB_NAME="bitcoin-system")
     set(BITCOIN_LIB_NAME bitcoin-system)
 
     find_package(Bitcoin-System ${BITCOIN_VERSION} REQUIRED)
@@ -140,15 +180,6 @@ if (WITH_BITCOIN_CLIENT)
     message(STATUS "Bitcoin-Client headers: ${bitcoin_client_INCLUDE_DIRS}")
     message(STATUS "Bitcoin-Client directory: ${bitcoin_client_LIBRARY_DIRS}")
     message(STATUS "Bitcoin-Client libraries: ${bitcoin_client_LIBRARIES}")
-endif()
-
-# Find dl
-#------------------------------------------------------------------------------
-if ((${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
-    find_package( Dl REQUIRED )
-
-    message(STATUS "Dl libs: ${dl_LIBS}")
-    message(STATUS "Dl libraries: ${dl_LIBRARIES}")
 endif()
 
 # Define project common includes directories
@@ -221,6 +252,7 @@ target_compile_definitions(${CORE_LIB_NAME} PUBLIC
         APP_ERROR_LOG_FILE="logs/error.log"
         APP_ACCESS_LOG_FILE="logs/access.log"
         APP_POSTGRES_LOG_FILE="logs/postgres.log"
+        APP_STREAM_LOG_FILE="logs/stream.log"
         APP_DOC_ROOT="www/"
         )
 

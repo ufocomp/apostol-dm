@@ -1,16 +1,12 @@
 /*++
 
-Library name:
-
-  apostol-core
-
 Module Name:
 
   Bitcoin.hpp
 
 Notices:
 
-  Apostol Core
+  Bitcoin library
 
 Author:
 
@@ -21,8 +17,8 @@ Author:
 
 --*/
 
-#ifndef APOSTOL_BITCOIN_BITCOIN_HPP
-#define APOSTOL_BITCOIN_BITCOIN_HPP
+#ifndef APOSTOL_BITCOIN_HPP
+#define APOSTOL_BITCOIN_HPP
 
 #ifdef BITCOIN_VERSION_4
 
@@ -56,7 +52,12 @@ using namespace bc::client;
 
 #else
 
+#ifdef BITCOIN_VERSION_3_7_x
+#include <bitcoin/system.hpp>
+#else
 #include <bitcoin/bitcoin.hpp>
+#endif
+
 #include <bitcoin/protocol.hpp>
 
 #include <bitcoin/client/define.hpp>
@@ -91,6 +92,7 @@ using namespace bc::client;
 //----------------------------------------------------------------------------------------------------------------------
 
 #define BX_NO_TRANSFERS_FOUND "No transfers found on account: %s."
+#define BX_INVALID_SECRET_KEY_COUNT "Invalid count of secret keys (2 or 3 expected)."
 #define BX_INSUFFICIENT_FUNDS "Insufficient funds on account: %s."
 #define BX_INSUFFICIENT_FEE "Insufficient transaction fee on account: %s."
 //----------------------------------------------------------------------------------------------------------------------
@@ -135,14 +137,27 @@ namespace Apostol {
         typedef TList<ec_private> CPrivateList;
         //--------------------------------------------------------------------------------------------------------------
 
-        typedef struct CBitcoinConfig {
-            uint64_t VersionHD = hd_private::mainnet;
-            uint16_t VersionEC = ec_private::mainnet;
-            uint8_t VersionKey = payment_address::mainnet_p2kh;
-            uint8_t VersionScript = payment_address::mainnet_p2sh;
+        struct CTransactionFee {
+            CString Fee;
+            uint_t min;
+            uint_t max;
+        };
+
+        struct CBitcoinConfig {
             std::string endpoint = "tcp://mainnet.libbitcoin.net:9091";
+
+            uint64_t version_hd = hd_private::mainnet;
+            uint16_t version_ec = ec_private::mainnet;
+            uint8_t version_key = payment_address::mainnet_p2kh;
+            uint8_t version_script = payment_address::mainnet_p2sh;
+
+            CTransactionFee Miner {"1%", 200, 2000};
+
+            uint_t min_output = 200;
+
             CString Symbol = "BTC";
-        } CBitcoinConfig, *PBitcoinConfig;
+
+        };
         //--------------------------------------------------------------------------------------------------------------
 
         extern CBitcoinConfig BitcoinConfig;
@@ -324,8 +339,16 @@ namespace Apostol {
             explicit CWitness(uint8_t signatures);
 
             CWitness(const ec_private& key1, const ec_private& key2);
+            CWitness(const ec_private& key1, const ec_private& key2, const ec_private& key3);
             CWitness(const ec_private& key1, const ec_private& key2, const ec_public& key3);
+            CWitness(const ec_private& key1, const ec_private& key2, const ec_private& key3, const ec_public& key4);
             CWitness(const ec_public& key1, const ec_public& key2, const ec_public& key3);
+
+            void make(const ec_private& key1, const ec_private& key2);
+            void make(const ec_private& key1, const ec_private& key2, const ec_private& key3);
+            void make(const ec_private& key1, const ec_private& key2, const ec_public& key3);
+            void make(const ec_private& key1, const ec_private& key2, const ec_private& key3, const ec_public& key4);
+            void make(const ec_public& key1, const ec_public& key2, const ec_public& key3);
 
             void bind();
 
@@ -349,7 +372,7 @@ namespace Apostol {
 
         typedef struct CRecipient {
 
-            CString Address;
+            CString Address {};
             uint64_t Amount;
 
             CRecipient() {
@@ -413,7 +436,7 @@ namespace Apostol {
              * Initialization constructor.
              * @param[in]  value  The value to initialize with.
              */
-            raw(const data_chunk& value);
+            raw(data_chunk  value);
 
             /**
              * Copy constructor.
@@ -707,4 +730,4 @@ using namespace Apostol::Bitcoin;
 using namespace Apostol::Bech32;
 using namespace Apostol::SegWit;
 }
-#endif //APOSTOL_BITCOIN_BITCOIN_HPP
+#endif //APOSTOL_BITCOIN_HPP

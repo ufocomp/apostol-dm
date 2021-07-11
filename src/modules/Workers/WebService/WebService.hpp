@@ -86,12 +86,15 @@ namespace Apostol {
         class CWebService: public CApostolModule {
         private:
 
+            CProcessStatus m_Status;
+
             CServer m_DefaultServer;
 
             int m_SyncPeriod;
             int m_ServerIndex;
             int m_KeyIndex;
 
+            CDateTime m_FixedDate;
             CDateTime m_RandomDate;
 
             CKeyContext m_PGP;
@@ -100,18 +103,33 @@ namespace Apostol {
 
             CStringList m_BTCKeys;
 
-            CHTTPProxyManager *m_pProxyManager;
+            CProviders m_Providers;
+            CStringListPairs m_Tokens;
+
+            CHTTPProxyManager m_ProxyManager;
 
             CHTTPProxy *GetProxy(CHTTPServerConnection *AConnection);
 
             void InitMethods() override;
 
-            static bool CheckAuthorization(CHTTPServerConnection *AConnection, CAuthorization &Authorization);
+            static bool CheckAuthorizationData(CHTTPRequest *ARequest, CAuthorization &Authorization);
+            void VerifyToken(const CString &Token);
+
+            void FetchCerts(CProvider &Provider, const CString &Application);
+
+            void FetchProviders();
+            void CheckProviders();
 
             void RouteUser(CHTTPServerConnection *AConnection, const CString &Method, const CString &URI);
             void RouteDeal(CHTTPServerConnection *AConnection, const CString &Method, const CString &URI, const CString &Action);
 
             void RouteSignature(CHTTPServerConnection *AConnection);
+
+            void FetchAccessToken(const CString &URI, const CString &Assertion,
+                                  COnSocketExecuteEvent && OnDone, COnSocketExceptionEvent && OnFailed = nullptr);
+            void CreateAccessToken(const CProvider &Provider, const CString &Application, CStringList &Tokens);
+
+            static CString CreateToken(const CProvider& Provider, const CString &Application);
 
         protected:
 
@@ -143,17 +161,23 @@ namespace Apostol {
 
             explicit CWebService(CModuleProcess *AProcess);
 
-            ~CWebService() override;
+            ~CWebService() override = default;
 
             static class CWebService *CreateModule(CModuleProcess *AProcess) {
                 return new CWebService(AProcess);
             }
+
+            void Initialization(CModuleProcess *AProcess) override;
+
+            bool CheckAuthorization(CHTTPServerConnection *AConnection, CAuthorization &Authorization);
 
             void Heartbeat() override;
 
             bool Enabled() override;
 
             void FetchKeys();
+
+            void Reload();
 
             static void JsonStringToKey(const CString& jsonString, CString& Key);
 
@@ -169,6 +193,8 @@ namespace Apostol {
 
             static CDateTime GetRandomDate(int a, int b, CDateTime Date = Now());
 
+            static void LoadOAuth2(const CString &FileName, const CString &ProviderName, const CString &ApplicationName,
+                                   CProviders &Providers);
         };
     }
 }

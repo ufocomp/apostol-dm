@@ -1,16 +1,12 @@
 /*++
 
-Library name:
-
-  apostol-core
-
 Module Name:
 
   PGP.cpp
 
 Notices:
 
-  Apostol Core
+  PGP library
 
 Author:
 
@@ -215,8 +211,8 @@ namespace Apostol {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        bool CleartextSignature(const CString &Key, const CString &Pass, const CString &Hash, const CString &ClearText,
-                                CString &SignText) {
+        bool TryCleartextSignature(const CString &Key, const CString &Pass, const CString &Hash, const CString &ClearText,
+            CString &SignText) {
 
             const std::string key(Key);
             const std::string pass(Pass);
@@ -230,13 +226,19 @@ namespace Apostol {
             const OpenPGP::Sign::Args SignArgs(OpenPGP::SecretKey(key), pass,4, OpenPGP::Hash::NUMBER.at(hash));
             const OpenPGP::CleartextSignature signature = OpenPGP::Sign::cleartext_signature(SignArgs, text);
 
-            if (!signature.meaningful()) {
-                throw Delphi::Exception::Exception("PGP: Generated bad cleartext signature.");
+            if (signature.meaningful()) {
+                SignText << signature.write();
+                return true;
             }
 
-            SignText << signature.write();
+            return false;
+        }
+        //--------------------------------------------------------------------------------------------------------------
 
-            return true;
+        void CleartextSignature(const CString &Key, const CString &Pass, const CString &Hash, const CString &ClearText,
+                CString &SignText) {
+            if (!TryCleartextSignature(Key, Pass, Hash, ClearText, SignText))
+                throw Delphi::Exception::Exception("PGP: Generated bad cleartext signature.");
         }
         //--------------------------------------------------------------------------------------------------------------
 

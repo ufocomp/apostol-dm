@@ -1,16 +1,12 @@
 /*++
 
-Library name:
-
-  apostol-core
-
 Module Name:
 
   Bitcoin.cpp
 
 Notices:
 
-  Apostol Core
+  Bitcoin library
 
 Author:
 
@@ -23,6 +19,8 @@ Author:
 
 #include "Core.hpp"
 #include "Bitcoin.hpp"
+
+#include <utility>
 
 extern "C++" {
 
@@ -321,7 +319,7 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         static data_chunk wrap(const wallet::wrapped_data& data) {
-            auto bytes = to_chunk(data.version);
+            auto bytes = data_chunk(data.version);
             extend_data(bytes, data.payload);
             append_checksum(bytes);
             return bytes;
@@ -1056,34 +1054,83 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         CWitness::CWitness(const ec_private &key1, const ec_private &key2): CWitness() {
-            m_secrets.push_back(key1);
-            m_secrets.push_back(key2);
+            make(key1, key2);
+            bind();
+        }
+        //--------------------------------------------------------------------------------------------------------------
 
-            m_keys.push_back(key1.to_public());
-            m_keys.push_back(key2.to_public());
+        CWitness::CWitness(const ec_private &key1, const ec_private &key2, const ec_private &key3): CWitness() {
+            make(key1, key2, key3);
+            bind();
+        }
+        //--------------------------------------------------------------------------------------------------------------
 
+        CWitness::CWitness(const ec_private &key1, const ec_private &key2, const ec_private &key3, const ec_public& key4): CWitness() {
+            make(key1, key2, key3, key4);
             bind();
         }
         //--------------------------------------------------------------------------------------------------------------
 
         CWitness::CWitness(const ec_private &key1, const ec_private &key2, const ec_public &key3): CWitness() {
+            make(key1, key2, key3);
+            bind();
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        CWitness::CWitness(const ec_public &key1, const ec_public &key2, const ec_public &key3): CWitness() {
+            make(key1, key2, key3);
+            bind();
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWitness::make(const ec_private &key1, const ec_private &key2) {
+            m_secrets.push_back(key1);
+            m_secrets.push_back(key2);
+
+            m_keys.push_back(key1.to_public());
+            m_keys.push_back(key2.to_public());
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWitness::make(const ec_private &key1, const ec_private &key2, const ec_private &key3) {
+            m_secrets.push_back(key1);
+            m_secrets.push_back(key2);
+            m_secrets.push_back(key3);
+
+            m_keys.push_back(key1.to_public());
+            m_keys.push_back(key2.to_public());
+            m_keys.push_back(key3.to_public());
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWitness::make(const ec_private &key1, const ec_private &key2, const ec_public &key3) {
             m_secrets.push_back(key1);
             m_secrets.push_back(key2);
 
             m_keys.push_back(key1.to_public());
             m_keys.push_back(key2.to_public());
             m_keys.push_back(key3);
-
-            bind();
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        CWitness::CWitness(const ec_public &key1, const ec_public &key2, const ec_public &key3): CWitness() {
+        void CWitness::make(const ec_private &key1, const ec_private &key2, const ec_private &key3, const ec_public &key4) {
+            m_signatures = 3u;
+
+            m_secrets.push_back(key1);
+            m_secrets.push_back(key2);
+            m_secrets.push_back(key3);
+
+            m_keys.push_back(key1.to_public());
+            m_keys.push_back(key2.to_public());
+            m_keys.push_back(key3.to_public());
+            m_keys.push_back(key4);
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        void CWitness::make(const ec_public &key1, const ec_public &key2, const ec_public &key3) {
             m_keys.push_back(key1);
             m_keys.push_back(key2);
             m_keys.push_back(key3);
-
-            bind();
         }
         //--------------------------------------------------------------------------------------------------------------
 
@@ -1134,7 +1181,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        raw::raw(const data_chunk& value): value_(value) {
+        raw::raw(data_chunk value): value_(std::move(value)) {
 
         }
         //--------------------------------------------------------------------------------------------------------------

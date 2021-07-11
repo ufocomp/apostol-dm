@@ -1,16 +1,12 @@
 /*++
 
-Library name:
-
-  apostol-core
-
 Module Name:
 
   PGP.hpp
 
 Notices:
 
-  Apostol Core
+  PGP library
 
 Author:
 
@@ -29,8 +25,8 @@ using namespace OpenPGP;
 //----------------------------------------------------------------------------------------------------------------------
 #endif
 
-#ifndef APOSTOL_BITCOIN_PGP_HPP
-#define APOSTOL_BITCOIN_PGP_HPP
+#ifndef APOSTOL_PGP_HPP
+#define APOSTOL_PGP_HPP
 
 extern "C++" {
 
@@ -62,7 +58,10 @@ namespace Apostol {
             void ExportUID(CPGPUserIdList &List) const;
         };
 
-        bool CleartextSignature(const CString& Key, const CString &Pass, const CString &Hash, const CString& ClearText,
+        bool TryCleartextSignature(const CString& Key, const CString &Pass, const CString &Hash, const CString& ClearText,
+                                CString& SignText);
+
+        void CleartextSignature(const CString& Key, const CString &Pass, const CString &Hash, const CString& ClearText,
                                 CString& SignText);
 
 #ifdef USE_LIB_GCRYPT
@@ -401,4 +400,4 @@ namespace Apostol {
 using namespace Apostol::PGP;
 }
 
-#endif //APOSTOL_BITCOIN_PGP_HPP
+#endif //APOSTOL_PGP_HPP

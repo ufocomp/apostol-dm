@@ -1,8 +1,8 @@
 /*++
 
-Library name:
+Program name:
 
-  apostol-core
+  BitDeals
 
 Module Name:
 
@@ -173,6 +173,10 @@ namespace Apostol {
                 return doDelete;
             } else if (S == "deleted") {
                 return doDeleted;
+            } else if (S == "fail") {
+                return doFail;
+            } else if (S == "failed") {
+                return doFailed;
             } else if (S == "feedback") {
                 return doFeedback;
             } else {
@@ -207,6 +211,10 @@ namespace Apostol {
                     return "Delete";
                 case doDeleted:
                     return "Deleted";
+                case doFail:
+                    return "Fail";
+                case doFailed:
+                    return "Failed";
                 case doFeedback:
                     return "Feedback";
                 default:
@@ -216,26 +224,37 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         CDealType CDeal::StringToType(const CString &Value) {
-            const CString &Status = Value.Lower();
+            const auto &status = Value.Lower();
 
-            if (Status == "prepayment") {
-                return dtPrepayment;
-            } else if (Status == "postpayment") {
-                return dtPostpayment;
+            if (status.Find("prepaid") != CString::npos || status.Find("prepayment") != CString::npos) {
+                return dtPrepaid;
+            } else if (status.Find("postpaid") != CString::npos || status.Find("postpayment") != CString::npos) {
+                return dtPostpaid;
             } else {
-                throw ExceptionFrm(R"(Invalid order type value: "%s".)", Status.c_str());
+                throw ExceptionFrm(R"(Invalid order type value: "%s".)", status.c_str());
             }
         }
         //--------------------------------------------------------------------------------------------------------------
 
         CString CDeal::TypeToString(CDealType Type) {
             switch (Type) {
-                case dtPrepayment:
-                    return "Prepayment";
-                case dtPostpayment:
-                    return "Postpayment";
+                case dtPrepaid:
+                    return "Prepaid";
+                case dtPostpaid:
+                    return "Postpaid";
                 default:
                     return "Unknown";
+            }
+        }
+        //--------------------------------------------------------------------------------------------------------------
+
+        CString CDeal::TypeCodeToString(const CString &Code) {
+            if (Code == "prepaid.deal") {
+                return CString("Prepaid");
+            } else if (Code == "postpaid.deal") {
+                return CString("Postpaid");
+            } else {
+                throw ExceptionFrm(R"(Invalid type code value: "%s".)", Code.c_str());
             }
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -450,10 +469,6 @@ namespace Apostol {
                 const auto& transaction = deal["transaction"];
                 if (transaction) {
                     m_Data.Transaction.Hex = transaction["hex"].as<std::string>();
-
-                    const auto& signatures = transaction["signatures"];
-                    m_Data.Transaction.Signatures.Add(signatures[0].as<std::string>());
-                    m_Data.Transaction.Signatures.Add(signatures[1].as<std::string>());
                 }
 
                 const auto& error = deal["error"];
@@ -489,35 +504,16 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CDeal::AddTransaction(YAML::Node &Node, const transaction &tx, const CPrivateList &Secrets) {
+        void CDeal::AddTransaction(YAML::Node &Node, const transaction &tx) {
 
             YAML::Node Deal = Node["deal"];
             YAML::Node Transaction = Deal["transaction"];
-
-            signature sig0;
-            signature sig1;
 
             const auto& hex = encode_base16(tx.to_data(true, true));
 
             Transaction["hex"] = hex;
 
-            const raw data(hex);
-
-            sign_message(sig0, data, Secrets[0]);
-            sign_message(sig1, data, Secrets[1]);
-
-            const auto& enc0 = sig0.encoded();
-            const auto& enc1 = sig1.encoded();
-
-            YAML::Node Signatures = Transaction["signatures"];
-
-            Signatures[0] = enc0;
-            Signatures[1] = enc1;
-
             DebugMessage("tx: %s\n", hex.c_str());
-
-            DebugMessage("sig0: %s\n", enc0.c_str());
-            DebugMessage("sig1: %s\n", enc1.c_str());
         }
         //--------------------------------------------------------------------------------------------------------------
 
