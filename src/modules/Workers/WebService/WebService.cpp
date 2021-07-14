@@ -332,81 +332,6 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        void CWebService::VerifyToken(const CString &Token) {
-
-            const auto& GetSecret = [](const CProvider &Provider, const CString &Application) {
-                const auto &Secret = Provider.Secret(Application);
-                if (Secret.IsEmpty())
-                    throw ExceptionFrm("Not found secret for \"%s:%s\"", Provider.Name().c_str(), Application.c_str());
-                return Secret;
-            };
-
-            auto decoded = jwt::decode(Token);
-            const auto& aud = CString(decoded.get_audience());
-
-            CString Application;
-
-            const auto& Providers = Server().Providers();
-
-            const auto Index = OAuth2::Helper::ProviderByClientId(Providers, aud, Application);
-            if (Index == -1)
-                throw COAuth2Error(_T("Not found provider by Client ID."));
-
-            const auto& Provider = Providers[Index].Value();
-
-            const auto& iss = CString(decoded.get_issuer());
-
-            CStringList Issuers;
-            Provider.GetIssuers(Application, Issuers);
-            if (Issuers[iss].IsEmpty())
-                throw jwt::token_verification_exception("Token doesn't contain the required issuer.");
-
-            const auto& alg = decoded.get_algorithm();
-
-            const auto& caSecret = GetSecret(Provider, Application);
-
-            if (alg == "HS256") {
-                auto verifier = jwt::verify()
-                        .allow_algorithm(jwt::algorithm::hs256{caSecret});
-                verifier.verify(decoded);
-            } else if (alg == "HS384") {
-                auto verifier = jwt::verify()
-                        .allow_algorithm(jwt::algorithm::hs384{caSecret});
-                verifier.verify(decoded);
-            } else if (alg == "HS512") {
-                auto verifier = jwt::verify()
-                        .allow_algorithm(jwt::algorithm::hs512{caSecret});
-                verifier.verify(decoded);
-            }
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
-        bool CWebService::CheckAuthorizationData(CHTTPRequest *ARequest, CAuthorization &Authorization) {
-
-            const auto &caHeaders = ARequest->Headers;
-            const auto &caCookies = ARequest->Cookies;
-
-            const auto &caAuthorization = caHeaders["Authorization"];
-
-            if (caAuthorization.IsEmpty()) {
-
-                Authorization.Username = caHeaders["Session"];
-                Authorization.Password = caHeaders["Secret"];
-
-                if (Authorization.Username.IsEmpty() || Authorization.Password.IsEmpty())
-                    return false;
-
-                Authorization.Schema = CAuthorization::asBasic;
-                Authorization.Type = CAuthorization::atSession;
-
-            } else {
-                Authorization << caAuthorization;
-            }
-
-            return true;
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
         void CWebService::FetchCerts(CProvider &Provider, const CString &Application) {
 
             const auto& URI = Provider.CertURI(Application);
@@ -515,41 +440,45 @@ namespace Apostol {
         //--------------------------------------------------------------------------------------------------------------
 
         bool CWebService::DoProxyExecute(CTCPConnection *AConnection) {
-            auto pConnection = dynamic_cast<CHTTPClientConnection*> (AConnection);
-            auto pProxy = dynamic_cast<CHTTPProxy*> (pConnection->Client());
 
-            auto pServerRequest = pProxy->Connection()->Request();
-            auto pServerReply = pProxy->Connection()->Reply();
-            auto pProxyReply = pConnection->Reply();
+            auto pConnection = dynamic_cast<CHTTPClientConnection *> (AConnection);
+            auto pProxy = dynamic_cast<CHTTPProxy *> (pConnection->Client());
 
-            const auto& Format = pServerRequest->Params["payload"];
-            if (!Format.IsEmpty()) {
+            if (Assigned(pProxy) && (pProxy->Connection() != nullptr)) {
+                auto pProxyConnection = pProxy->Connection();
+                auto pServerRequest = pProxyConnection->Request();
+                auto pServerReply = pProxyConnection->Reply();
+                auto pProxyReply = pConnection->Reply();
 
-                if (Format == "html") {
-                    pServerReply->ContentType = CHTTPReply::html;
-                } else if (Format == "json") {
-                    pServerReply->ContentType = CHTTPReply::json;
-                } else if (Format == "xml") {
-                    pServerReply->ContentType = CHTTPReply::xml;
-                } else {
-                    pServerReply->ContentType = CHTTPReply::text;
-                }
+                const auto &caFormat = pServerRequest->Params["payload"];
+                if (!caFormat.IsEmpty()) {
 
-                if (pProxyReply->Status == CHTTPReply::ok) {
-                    if (!pProxyReply->Content.IsEmpty()) {
-                        const CJSON json(pProxyReply->Content);
-                        pServerReply->Content = base64_decode(json["payload"].AsString());
+                    if (caFormat == "html") {
+                        pServerReply->ContentType = CHTTPReply::html;
+                    } else if (caFormat == "json") {
+                        pServerReply->ContentType = CHTTPReply::json;
+                    } else if (caFormat == "xml") {
+                        pServerReply->ContentType = CHTTPReply::xml;
+                    } else {
+                        pServerReply->ContentType = CHTTPReply::text;
                     }
-                    pProxy->Connection()->SendReply(pProxyReply->Status, nullptr, true);
+
+                    if (pProxyReply->Status == CHTTPReply::ok) {
+                        if (!pProxyReply->Content.IsEmpty()) {
+                            const CJSON json(pProxyReply->Content);
+                            pServerReply->Content = base64_decode(json["payload"].AsString());
+                        }
+                        pProxyConnection->SendReply(pProxyReply->Status, nullptr, true);
+                    } else {
+                        pProxyConnection->SendStockReply(pProxyReply->Status, true);
+                    }
                 } else {
-                    pProxy->Connection()->SendStockReply(pProxyReply->Status, true);
-                }
-            } else {
-                if (pProxyReply->Status == CHTTPReply::ok) {
-                    pServerReply->Content = pProxyReply->Content;
-                    pProxy->Connection()->SendReply(pProxyReply->Status, nullptr, true);
-                } else {
-                    pProxy->Connection()->SendStockReply(pProxyReply->Status, true);
+                    if (pProxyReply->Status == CHTTPReply::ok) {
+                        pServerReply->Content = pProxyReply->Content;
+                        pProxyConnection->SendReply(pProxyReply->Status, nullptr, true);
+                    } else {
+                        pProxyConnection->SendStockReply(pProxyReply->Status, true);
+                    }
                 }
             }
 
@@ -563,18 +492,21 @@ namespace Apostol {
             auto pConnection = dynamic_cast<CHTTPClientConnection*> (AConnection);
             auto pProxy = dynamic_cast<CHTTPProxy*> (pConnection->Client());
 
-            auto pServerRequest = pProxy->Connection()->Request();
-            auto pServerReply = pProxy->Connection()->Reply();
+            if (Assigned(pProxy) && (pProxy->Connection() != nullptr)) {
+                auto pProxyConnection = pProxy->Connection();
+                auto pServerRequest = pProxyConnection->Request();
+                auto pServerReply = pProxyConnection->Reply();
 
-            const auto& Format = pServerRequest->Params["format"];
-            if (Format == "html") {
-                pServerReply->ContentType = CHTTPReply::html;
-            }
+                const auto &Format = pServerRequest->Params["format"];
+                if (Format == "html") {
+                    pServerReply->ContentType = CHTTPReply::html;
+                }
 
-            try {
-                pProxy->Connection()->SendStockReply(CHTTPReply::bad_gateway, true);
-            } catch (...) {
+                try {
+                    pProxyConnection->SendStockReply(CHTTPReply::bad_gateway, true);
+                } catch (...) {
 
+                }
             }
 
             Log()->Error(APP_LOG_EMERG, 0, "[%s:%d] %s", pProxy->Host().c_str(), pProxy->Port(),
@@ -586,10 +518,11 @@ namespace Apostol {
             auto pConnection = dynamic_cast<CHTTPClientConnection*> (AHandler->Binding());
             auto pProxy = dynamic_cast<CHTTPProxy*> (pConnection->Client());
 
-            if (Assigned(pProxy)) {
-                auto pReply = pProxy->Connection()->Reply();
+            if (Assigned(pProxy) && (pProxy->Connection() != nullptr)) {
+                auto pProxyConnection = pProxy->Connection();
+                auto pReply = pProxyConnection->Reply();
                 ExceptionToJson(0, E, pReply->Content);
-                pProxy->Connection()->SendReply(CHTTPReply::internal_server_error, nullptr, true);
+                pProxyConnection->SendReply(CHTTPReply::internal_server_error, nullptr, true);
             }
 
             Log()->Error(APP_LOG_EMERG, 0, E.what());
@@ -641,42 +574,7 @@ namespace Apostol {
         }
         //--------------------------------------------------------------------------------------------------------------
 
-        bool CWebService::CheckAuthorization(CHTTPServerConnection *AConnection, CAuthorization &Authorization) {
-
-            auto pRequest = AConnection->Request();
-
-            try {
-                if (CheckAuthorizationData(pRequest, Authorization)) {
-                    if (Authorization.Schema == CAuthorization::asBearer) {
-                        VerifyToken(Authorization.Token);
-                        return true;
-                    }
-                }
-
-                if (Authorization.Schema == CAuthorization::asBasic)
-                    AConnection->Data().Values("Authorization", "Basic");
-
-                ReplyError(AConnection, CHTTPReply::unauthorized, "Unauthorized.");
-            } catch (jwt::token_expired_exception &e) {
-                ReplyError(AConnection, CHTTPReply::forbidden, e.what());
-            } catch (jwt::token_verification_exception &e) {
-                ReplyError(AConnection, CHTTPReply::bad_request, e.what());
-            } catch (CAuthorizationError &e) {
-                ReplyError(AConnection, CHTTPReply::bad_request, e.what());
-            } catch (std::exception &e) {
-                ReplyError(AConnection, CHTTPReply::bad_request, e.what());
-            }
-
-            return false;
-        }
-        //--------------------------------------------------------------------------------------------------------------
-
         void CWebService::RouteUser(CHTTPServerConnection *AConnection, const CString& Method, const CString& URI) {
-
-            CAuthorization Authorization;
-            if (!CheckAuthorization(AConnection, Authorization)) {
-                return;
-            }
 
             auto pProxy = GetProxy(AConnection);
             auto pServerRequest = AConnection->Request();
@@ -684,7 +582,8 @@ namespace Apostol {
 
             const auto& caModuleAddress = Config()->IniFile().ReadString("module", "address", "");
 
-            const auto& caOrigin = pServerRequest->Headers.Values("origin");
+            const auto& caAuthorization = pServerRequest->Headers["authorization"];
+            const auto& caOrigin = pServerRequest->Headers["origin"];
             const auto& caUserAddress = pServerRequest->Params["address"];
 
             const auto& pgpValue = pServerRequest->Params["pgp"];
@@ -882,11 +781,14 @@ namespace Apostol {
             pProxyRequest->Clear();
 
             pProxyRequest->Location = pServerRequest->Location;
-            pProxyRequest->CloseConnection = true;
+            pProxyRequest->CloseConnection = false;
             pProxyRequest->ContentType = CHTTPRequest::json;
             pProxyRequest->Content << Json;
 
             CHTTPRequest::Prepare(pProxyRequest, Method.c_str(), URI.c_str());
+
+            if (!caAuthorization.IsEmpty())
+                pProxyRequest->AddHeader("Authorization", caAuthorization);
 
             if (!caModuleAddress.IsEmpty())
                 pProxyRequest->AddHeader("Module-Address", caModuleAddress);
@@ -894,6 +796,7 @@ namespace Apostol {
             if (!caOrigin.IsEmpty())
                 pProxyRequest->AddHeader("Origin", caOrigin);
 
+            AConnection->CloseConnection(false);
             pProxy->Active(true);
         }
         //--------------------------------------------------------------------------------------------------------------
@@ -961,11 +864,6 @@ namespace Apostol {
 
         void CWebService::RouteDeal(CHTTPServerConnection *AConnection, const CString &Method, const CString &URI, const CString &Action) {
 
-            CAuthorization Authorization;
-            if (!CheckAuthorization(AConnection, Authorization)) {
-                return;
-            }
-
             auto pProxy = GetProxy(AConnection);
             auto pServerRequest = AConnection->Request();
             auto pProxyRequest = pProxy->Request();
@@ -977,7 +875,8 @@ namespace Apostol {
             if (checkFee == -1)
                 throw ExceptionFrm("Invalid module fee value: %s", caModuleFee.c_str());
 
-            const auto& caOrigin = pServerRequest->Headers.Values("origin");
+            const auto& caAuthorization = pServerRequest->Headers["authorization"];
+            const auto& caOrigin = pServerRequest->Headers["origin"];
             const auto& caUserAddress = pServerRequest->Params["address"];
 
             const auto& pgpValue = pServerRequest->Params["pgp"];
@@ -1345,6 +1244,9 @@ namespace Apostol {
 
             CHTTPRequest::Prepare(pProxyRequest, Method.c_str(), URI.c_str());
 
+            if (!caAuthorization.IsEmpty())
+                pProxyRequest->AddHeader("Authorization", caAuthorization);
+
             if (!caModuleAddress.IsEmpty())
                 pProxyRequest->AddHeader("Module-Address", caModuleAddress);
 
@@ -1354,16 +1256,12 @@ namespace Apostol {
             if (!caOrigin.IsEmpty())
                 pProxyRequest->AddHeader("Origin", caOrigin);
 
+            AConnection->CloseConnection(false);
             pProxy->Active(true);
         }
         //--------------------------------------------------------------------------------------------------------------
 
         void CWebService::RouteSignature(CHTTPServerConnection *AConnection) {
-
-            CAuthorization Authorization;
-            if (!CheckAuthorization(AConnection, Authorization)) {
-                return;
-            }
 
             auto pRequest = AConnection->Request();
             auto pReply = AConnection->Reply();
@@ -1381,9 +1279,9 @@ namespace Apostol {
             CString message;
             CJSON Json(jvtObject);
 
-            const auto& ContentType = pRequest->Headers.Values(_T("content-type"));
+            const auto& caContentType = pRequest->Headers["content-type"];
 
-            if (ContentType.Find("application/x-www-form-urlencoded") == 0) {
+            if (caContentType.Find("application/x-www-form-urlencoded") == 0) {
                 const CStringList &FormData = pRequest->FormData;
 
                 const auto& caClearText = FormData["message"];
@@ -1391,7 +1289,7 @@ namespace Apostol {
 
                 const auto bVerified = CheckVerifyPGPSignature(VerifyPGPSignature(caClearText, caServerKey, message), message);
                 Json.Object().AddPair("verified", bVerified);
-            } else if (ContentType.Find("multipart/form-data") == 0) {
+            } else if (caContentType.Find("multipart/form-data") == 0) {
                 CFormData FormData;
                 CHTTPRequestParser::ParseFormData(pRequest, FormData);
 
@@ -1400,7 +1298,7 @@ namespace Apostol {
 
                 const auto bVerified = CheckVerifyPGPSignature(VerifyPGPSignature(caClearText, caServerKey, message), message);
                 Json.Object().AddPair("verified", bVerified);
-            } else if (ContentType.Find("application/json") == 0) {
+            } else if (caContentType.Find("application/json") == 0) {
                 const CJSON jsonData(pRequest->Content);
 
                 const auto& caClearText = jsonData["message"].AsString();
@@ -1470,7 +1368,13 @@ namespace Apostol {
 
                     AConnection->SendReply(CHTTPReply::ok);
 
-                } else if (caCommand == "user" && (caAction == "help" || caAction == "status")) {
+                } else if (caCommand == "help") {
+
+                    pRequest->Content.Clear();
+
+                    RouteUser(AConnection, "GET", sRoute);
+
+                } else if (caCommand == "user" && caAction == "status") {
 
                     pRequest->Content.Clear();
 

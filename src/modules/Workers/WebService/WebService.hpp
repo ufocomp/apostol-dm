@@ -112,9 +112,6 @@ namespace Apostol {
 
             void InitMethods() override;
 
-            static bool CheckAuthorizationData(CHTTPRequest *ARequest, CAuthorization &Authorization);
-            void VerifyToken(const CString &Token);
-
             void FetchCerts(CProvider &Provider, const CString &Application);
 
             void FetchProviders();
@@ -168,8 +165,6 @@ namespace Apostol {
             }
 
             void Initialization(CModuleProcess *AProcess) override;
-
-            bool CheckAuthorization(CHTTPServerConnection *AConnection, CAuthorization &Authorization);
 
             void Heartbeat() override;
 
