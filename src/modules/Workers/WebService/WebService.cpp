@@ -1374,7 +1374,7 @@ namespace Apostol {
 
                     RouteUser(AConnection, "GET", sRoute);
 
-                } else if (caCommand == "user" && caAction == "status") {
+                } else if (caCommand == "account" && caAction == "status") {
 
                     pRequest->Content.Clear();
 
@@ -1462,7 +1462,7 @@ namespace Apostol {
 
             try {
 
-                if (caCommand == "user") {
+                if (caCommand == "account") {
 
                     RouteUser(AConnection, "POST", sRoute);
 
@@ -1628,19 +1628,7 @@ namespace Apostol {
                 PGP.StatusTime = Now();
                 PGP.Status = CKeyContext::ksFetching;
 
-                CJSON Content;
-                CJSONArray Fields;
-
-                Fields.Add("data");
-
-                Content.Object().AddPair("system", "pgp.system");
-                Content.Object().AddPair("client", PGP.Name.c_str());
-                Content.Object().AddPair("code", PGP.Name.c_str());
-                Content.Object().AddPair("fields", Fields);
-
-                ARequest->Content = Content.ToString();
-
-                CHTTPRequest::Prepare(ARequest, "POST", "/api/v1/key/public", "application/json");
+                CHTTPRequest::Prepare(ARequest, "GET", CString().Format("/api/v1/key/public?account=%s", PGP.Name.c_str()).c_str());
 
                 ARequest->AddHeader("Authorization", "Bearer " + m_Tokens[SYSTEM_PROVIDER_NAME]["access_token"]);
             };
@@ -1814,7 +1802,7 @@ namespace Apostol {
 
             if (m_Servers.Count() == 0) {
 #ifdef _DEBUG
-                int Index = m_Servers.AddPair("BM-2cXtL92m3CavBKx8qsV2LbZtAU3eQxW2rB", CServerContext("http://localhost:4977"));
+                int Index = m_Servers.AddPair("BM-2cXtL92m3CavBKx8qsV2LbZtAU3eQxW2rB", CServerContext("http://localhost:4988"));
                 m_Servers[Index].Value().PGP.Name = m_Servers[Index].Name();
 #else
                 m_Servers.Add(m_DefaultServer);

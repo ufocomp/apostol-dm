@@ -1,4 +1,4 @@
 {
-  "hosts": ["localhost:4977"],
-  "root": "/etc/bps/www"
+  "hosts": ["localhost:4999"],
+  "root": "/etc/dm/www"
 }

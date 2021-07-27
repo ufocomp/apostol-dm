@@ -1,7 +1,7 @@
 # API "Модуля сделок" системы учёта Bitcoin платежей.
 
 ## Общая информация
- * Базовая конечная точка (endpoint): [localhost:40977](http://localhost:40977)
+ * Базовая конечная точка (endpoint): [localhost:4999](http://localhost:4999)
  * Все конечные точки возвращают `JSON-объект`
  * Все поля, относящиеся ко времени и меткам времени, указаны в **миллисекундах**. 
 
@@ -31,8 +31,15 @@
     * `application/json` для `JSON`;
     * `text/plain` для `YAML` или `текста в произвольном формате`.
  * Параметры могут быть отправлены в любом порядке.
+
+## Доступ к API
+
+Доступ к API возможен только при наличии _**маркера доступа**_ или **_цифровой подписи_** методом HMAC-SHA256.
+
+[Подробнее](https://github.com/ufocomp/db-platform/wiki/%D0%94%D0%BE%D1%81%D1%82%D1%83%D0%BF-%D0%BA-API). 
  
 ## Общие конечные точки
+
 ### Тест подключения
  
 ```http request
@@ -66,7 +73,7 @@ GET /api/v1/time
  
 ## Конечные точки
  
-Конечные точки разделены на две категории: `Пользователи (user)` и `Сделки (deal)`. 
+Конечные точки разделены на две категории: `Пользователи (account)` и `Сделки (deal)`. 
 
 Обработка запросов выполняется на стороне `Дополнительного сервера (ДС)`. 
 Поэтому `Модуль сделок` формирует **транспортный пакет** в виде `JSON-объекта` и отправляет его на `ДС`.
@@ -218,10 +225,10 @@ deal:
 
 #### Помощь  
 ```http request
-GET /api/v1/user/help
+GET /api/v1/help
 ```
 ```http request
-POST /api/v1/user/help
+POST /api/v1/help
 ```
 Получить справочную информацию по командам регистрации и обновления данных учётной записи.
  
@@ -232,7 +239,7 @@ POST /api/v1/user/help
 
 Запрос:
 ```http request
-GET /api/v1/user/help?payload=html
+GET /api/v1/help?payload=html
 ```
 
 Ответ (содержимое `payload`):
@@ -252,11 +259,11 @@ Usage: Send a message in accordance with the format.
 Available actions: 
 
   <b>help</b>         : send this help
-  <b>status</b>       : show user account data
-  <b>new</b>          : create user account
-  <b>add</b>          : adding data to a user account (adding missing data)
-  <b>update</b>       : updating user account data
-  <b>delete</b>       : delete user account
+  <b>status</b>       : show account data
+  <b>new</b>          : create account
+  <b>add</b>          : adding data to a account (adding missing data)
+  <b>update</b>       : updating account data
+  <b>delete</b>       : delete account
 
 The system has an AI and can determine the action itself.
 But you can help the AI and indicate the action explicitly in the message subject.
@@ -305,10 +312,10 @@ Templates:
 
 #### Статус
 ```http request
-GET /api/v1/user/status
+GET /api/v1/account/status
 ```
 ```http request
-POST /api/v1/user/status
+POST /api/v1/account/status
 ```
 Получить статус учётной записи пользователя.
  
@@ -319,7 +326,7 @@ POST /api/v1/user/status
 
 Запрос:
 ```http request
-GET /api/v1/user/status?address=null
+GET /api/v1/account/status?address=null
 ```
 
 Ответ:
@@ -337,7 +344,7 @@ GET /api/v1/user/status?address=null
 
 #### Новый
 ```http request
-POST /api/v1/user/new
+POST /api/v1/account/new
 ```
 Зарегистрировать нового пользователя.
  
@@ -347,7 +354,7 @@ POST /api/v1/user/new
 
 #### Добавить
 ```http request
-POST /api/v1/user/add
+POST /api/v1/account/add
 ```
 Добавить данные в учётную запись пользователя.
  
@@ -357,7 +364,7 @@ POST /api/v1/user/add
 
 #### Обновить
 ```http request
-POST /api/v1/user/update
+POST /api/v1/account/update
 ```
 Обновить данные в учётной записи пользователя.
  
@@ -367,7 +374,7 @@ POST /api/v1/user/update
 
 #### Удалить
 ```http request
-POST /api/v1/user/delete
+POST /api/v1/account/delete
 ```
 Удалить учётную запись пользователя.
 
@@ -411,8 +418,8 @@ POST /api/v1/deal/complete
 
 * **HTTP Request:**
 ```http request
-POST /api/v1/user/new HTTP/1.1
-Host: localhost:40977
+POST /api/v1/account/new HTTP/1.1
+Host: localhost:4999
 Content-Type: application/x-www-form-urlencoded
 
 address=mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8&key=02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61
@@ -420,7 +427,7 @@ address=mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8&key=02ef68c191984433c8a730b8fa48a47ec
 
 * **curl command:**
 ```curl
-curl "http://localhost:40977/api/v1/user/new?payload=html" \
+curl "http://localhost:4999/api/v1/account/new?payload=html" \
   -X POST \
   -d "address=mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8&key=02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61" \
   -H "Content-Type: application/x-www-form-urlencoded"
@@ -428,8 +435,8 @@ curl "http://localhost:40977/api/v1/user/new?payload=html" \
 
 * **HTTP Request:**
 ```http request
-POST /api/v1/user/new HTTP/1.1
-Host: localhost:40977
+POST /api/v1/account/new HTTP/1.1
+Host: localhost:4999
 Content-Type: application/json
 
 {"address": "mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8", "key":  "02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61"}
@@ -437,7 +444,7 @@ Content-Type: application/json
 
 * **curl command:**
 ```curl
-curl "http://localhost:40977/api/v1/user/new?payload=html" \
+curl "http://localhost:4999/api/v1/account/new?payload=html" \
   -X POST \
   -d '{"address": "mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8", "key":  "02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61"}' \
   -H "Content-Type: application/json"
@@ -445,8 +452,8 @@ curl "http://localhost:40977/api/v1/user/new?payload=html" \
 
 * **HTTP Request:**
 ```http request
-POST /api/v1/user/new?payload=html HTTP/1.1
-Host: localhost:40977
+POST /api/v1/account/new?payload=html HTTP/1.1
+Host: localhost:4999
 Content-Type: text/plain
 
 mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8
@@ -455,7 +462,7 @@ mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8
 
 * **curl command:**
 ```curl
-curl "http://localhost:40977/api/v1/user/new?payload=html" \
+curl "http://localhost:4999/api/v1/account/new?payload=html" \
   -X POST \
   -d "mynFyJJkRhsbB6y1Q5kTgDGckVz2m9NKH8\n02ef68c191984433c8a730b8fa48a47ec016a0727e6d26cc0982c8900b39354f61" \
   -H "Content-Type: text/plain"
@@ -477,7 +484,7 @@ const init = {
     mode: "cors"
 };
 
-fetch('http://localhost:40977/api/v1/user/new', init)
+fetch('http://localhost:4999/api/v1/account/new', init)
     .then((response) => {
         return response.json();
     })

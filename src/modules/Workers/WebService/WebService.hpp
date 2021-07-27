@@ -25,8 +25,8 @@ Author:
 #define APOSTOL_WEBSERVICE_HPP
 //----------------------------------------------------------------------------------------------------------------------
 #define BPS_DEFAULT_SYNC_PERIOD 30
-#define BPS_SERVER_PORT 4977
-#define BPS_SERVER_URL "http://185.141.62.25:4977"
+#define BPS_SERVER_PORT 4988
+#define BPS_SERVER_URL "http://65.21.101.151:4988"
 #define BPS_BM_SERVER_ADDRESS "BM-2cX8y9u9yEi3fdqQfndx9F6NdR5Hv79add"
 //----------------------------------------------------------------------------------------------------------------------
 
